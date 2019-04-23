@@ -1,5 +1,7 @@
 package feign;
 
+import feign.target.UrlTarget;
+
 public abstract class Feign {
 
   public static FeignConfigurationBuilder builder() {
