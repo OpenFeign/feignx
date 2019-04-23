@@ -6,18 +6,25 @@ public abstract class Feign {
     return new FeignConfigurationBuilder();
   }
 
-  protected abstract <T> T create(Target<T> target);
+  protected abstract <T> T create(FeignConfiguration configuration);
 
   static class FeignConfigurationBuilder extends
-      AbstractFeignConfigurationBuilder<FeignConfigurationBuilder> {
+      AbstractFeignConfigurationBuilder<FeignConfigurationBuilder, FeignConfiguration> {
 
     public FeignConfigurationBuilder() {
       super(FeignConfigurationBuilder.class);
     }
 
     @Override
-    public <T> T target(Class<T> type, String uri) {
+    public FeignConfiguration build() {
+      return null;
+    }
+
+    <T> T target(Class<T> target, String uri) {
       return null;
     }
   }
+
+
+
 }

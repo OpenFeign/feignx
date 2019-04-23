@@ -1,28 +1,32 @@
 package feign;
 
-public abstract class AbstractFeignConfigurationBuilder<S extends AbstractFeignConfigurationBuilder<S>>
-    implements FeignConfiguration<S> {
+import feign.http.Client;
 
-  protected final S self;
+public abstract class AbstractFeignConfigurationBuilder
+    <B extends AbstractFeignConfigurationBuilder<B, C>, C extends FeignConfiguration>
+    implements FeignConfigurationBuilder<B, C> {
 
-  protected AbstractFeignConfigurationBuilder(Class<S> self) {
+  protected final B self;
+  protected Client client;
+
+  protected AbstractFeignConfigurationBuilder(Class<B> self) {
     this.self = self.cast(this);
   }
 
   @Override
-  public S client() {
-    return null;
+  public B client(Client client) {
+    this.client = client;
+    return this.self;
   }
 
   @Override
-  public S encoder() {
-    return null;
+  public B encoder() {
+    return this.self;
   }
 
   @Override
-  public S decoder() {
-    return null;
+  public B decoder() {
+    return this.self;
   }
 
-  public abstract <T> T target(Class<T> type, String uri);
 }

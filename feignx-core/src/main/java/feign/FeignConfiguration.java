@@ -1,11 +1,17 @@
 package feign;
 
-public interface FeignConfiguration<S extends FeignConfiguration<S>> {
+import feign.http.Client;
+import feign.http.RequestEncoder;
+import feign.http.ResponseDecoder;
 
-  S client();
+public interface FeignConfiguration {
 
-  S encoder();
+  Client getClient();
 
-  S decoder();
+  RequestEncoder getRequestEncoder();
+
+  ResponseDecoder getResponseDecoder();
+
+  Contract getContract();
 
 }

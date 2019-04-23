@@ -12,6 +12,7 @@ public class FeignTests {
 
     GitHub gitHub = Feign.builder()
         .target(GitHub.class, "https://api.github.com");
+
     assertThat(gitHub).isNotNull();
   }
 
