@@ -1,18 +1,13 @@
 package feign.target;
 
 import feign.Target;
-import feign.TargetMethod;
 import feign.support.Assert;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Objects;
 
 public abstract class AbstractTarget<T> implements Target<T> {
 
   private final Class<T> type;
   private final String name;
-  private final Map<String, TargetMethod> methodMap = new LinkedHashMap<>();
 
   protected AbstractTarget(Class<T> type) {
     Assert.isNotNull(type, "type is required.");
@@ -38,17 +33,25 @@ public abstract class AbstractTarget<T> implements Target<T> {
   }
 
   @Override
-  public Collection<TargetMethod> methods() {
-    return Collections.unmodifiableCollection(this.methodMap.values());
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof AbstractTarget)) {
+      return false;
+    }
+    AbstractTarget<?> that = (AbstractTarget<?>) obj;
+    return type.equals(that.type) &&
+        name.equals(that.name);
   }
 
   @Override
-  public TargetMethod method(String name) {
-    return this.methodMap.get(name);
+  public int hashCode() {
+    return Objects.hash(type, name);
   }
 
   @Override
-  public void method(String name, TargetMethod method) {
-    this.methodMap.put(name, method);
+  public String toString() {
+    return "AbstractTarget [" + "type=" + type + ", name='" + name + "']";
   }
 }

@@ -11,7 +11,7 @@ public final class Assert {
   }
 
   public static void isNotEmpty(String value, String message) {
-    if (value != null && !value.trim().isEmpty()) {
+    if (value == null || value.trim().isEmpty()) {
       throw new IllegalArgumentException(message);
     }
   }

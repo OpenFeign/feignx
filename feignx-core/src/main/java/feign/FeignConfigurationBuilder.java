@@ -10,5 +10,7 @@ public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder, 
 
   B client(Client client);
 
+  B target(Target<?> target);
+
   C build();
 }

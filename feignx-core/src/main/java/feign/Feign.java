@@ -1,32 +1,37 @@
 package feign;
 
+import feign.proxy.ProxyFeign;
 import feign.target.UrlTarget;
 
 public abstract class Feign {
 
-  public static FeignConfigurationBuilder builder() {
-    return new FeignConfigurationBuilder();
+  public static FeignConfigurationBuilderImpl builder() {
+    return new FeignConfigurationBuilderImpl();
   }
 
   protected abstract <T> T create(FeignConfiguration configuration);
 
-  static class FeignConfigurationBuilder extends
-      AbstractFeignConfigurationBuilder<FeignConfigurationBuilder, FeignConfiguration> {
+  static class FeignConfigurationBuilderImpl extends
+      AbstractFeignConfigurationBuilder<FeignConfigurationBuilderImpl, FeignConfiguration> {
 
-    public FeignConfigurationBuilder() {
-      super(FeignConfigurationBuilder.class);
+    FeignConfigurationBuilderImpl() {
+      super(FeignConfigurationBuilderImpl.class);
     }
 
     @Override
     public FeignConfiguration build() {
-      return null;
+      return new BaseFeignConfiguration(
+          this.client, null, null, null, this.target);
     }
 
-    <T> T target(Class<T> target, String uri) {
-      return null;
+    public <T> T target(Class<T> targetType, String uri) {
+      this.target(new UrlTarget<>(targetType, uri));
+
+      /* create a new ProxyFeign instance */
+      Feign feign = new ProxyFeign();
+      return feign.create(this.build());
     }
   }
-
 
 
 }

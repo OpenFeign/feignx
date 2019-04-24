@@ -14,4 +14,5 @@ public interface FeignConfiguration {
 
   Contract getContract();
 
+  <T> Target<T> getTarget();
 }

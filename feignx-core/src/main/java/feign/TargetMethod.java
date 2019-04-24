@@ -4,8 +4,8 @@ import feign.http.RequestSpecification;
 
 public interface TargetMethod {
 
-  RequestSpecification requestSpecification();
+  String name();
 
-  <R> R execute(Object[] args);
+  RequestSpecification requestSpecification();
 
 }

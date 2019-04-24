@@ -5,23 +5,23 @@ import java.net.URI;
 
 public class UrlTarget<T> extends AbstractTarget<T> {
 
-  private final String uri;
+  private final String url;
 
-  public UrlTarget(Class<T> type, String uri) {
+  public UrlTarget(Class<T> type, String url) {
     super(type);
-    Assert.isNotEmpty(uri, "uri is required.");
-    Assert.isTrue(uri, value -> URI.create(value).isAbsolute(), "uri must be absolute.");
-    this.uri = uri;
+    Assert.isNotEmpty(url, "url is required.");
+    Assert.isTrue(url, value -> URI.create(value).isAbsolute(), "url must be absolute.");
+    this.url = url;
   }
 
-  public UrlTarget(Class<T> type, String name, String uri) {
+  public UrlTarget(Class<T> type, String name, String url) {
     super(type, name);
-    Assert.isNotEmpty(uri, "uri is required.");
-    Assert.isTrue(uri, value -> URI.create(value).isAbsolute(), "uri must be absolute.");
-    this.uri = uri;
+    Assert.isNotEmpty(url, "url is required.");
+    Assert.isTrue(url, value -> URI.create(value).isAbsolute(), "url must be absolute.");
+    this.url = url;
   }
 
-  public String getUri() {
-    return uri;
+  public String getUrl() {
+    return url;
   }
 }

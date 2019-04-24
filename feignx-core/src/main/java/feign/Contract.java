@@ -1,7 +1,9 @@
 package feign;
 
+import java.util.Collection;
+
 public interface Contract {
 
-  void execute(Target<?> target);
+  Collection<TargetMethod> apply(Target<?> target);
 
 }

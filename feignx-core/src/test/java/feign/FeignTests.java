@@ -1,19 +1,29 @@
 package feign;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class FeignTests {
+class FeignTests {
 
   @Test
-  public void createTarget() {
+  void createTarget() {
+    GitHub gitHub = Feign.builder()
+        .target(GitHub.class, "https://api.github.com");
+    assertThat(gitHub).isNotNull();
+  }
 
+  @Test
+  void throwUnsupportedOperationException_whenMethodIsNotRegistered() {
     GitHub gitHub = Feign.builder()
         .target(GitHub.class, "https://api.github.com");
 
-    assertThat(gitHub).isNotNull();
+    /* the get repositories method is not annotated, thus not registered */
+    assertThrows(UnsupportedOperationException.class,
+        () -> gitHub.getRepositories("username"));
+
   }
 
   interface GitHub {
