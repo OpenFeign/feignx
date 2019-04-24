@@ -1,5 +1,6 @@
 package feign.proxy;
 
+import feign.TargetMethodHandler;
 import feign.Target;
 import feign.support.Assert;
 import java.lang.invoke.MethodHandle;
@@ -16,7 +17,7 @@ import java.lang.reflect.Method;
  *   JDK 11+.  Until a more complete solution appears, we will continue to use this approach.
  * </p>
  */
-public class GuardMethodHandler implements ProxyMethodHandler {
+public class GuardMethodHandler implements TargetMethodHandler {
 
   private final MethodHandle guardMethodHandle;
   private boolean bound = false;
@@ -57,9 +58,10 @@ public class GuardMethodHandler implements ProxyMethodHandler {
    *
    * @param proxy to bind to.
    */
-  void bind(Object proxy) {
+  GuardMethodHandler bind(Object proxy) {
     this.guardMethodHandle.bindTo(proxy);
     this.bound = true;
+    return this;
   }
 
   /**

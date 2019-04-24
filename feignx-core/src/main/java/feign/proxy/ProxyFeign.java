@@ -2,7 +2,9 @@ package feign.proxy;
 
 import feign.Feign;
 import feign.FeignConfiguration;
+import feign.impl.TargetMethodMetadata;
 import java.lang.reflect.Proxy;
+import java.util.Collection;
 
 /**
  * Feign implementation that creates a JDK Proxy for the {@link feign.Target} instance.
@@ -19,8 +21,12 @@ public class ProxyFeign extends Feign {
   @SuppressWarnings("unchecked")
   @Override
   protected <T> T create(FeignConfiguration configuration) {
+    /* apply the contract to the target */
+    Collection<TargetMethodMetadata> targetMethodMetadata =
+        configuration.getContract().apply(configuration.getTarget());
+
     /* wrap the provided target in a proxy */
-    ProxyTarget<T> proxyTarget = new ProxyTarget<>(configuration.getTarget());
+    ProxyTarget<T> proxyTarget = new ProxyTarget<>(configuration.getTarget(), targetMethodMetadata);
 
     /* create a new JDK Proxy for the Target */
     return (T) Proxy.newProxyInstance(

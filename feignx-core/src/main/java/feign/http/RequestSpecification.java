@@ -12,6 +12,8 @@ public interface RequestSpecification {
 
   RequestSpecification content(Object content);
 
+  RequestSpecification apply(Object[] args);
+
   Request build();
 
 }

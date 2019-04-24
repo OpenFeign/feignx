@@ -3,6 +3,10 @@ package feign;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import feign.contract.Header;
+import feign.contract.PathParam;
+import feign.contract.Request;
+import feign.http.Method;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +32,9 @@ class FeignTests {
 
   interface GitHub {
 
-    List<Repository> getRepositories(String username);
+    @Request(value = "/repos/{owner}",
+        headers = {@Header(name = "Accept", value = "application/json")})
+    List<Repository> getRepositories(@PathParam("owner") String owner);
 
     class Repository {
 

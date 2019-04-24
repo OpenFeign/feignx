@@ -1,10 +1,8 @@
 package feign.http;
 
-import feign.http.RequestSpecification;
+import java.util.function.Consumer;
 
 @FunctionalInterface
-public interface RequestEncoder {
-
-  void encode(RequestSpecification requestSpecification);
+public interface RequestEncoder extends Consumer<RequestSpecification> {
 
 }

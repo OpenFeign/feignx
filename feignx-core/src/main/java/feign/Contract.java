@@ -1,9 +1,10 @@
 package feign;
 
+import feign.impl.TargetMethodMetadata;
 import java.util.Collection;
 
 public interface Contract {
 
-  Collection<TargetMethod> apply(Target<?> target);
+  Collection<TargetMethodMetadata> apply(Target<?> target);
 
 }

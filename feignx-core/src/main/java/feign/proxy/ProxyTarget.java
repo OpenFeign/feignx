@@ -1,9 +1,12 @@
 package feign.proxy;
 
 import feign.Target;
+import feign.TargetMethodHandler;
+import feign.impl.TargetMethodMetadata;
 import feign.support.Assert;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,9 +14,9 @@ import java.util.Map;
  * A JDK Proxy {@link Target} implementation backed by an existing {@link Target} delegate.
  *
  * <p>
- *   Uses reflection to look over the {@link Target} delegate, registering any methods
- *   that have been identified by a {@link feign.Contract}.  Methods not registered bypass
- *   the proxy and are executed on the original object.
+ * Uses reflection to look over the {@link Target} delegate, registering any methods that have been
+ * identified by a {@link feign.Contract}.  Methods not registered bypass the proxy and are executed
+ * on the original object.
  * </p>
  */
 public class ProxyTarget<T> implements InvocationHandler, Target<T> {
@@ -23,14 +26,14 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   private static final String TO_STRING = "toString";
 
   private Target<T> delegate;
-  private Map<Method, ProxyMethodHandler> methodHandlerMap = new LinkedHashMap<>();
+  private Map<Method, TargetMethodHandler> methodHandlerMap = new LinkedHashMap<>();
 
   /**
    * Creates a new {@link ProxyTarget}.
    *
    * @param delegate to wrap.
    */
-  public ProxyTarget(Target<T> delegate) {
+  public ProxyTarget(Target<T> delegate, Collection<TargetMethodMetadata> methods) {
     Assert.isNotNull(delegate, "delegate is required.");
     this.delegate = delegate;
   }
@@ -58,22 +61,16 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     }
 
     /* only proxy methods that have been registered */
-    ProxyMethodHandler methodHandler = null;
+    TargetMethodHandler methodHandler;
     if (this.methodHandlerMap.containsKey(method)) {
       /* look for a method handler registered */
       methodHandler = this.methodHandlerMap.get(method);
     } else {
-      if (method.isDefault()) {
-        /* create a new Guard Method Handler and register it to the map */
-        GuardMethodHandler guardMethodHandler = new GuardMethodHandler(method, this);
+      /* create the handler */
+      methodHandler = this.getMethodHandler(method, this);
 
-        /* bind it to the proxy */
-        guardMethodHandler.bind(proxy);
-
-        /* add it to the map for later use */
-        this.methodHandlerMap.put(method, guardMethodHandler);
-        methodHandler = guardMethodHandler;
-      }
+      /* add it to the map for later use */
+      this.methodHandlerMap.put(method, methodHandler);
     }
 
     if (methodHandler != null) {
@@ -87,16 +84,24 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     }
   }
 
+  private TargetMethodHandler getMethodHandler(Method method, Object proxy) {
+    TargetMethodHandler methodHandler = null;
+    if (method.isDefault()) {
+      /* create a new Guard Method Handler and register it to the map */
+      methodHandler = new GuardMethodHandler(method, this)
+          .bind(proxy);
+    }
+    return methodHandler;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;
     }
-
     if (!Target.class.isAssignableFrom(obj.getClass())) {
       return false;
     }
-
     return this.delegate.equals(obj);
   }
 
