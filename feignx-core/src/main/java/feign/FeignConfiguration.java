@@ -1,8 +1,8 @@
 package feign;
 
-import feign.http.Client;
-import feign.http.RequestEncoder;
-import feign.http.ResponseDecoder;
+import feign.exception.ExceptionHandler;
+import java.util.List;
+import java.util.concurrent.Executor;
 
 public interface FeignConfiguration {
 
@@ -13,6 +13,12 @@ public interface FeignConfiguration {
   ResponseDecoder getResponseDecoder();
 
   Contract getContract();
+
+  Executor getExecutor();
+
+  List<RequestInterceptor> getRequestInterceptors();
+
+  ExceptionHandler getExceptionHandler();
 
   <T> Target<T> getTarget();
 }

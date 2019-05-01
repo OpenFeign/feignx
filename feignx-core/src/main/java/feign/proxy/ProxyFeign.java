@@ -2,7 +2,7 @@ package feign.proxy;
 
 import feign.Feign;
 import feign.FeignConfiguration;
-import feign.impl.TargetMethodMetadata;
+import feign.TargetMethodDefinition;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 
@@ -22,11 +22,11 @@ public class ProxyFeign extends Feign {
   @Override
   protected <T> T create(FeignConfiguration configuration) {
     /* apply the contract to the target */
-    Collection<TargetMethodMetadata> targetMethodMetadata =
+    Collection<TargetMethodDefinition> targetMethodMetadata =
         configuration.getContract().apply(configuration.getTarget());
 
     /* wrap the provided target in a proxy */
-    ProxyTarget<T> proxyTarget = new ProxyTarget<>(configuration.getTarget(), targetMethodMetadata);
+    ProxyTarget<T> proxyTarget = new ProxyTarget<>(targetMethodMetadata, configuration);
 
     /* create a new JDK Proxy for the Target */
     return (T) Proxy.newProxyInstance(

@@ -2,12 +2,12 @@ package feign.template;
 
 import feign.support.Assert;
 
-public abstract class AbstractTemplateParameter implements TemplateParameter {
+public class SimpleTemplateParameter implements TemplateParameter {
 
   private final String name;
   private final boolean encode;
 
-  protected AbstractTemplateParameter(String name, boolean encode) {
+  public SimpleTemplateParameter(String name, boolean encode) {
     Assert.isNotEmpty(name, "name is required");
     this.name = name;
     this.encode = encode;

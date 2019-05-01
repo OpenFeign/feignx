@@ -3,20 +3,24 @@ package feign;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import feign.FeignTests.GitHub.Repository;
 import feign.contract.Header;
-import feign.contract.PathParam;
+import feign.contract.Headers;
+import feign.contract.Param;
 import feign.contract.Request;
-import feign.http.Method;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class FeignTests {
 
   @Test
-  void createTarget() {
+  void createTarget_andExecuteRequest() {
     GitHub gitHub = Feign.builder()
         .target(GitHub.class, "https://api.github.com");
     assertThat(gitHub).isNotNull();
+
+    List<String> repositories = gitHub.getRepositories("openfeign");
+    assertThat(repositories).isNotEmpty();
   }
 
   @Test
@@ -26,15 +30,18 @@ class FeignTests {
 
     /* the get repositories method is not annotated, thus not registered */
     assertThrows(UnsupportedOperationException.class,
-        () -> gitHub.getRepositories("username"));
+        gitHub::getContributors);
 
   }
 
+  @Request("https://api.github.com")
   interface GitHub {
 
-    @Request(value = "/repos/{owner}",
-        headers = {@Header(name = "Accept", value = "application/json")})
-    List<Repository> getRepositories(@PathParam("owner") String owner);
+    @Request("/users/{owner}/repos")
+    @Headers({@Header(name = "Accept", value = "application/json")})
+    List<String> getRepositories(@Param("owner") String owner);
+
+    List<String> getContributors();
 
     class Repository {
 

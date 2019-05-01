@@ -1,19 +1,21 @@
 package feign.contract;
 
-import feign.http.Method;
+import feign.http.HttpMethod;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that provides the HTTP Method, URI template, and Headers to apply to this
+ * Annotation that provides the HTTP HttpMethod, URI template, and HttpHeader to apply to this
  * request.
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Inherited
 public @interface Request {
 
   /**
@@ -24,11 +26,11 @@ public @interface Request {
   String value();
 
   /**
-   * HTTP Method for this request.  Defaults to GET.
+   * HTTP HttpMethod for this request.  Defaults to GET.
    *
    * @return http method.
    */
-  Method method() default Method.GET;
+  HttpMethod method() default HttpMethod.GET;
 
   /**
    * Uri for the Request.  Alias for value.
@@ -38,9 +40,11 @@ public @interface Request {
   String uri() default "";
 
   /**
-   * Headers for this Request.
+   * Flag that determines if this request should follow any 3xx response codes automatically.
+   * Default is {@literal true}
    *
-   * @return an array of {@link Header}s
+   * @return if this request should follow redirect responses.
    */
-  Header[] headers() default {};
+  boolean followRedirects() default true;
+
 }

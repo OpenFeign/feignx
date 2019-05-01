@@ -6,20 +6,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 /**
- * Annotation for a Method Parameter value that maps to a URI template expression within the
- * path segment.
+ * Annotation that marks a given method parameter as the Request Body.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface PathParam {
-
-  /**
-   * Name of the Path Parameter.
-   *
-   * @return parameter name.
-   */
-  String value();
+public @interface Body {
 
 }

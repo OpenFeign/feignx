@@ -1,7 +1,14 @@
 package feign;
 
+import feign.contract.FeignContract;
+import feign.exception.ExceptionHandler.RethrowExceptionHandler;
+import feign.http.client.UrlConnectionClient;
+import feign.http.decoder.StringDecoder;
+import feign.http.encoder.StringEncoder;
+import feign.impl.AbstractFeignConfigurationBuilder;
+import feign.impl.BaseFeignConfiguration;
+import feign.impl.UriTarget;
 import feign.proxy.ProxyFeign;
-import feign.target.UrlTarget;
 
 public abstract class Feign {
 
@@ -16,16 +23,25 @@ public abstract class Feign {
 
     FeignConfigurationBuilderImpl() {
       super(FeignConfigurationBuilderImpl.class);
+
+      /* set our defaults */
+      this.contract = new FeignContract();
+      this.encoder = new StringEncoder();
+      this.decoder = new StringDecoder();
+      this.client = new UrlConnectionClient();
+      this.exceptionHandler = new RethrowExceptionHandler();
+      this.executor = Runnable::run;
     }
 
     @Override
     public FeignConfiguration build() {
       return new BaseFeignConfiguration(
-          this.client, null, null, null, this.target);
+          this.target, this.contract, this.encoder, this.interceptors, this.client, this.decoder,
+          this.exceptionHandler, this.executor);
     }
 
     public <T> T target(Class<T> targetType, String uri) {
-      this.target(new UrlTarget<>(targetType, uri));
+      this.target(new UriTarget<>(targetType, uri));
 
       /* create a new ProxyFeign instance */
       Feign feign = new ProxyFeign();

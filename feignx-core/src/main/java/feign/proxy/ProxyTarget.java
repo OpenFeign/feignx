@@ -1,9 +1,12 @@
 package feign.proxy;
 
+import feign.FeignConfiguration;
 import feign.Target;
 import feign.TargetMethodHandler;
-import feign.impl.TargetMethodMetadata;
-import feign.support.Assert;
+import feign.TargetMethodHandlerFactory;
+import feign.http.RequestSpecification;
+import feign.TargetMethodDefinition;
+import feign.impl.TypeDrivenMethodHandlerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -26,16 +29,21 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   private static final String TO_STRING = "toString";
 
   private Target<T> delegate;
+  private TargetMethodHandlerFactory methodHandlerFactory = new TypeDrivenMethodHandlerFactory();
   private Map<Method, TargetMethodHandler> methodHandlerMap = new LinkedHashMap<>();
+  private final FeignConfiguration configuration;
 
   /**
    * Creates a new {@link ProxyTarget}.
    *
-   * @param delegate to wrap.
+   * @param methods for this proxy to manage.
+   * @param configuration for this instance.
    */
-  public ProxyTarget(Target<T> delegate, Collection<TargetMethodMetadata> methods) {
-    Assert.isNotNull(delegate, "delegate is required.");
-    this.delegate = delegate;
+  public ProxyTarget(
+      Collection<TargetMethodDefinition> methods, FeignConfiguration configuration) {
+    this.delegate = configuration.getTarget();
+    this.configuration = configuration;
+    this.buildMethodHandlerMap(delegate, methods);
   }
 
   @Override
@@ -61,16 +69,19 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     }
 
     /* only proxy methods that have been registered */
-    TargetMethodHandler methodHandler;
+    TargetMethodHandler methodHandler = null;
     if (this.methodHandlerMap.containsKey(method)) {
       /* look for a method handler registered */
       methodHandler = this.methodHandlerMap.get(method);
     } else {
-      /* create the handler */
-      methodHandler = this.getMethodHandler(method, this);
+      /* default, static and non-annotated methods will not be in the map */
+      if (method.isDefault()) {
+        /* create the handler */
+        methodHandler = this.createGuardMethodHandler(method, this);
 
-      /* add it to the map for later use */
-      this.methodHandlerMap.put(method, methodHandler);
+        /* add it to the map for later use */
+        this.methodHandlerMap.put(method, methodHandler);
+      }
     }
 
     if (methodHandler != null) {
@@ -80,17 +91,39 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
       /* in our case, this means that the method is not implemented as we don't have a
        * handler for it. */
       throw new UnsupportedOperationException(
-          "Method [" + method.getName() + "] is not supported by this implementation.");
+          "HttpMethod [" + method.getName() + "] is not supported by this implementation.");
     }
   }
 
-  private TargetMethodHandler getMethodHandler(Method method, Object proxy) {
-    TargetMethodHandler methodHandler = null;
-    if (method.isDefault()) {
-      /* create a new Guard Method Handler and register it to the map */
-      methodHandler = new GuardMethodHandler(method, this)
-          .bind(proxy);
+  @Override
+  public void apply(RequestSpecification requestSpecification) {
+    this.delegate.apply(requestSpecification);
+  }
+
+  private void buildMethodHandlerMap(Target<?> target, Collection<TargetMethodDefinition> metadata) {
+    Method[] methods = target.type().getMethods();
+
+    /* loop through the methods and map them to the appropriate method handler */
+    for (Method method : methods) {
+      metadata.stream().filter(
+          targetMethodMetadata -> method.getName().equalsIgnoreCase(
+              targetMethodMetadata.getName()))
+          .findFirst()
+          .ifPresent(targetMethodMetadata -> {
+            TargetMethodHandler methodHandler =
+                methodHandlerFactory.create(targetMethodMetadata, configuration);
+            methodHandlerMap.put(method, methodHandler);
+          });
     }
+  }
+
+  private TargetMethodHandler createGuardMethodHandler(Method method, Object proxy) {
+    TargetMethodHandler methodHandler;
+
+    /* create a new Guard HttpMethod Handler and register it to the map */
+    methodHandler = new GuardMethodHandler(method, this)
+        .bind(proxy);
+
     return methodHandler;
   }
 

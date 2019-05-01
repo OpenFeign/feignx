@@ -1,6 +1,6 @@
 package feign.exception;
 
-public abstract class FeignException extends RuntimeException {
+public class FeignException extends RuntimeException {
 
   private String method;
 

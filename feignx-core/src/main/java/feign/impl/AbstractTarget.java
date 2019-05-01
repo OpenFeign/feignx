@@ -1,4 +1,4 @@
-package feign.target;
+package feign.impl;
 
 import feign.Target;
 import feign.support.Assert;

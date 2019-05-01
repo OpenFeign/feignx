@@ -10,7 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Target Method Handler implementation for {@code default} or Guard method.
+ * Target HttpMethod Handler implementation for {@code default} or Guard method.
  * <p>
  *   This class uses certain parts of the JDK reflection API that may be considered unsafe.
  *   In JDK 9+, this type of access frowned upon and may be explicitly disabled in any
@@ -23,7 +23,7 @@ public class GuardMethodHandler implements TargetMethodHandler {
   private boolean bound = false;
 
   /**
-   * Creates a new Guard Method Handler.
+   * Creates a new Guard HttpMethod Handler.
    *
    * @param method to proxy.
    * @param target instance this method is for.
@@ -54,7 +54,7 @@ public class GuardMethodHandler implements TargetMethodHandler {
   }
 
   /**
-   * Bind the Method Handler to the proxy.
+   * Bind the HttpMethod Handler to the proxy.
    *
    * @param proxy to bind to.
    */
@@ -65,7 +65,7 @@ public class GuardMethodHandler implements TargetMethodHandler {
   }
 
   /**
-   * If this Method Handler has been bound to a proxy.
+   * If this HttpMethod Handler has been bound to a proxy.
    *
    * @return {@literal true} if this method handler is already bound, {@literal false} otherwise.
    */
@@ -74,7 +74,7 @@ public class GuardMethodHandler implements TargetMethodHandler {
   }
 
   /**
-   * Execute the Method Handler.
+   * Execute the HttpMethod Handler.
    *
    * @param args for the method.
    * @return the result of the method.

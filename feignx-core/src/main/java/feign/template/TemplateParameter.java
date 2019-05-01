@@ -1,7 +1,5 @@
 package feign.template;
 
-import java.util.Map;
-
 public interface TemplateParameter {
 
   String name();

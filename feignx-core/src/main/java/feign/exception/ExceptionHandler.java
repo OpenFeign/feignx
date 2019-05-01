@@ -14,4 +14,11 @@ public interface ExceptionHandler extends Consumer<Throwable> {
     /* always rethrow */
     throw new RuntimeException(throwable);
   }
+
+  /**
+   * Exception Handler that wraps and throws any exceptions.
+   */
+  class RethrowExceptionHandler implements ExceptionHandler {
+
+  }
 }

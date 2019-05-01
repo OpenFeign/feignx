@@ -1,45 +1,59 @@
 package feign.http;
 
-import feign.exception.FeignException;
+import feign.Client;
 import java.util.Optional;
 
 /**
  * An exception that occurred during a {@link Client} operation.
  */
-public abstract class HttpException extends FeignException {
+public class HttpException extends RuntimeException {
 
-  private final int status;
   private Request request;
   private Response response;
 
-  public HttpException(String message, String method, int status) {
-    super(message, method);
-    this.status = status;
+  public HttpException(String message) {
+    super(message);
   }
 
-  public HttpException(String message, Throwable cause, String method, int status) {
-    super(message, cause, method);
-    this.status = status;
+  public HttpException(String message, Throwable cause) {
+    super(message, cause);
   }
 
-  public HttpException(String message, String method, int status, Request request,
-      Response response) {
-    super(message, method);
-    this.status = status;
+  public HttpException(Throwable cause) {
+    super(cause);
+  }
+
+  public HttpException(String message, Request request) {
+    super(message);
+    this.request = request;
+  }
+
+  public HttpException(String message, Throwable cause, Request request) {
+    super(message, cause);
+    this.request = request;
+  }
+
+  public HttpException(Throwable cause, Request request) {
+    super(cause);
+    this.request = request;
+  }
+
+  public HttpException(String message, Request request, Response response) {
+    super(message);
     this.request = request;
     this.response = response;
   }
 
-  public HttpException(String message, Throwable cause, String method, int status,
-      Request request, Response response) {
-    super(message, cause, method);
-    this.status = status;
+  public HttpException(String message, Throwable cause, Request request, Response response) {
+    super(message, cause);
     this.request = request;
     this.response = response;
   }
 
-  public int getStatus() {
-    return status;
+  public HttpException(Throwable cause, Request request, Response response) {
+    super(cause);
+    this.request = request;
+    this.response = response;
   }
 
   public Optional<Request> getRequest() {
