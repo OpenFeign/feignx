@@ -29,13 +29,13 @@ public class GuardMethodHandler implements TargetMethodHandler {
    * @param target instance this method is for.
    */
   @SuppressWarnings("JavaReflectionMemberAccess")
-  public GuardMethodHandler(Method method, Target<?> target) {
+  public GuardMethodHandler(Method method, Target<?> target, Object proxy) {
     Assert.isNotNull(method, "method is required.");
     Assert.isNotNull(target, "target is required.");
     try {
       /* attempt to create a new instance of the target type */
       Class<?> targetType = target.type();
-      Constructor<Lookup> constructor = Lookup.class.getConstructor(Class.class);
+      Constructor<Lookup> constructor = Lookup.class.getDeclaredConstructor(Class.class);
 
       /* this is the line that breaks on JDK 9+, it violates the new security rules */
       constructor.setAccessible(true);
@@ -43,7 +43,8 @@ public class GuardMethodHandler implements TargetMethodHandler {
       /* create a temporary instance of the target and execute the method */
       this.guardMethodHandle = constructor.newInstance(targetType)
           .in(targetType)
-          .unreflectSpecial(method, targetType);
+          .unreflectSpecial(method, targetType)
+          .bindTo(proxy);
     } catch (InstantiationException | InvocationTargetException | NoSuchMethodException
         | IllegalAccessException ie) {
       /* either the type does not expose a type that can be instantiated or
@@ -51,26 +52,6 @@ public class GuardMethodHandler implements TargetMethodHandler {
        */
       throw new IllegalStateException(ie);
     }
-  }
-
-  /**
-   * Bind the HttpMethod Handler to the proxy.
-   *
-   * @param proxy to bind to.
-   */
-  GuardMethodHandler bind(Object proxy) {
-    this.guardMethodHandle.bindTo(proxy);
-    this.bound = true;
-    return this;
-  }
-
-  /**
-   * If this HttpMethod Handler has been bound to a proxy.
-   *
-   * @return {@literal true} if this method handler is already bound, {@literal false} otherwise.
-   */
-  boolean isBound() {
-    return this.bound;
   }
 
   /**

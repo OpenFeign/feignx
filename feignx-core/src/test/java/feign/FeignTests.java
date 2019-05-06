@@ -3,7 +3,6 @@ package feign;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import feign.FeignTests.GitHub.Repository;
 import feign.contract.Header;
 import feign.contract.Headers;
 import feign.contract.Param;
@@ -24,17 +23,24 @@ class FeignTests {
   }
 
   @Test
-  void throwUnsupportedOperationException_whenMethodIsNotRegistered() {
+  void defaultMethods_areNotManaged() {
+    GitHub gitHub = Feign.builder()
+        .target(GitHub.class, "https://api.github.com");
+    String owner = gitHub.getOwner();
+    assertThat(owner).isEqualTo("owner");
+  }
+
+  @Test
+  void throwUnsupportedOperationException_whenMethodIsNotRegisteredAndNotDefault() {
     GitHub gitHub = Feign.builder()
         .target(GitHub.class, "https://api.github.com");
 
     /* the get repositories method is not annotated, thus not registered */
     assertThrows(UnsupportedOperationException.class,
         gitHub::getContributors);
-
   }
 
-  @Request("https://api.github.com")
+
   interface GitHub {
 
     @Request("/users/{owner}/repos")
@@ -42,6 +48,10 @@ class FeignTests {
     String getRepositories(@Param("owner") String owner);
 
     List<String> getContributors();
+
+    default String getOwner() {
+      return "owner";
+    }
 
     class Repository {
 

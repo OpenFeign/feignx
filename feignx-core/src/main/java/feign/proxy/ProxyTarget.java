@@ -77,7 +77,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
       /* default, static and non-annotated methods will not be in the map */
       if (method.isDefault()) {
         /* create the handler */
-        methodHandler = this.createGuardMethodHandler(method, this);
+        methodHandler = this.createGuardMethodHandler(method, proxy);
 
         /* add it to the map for later use */
         this.methodHandlerMap.put(method, methodHandler);
@@ -118,13 +118,8 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   }
 
   private TargetMethodHandler createGuardMethodHandler(Method method, Object proxy) {
-    TargetMethodHandler methodHandler;
-
     /* create a new Guard HttpMethod Handler and register it to the map */
-    methodHandler = new GuardMethodHandler(method, this)
-        .bind(proxy);
-
-    return methodHandler;
+    return new GuardMethodHandler(method, this, proxy);
   }
 
   @Override
