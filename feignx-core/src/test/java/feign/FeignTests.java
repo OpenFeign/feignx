@@ -19,7 +19,7 @@ class FeignTests {
         .target(GitHub.class, "https://api.github.com");
     assertThat(gitHub).isNotNull();
 
-    List<String> repositories = gitHub.getRepositories("openfeign");
+    String repositories = gitHub.getRepositories("openfeign");
     assertThat(repositories).isNotEmpty();
   }
 
@@ -39,7 +39,7 @@ class FeignTests {
 
     @Request("/users/{owner}/repos")
     @Headers({@Header(name = "Accept", value = "application/json")})
-    List<String> getRepositories(@Param("owner") String owner);
+    String getRepositories(@Param("owner") String owner);
 
     List<String> getContributors();
 

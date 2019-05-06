@@ -25,7 +25,7 @@ public class ProxyFeign extends Feign {
     Collection<TargetMethodDefinition> targetMethodMetadata =
         configuration.getContract().apply(configuration.getTarget());
 
-    /* wrap the provided target in a proxy */
+    /* create the provided target in a proxy */
     ProxyTarget<T> proxyTarget = new ProxyTarget<>(targetMethodMetadata, configuration);
 
     /* create a new JDK Proxy for the Target */

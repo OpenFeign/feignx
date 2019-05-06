@@ -16,7 +16,7 @@ public class UriTarget<T> extends AbstractTarget<T> {
   /**
    * Creates a new UriTarget.
    *
-   * @param type of the Target to wrap.
+   * @param type of the Target to create.
    * @param uri base uri to apply to all requests.
    */
   public UriTarget(Class<T> type, String uri) {
@@ -27,7 +27,7 @@ public class UriTarget<T> extends AbstractTarget<T> {
   /**
    * Creates a new UriTarget.
    *
-   * @param type of the Target to wrap.
+   * @param type of the Target to create.
    * @param name of the Target.
    * @param uri base uri to apply to all requires.
    */

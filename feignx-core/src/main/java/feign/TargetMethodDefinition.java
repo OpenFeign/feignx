@@ -6,8 +6,8 @@ import feign.http.RequestSpecification;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
 import feign.template.UriTemplate;
-import feign.impl.type.TypeFactory;
-import feign.impl.type.TypeWrapper;
+import feign.impl.type.TypeDefinitionFactory;
+import feign.impl.type.TypeDefinition;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -25,13 +25,14 @@ public final class TargetMethodDefinition {
   private Target<?> target;
   private String name;
   private String tag;
-  private transient TypeWrapper returnType;
+  private transient TypeDefinition returnType;
   private UriTemplate template;
   private HttpMethod method = HttpMethod.GET;
   private Collection<HttpHeader> headers = new LinkedHashSet<>();
   private Map<Integer, TemplateParameter> parameterMap = new LinkedHashMap<>();
   private Integer bodyArgumentIndex = -1;
   private boolean followRedirects;
+  private TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
 
   /**
    * Creates a new {@link TargetMethodDefinition}
@@ -144,7 +145,7 @@ public final class TargetMethodDefinition {
    * @return the reference chain.
    */
   public TargetMethodDefinition returnType(Type returnType) {
-    this.returnType = TypeFactory.wrap(returnType);
+    this.returnType = this.typeDefinitionFactory.create(returnType, this.target.type());
     return this;
   }
 
