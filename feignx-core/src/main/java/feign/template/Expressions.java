@@ -35,7 +35,7 @@ public class Expressions {
               + "variable: " + variableName + ".  Limit provided is not a valid integer.");
         }
       }
-      return new SimpleExpression(variableName);
+      return new SimpleExpression(variableName, limit);
     } else {
       throw new IllegalArgumentException("Supplied variable specification is not valid.  Please "
           + "see RFC 6570 for more information how to construct a variable specification");

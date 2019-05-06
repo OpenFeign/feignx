@@ -3,6 +3,7 @@ package feign.template;
 import feign.support.StringUtils;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -65,12 +66,8 @@ public class UriTemplate {
    * @return the expanded value or {@literal null} if the expression variable is undefined.
    */
   private String expand(Expression expression, Map<String, ?> variables) {
-    /* look for the expression value in the variable map */
-    String name = expression.getVariable();
-    if (variables.containsKey(name)) {
-      return expression.expand(variables.get(name));
-    }
-    return null;
+    /* delegate to the expression */
+    return expression.expand(variables);
   }
 
   /**

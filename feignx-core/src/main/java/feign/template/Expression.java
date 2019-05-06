@@ -1,55 +1,92 @@
 package feign.template;
 
 import feign.support.Assert;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * Chunk that represents an Expression that, adheres to RFC 6570, and will be resolved
- * during expansion.
+ * Chunk that represents an Expression that, adheres to RFC 6570, and will be resolved during
+ * expansion.
  */
 public abstract class Expression implements Chunk {
 
-  private final String variable;
+  private static final String MULTIPLE_VALUE_DELIMITER = ",";
+  private final Set<String> variables = new LinkedHashSet<>();
   private int limit;
 
   /**
    * Creates a new Expression.
    *
-   * @param variable template.
+   * @param variableSpecification template.
    */
-  protected Expression(String variable) {
-    Assert.isNotEmpty(variable, "variable is required.");
-    this.variable = variable;
+  Expression(String variableSpecification) {
+    Assert.isNotEmpty(variableSpecification, "variable is required.");
+
+    /* remove the leading and trailing braces if necessary */
+    if (variableSpecification.startsWith("{")) {
+      variableSpecification = variableSpecification
+          .substring(1, variableSpecification.length() - 1);
+    }
+
+    if (variableSpecification.contains(MULTIPLE_VALUE_DELIMITER)) {
+      /* multiple variables are present in the spec */
+      String[] variableSpecifications = variableSpecification.split(MULTIPLE_VALUE_DELIMITER);
+      this.variables.addAll(Arrays.asList(variableSpecifications));
+    } else {
+      this.variables.add(variableSpecification);
+    }
     this.limit = -1;
   }
 
   /**
-   * Creates a new Expression, with a prefix limiting the amount of characters to include
-   * during expansion.
+   * Creates a new Expression, with a prefix limiting the amount of characters to include during
+   * expansion.
    *
-   * @param variable template.
-   * @param limit regular variable.
+   * @param variables template.
+   * @param limit regular variables.
    */
-  protected Expression(String variable, int limit) {
-    this(variable);
+  Expression(String variables, int limit) {
+    this(variables);
     this.limit = limit;
   }
 
   /**
-   * Expand this variable based on the value provided.
+   * Expand this variables based on the value provided.
    *
-   * @param value to expand.
+   * @param variables to expand.
    * @return the expanded Expression value.
    */
-  public String expand(Object value) {
-    String result = this.expandInternal(value);
+  String expand(Map<String, ?> variables) {
+    StringBuilder expanded = new StringBuilder();
+    for (String variable : this.variables) {
+      if (variables.containsKey(variable)) {
+        String result = this.expandInternal(variables.get(variable));
+        if (result != null) {
 
-    /* honor the limit, if present */
-    return (this.limit > 0) ? result.substring(0, limit) : result;
+          /* trim the result to the limit if present */
+          if (this.limit > 0) {
+            result = result.substring(0, limit);
+          }
+
+          /* append the list delimiter based on this expression type when appending additional
+           * values  */
+          if (expanded.length() != 0) {
+            expanded.append(",");
+          }
+          expanded.append(result);
+        }
+      }
+    }
+    return expanded.toString();
   }
 
   /**
-   * Expand this variable based on the value provided.
+   * Expand this variables based on the value provided.
    *
    * @param value to expand.
    * @return the expanded Expression value.
@@ -59,10 +96,10 @@ public abstract class Expression implements Chunk {
   /**
    * Variable name for this expression.
    *
-   * @return expression variable.
+   * @return expression variables.
    */
-  public String getVariable() {
-    return this.variable;
+  public Collection<String> getVariables() {
+    return Collections.unmodifiableSet(this.variables);
   }
 
   /**
@@ -77,9 +114,9 @@ public abstract class Expression implements Chunk {
   @Override
   public String getValue() {
     if (this.limit > 0) {
-      return "{" + this.variable + ":" + this.limit + "}";
+      return "{" + this.variables + ":" + this.limit + "}";
     }
-    return "{" + this.variable + "}";
+    return "{" + this.variables + "}";
   }
 
   @Override
@@ -91,16 +128,16 @@ public abstract class Expression implements Chunk {
       return false;
     }
     Expression that = (Expression) obj;
-    return variable.equals(that.variable);
+    return variables.equals(that.variables);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(variable);
+    return Objects.hash(variables);
   }
 
   @Override
   public String toString() {
-    return "Expression [" + "variable='" + variable + "'" + ", limit=" + limit + "]";
+    return "Expression [" + "variables='" + variables + "'" + ", limit=" + limit + "]";
   }
 }
