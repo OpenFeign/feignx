@@ -9,19 +9,31 @@ public class Expressions {
   private static final Pattern EXPRESSION_PATTERN =
       Pattern.compile("^\\{([+#./;?&]?)([\\d\\w_*,\\-\\[\\]]+)(:([\\d]*))?}$");
 
+  private static final String RESERVED_MODIFIER = "+";
+
   public static Expression create(String variableSpec) {
     /* parse the specification */
     Matcher matcher = EXPRESSION_PATTERN.matcher(variableSpec);
     if (matcher.matches()) {
+
       /* look to see if there are any modifiers in the first group */
       String modifiers = matcher.group(1);
-      if (StringUtils.isNotEmpty(modifiers)) {
-        /* unsupported at this time */
-        throw new IllegalArgumentException("Only Simple Expressions are supported at this time.");
-      }
 
       /* get the variable name */
       String variableName = matcher.group(2);
+
+      Expression expression = null;
+      if (StringUtils.isNotEmpty(modifiers)) {
+        if (RESERVED_MODIFIER.equalsIgnoreCase(modifiers)) {
+          expression = new ReservedExpression(variableName);
+        }
+      } else {
+        expression = new SimpleExpression(variableName);
+      }
+
+      if (expression == null) {
+        throw new IllegalStateException("Expression " + variableSpec + " is not supported");
+      }
 
       /* expansion limit */
       int limit = -1;
@@ -35,7 +47,8 @@ public class Expressions {
               + "variable: " + variableName + ".  Limit provided is not a valid integer.");
         }
       }
-      return new SimpleExpression(variableName, limit);
+      expression.setLimit(limit);
+      return expression;
     } else {
       throw new IllegalArgumentException("Supplied variable specification is not valid.  Please "
           + "see RFC 6570 for more information how to construct a variable specification");

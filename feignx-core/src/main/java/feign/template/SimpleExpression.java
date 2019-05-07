@@ -2,16 +2,8 @@ package feign.template;
 
 public class SimpleExpression extends Expression {
 
-  SimpleExpression(String variable) {
-    super(variable);
-  }
-
-  SimpleExpression(String variable, int limit) {
-    super(variable, limit);
-  }
-
-  public SimpleExpression(String variables, int limit, boolean explode) {
-    super(variables, limit, explode);
+  public SimpleExpression(String variableSpecification) {
+    super(variableSpecification);
   }
 
   @Override

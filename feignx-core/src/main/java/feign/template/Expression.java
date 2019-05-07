@@ -41,6 +41,15 @@ public abstract class Expression implements Chunk {
           .substring(1, variableSpecification.length() - 1);
     }
 
+    /* check to see if the varspec ends in a (*), indicating that the values should be exploded */
+    if (variableSpecification.endsWith("*")) {
+      this.explode = true;
+
+      /* strip the star */
+      variableSpecification =
+          variableSpecification.substring(0, variableSpecification.length() - 1);
+    }
+
     if (variableSpecification.contains(MULTIPLE_VALUE_DELIMITER)) {
       /* multiple variables are present in the spec */
       String[] variableSpecifications = variableSpecification.split(MULTIPLE_VALUE_DELIMITER);
@@ -49,33 +58,6 @@ public abstract class Expression implements Chunk {
       this.variables.add(variableSpecification);
     }
     this.limit = -1;
-  }
-
-  /**
-   * Creates a new Expression, with a prefix limiting the amount of characters to include during
-   * expansion.
-   *
-   * @param variables template.
-   * @param limit regular variables.
-   */
-  Expression(String variables, int limit) {
-    this(variables);
-    this.limit = limit;
-  }
-
-  /**
-   * Creates a new Expression, with a prefix limiting the amount of characters to include during
-   * expansion.
-   *
-   * @param variables template.
-   * @param limit regular variables.
-   * @param explode flag indicating that if this expression resolves to a list of values, it should
-   * be "exploded" accordingly.
-   */
-  Expression(String variables, int limit, boolean explode) {
-    this(variables);
-    this.limit = limit;
-    this.explode = explode;
   }
 
   /**
@@ -239,21 +221,16 @@ public abstract class Expression implements Chunk {
     return limit;
   }
 
-  /**
-   * Determines if this expression should explode list or collection based values.
-   *
-   * @return if this expression should explode list or collection values.
-   */
-  boolean shouldExplode() {
-    return this.explode;
+  void setLimit(int limit) {
+    this.limit = limit;
   }
 
   @Override
   public String getValue() {
     if (this.limit > 0) {
-      return "{" + this.variables + ":" + this.limit + "}";
+      return "{" + this.variables + ((this.explode) ? "*" : "") + ":" + this.limit + "}";
     }
-    return "{" + this.variables + "}";
+    return "{" + this.variables + ((this.explode) ? "*" : "") + "}";
   }
 
   @Override
