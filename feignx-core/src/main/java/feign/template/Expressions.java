@@ -10,6 +10,12 @@ public class Expressions {
       Pattern.compile("^\\{([+#./;?&]?)([\\d\\w_*,\\-\\[\\]]+)(:([\\d]*))?}$");
 
   private static final String RESERVED_MODIFIER = "+";
+  private static final String FRAGMENT_MODIFIER = "#";
+  private static final String DOT_MODIFIER = ".";
+  private static final String PATH_MODIFIER = "/";
+  private static final String PATH_STYLE_MODIFIER = ";";
+  private static final String FORM_STYLE_MODIFIER = "?";
+  private static final String FORM_CONT_STYLE_MODIFIER = "&";
 
   public static Expression create(String variableSpec) {
     /* parse the specification */
@@ -17,22 +23,32 @@ public class Expressions {
     if (matcher.matches()) {
 
       /* look to see if there are any modifiers in the first group */
-      String modifiers = matcher.group(1);
+      String modifier = matcher.group(1);
 
       /* get the variable name */
-      String variableName = matcher.group(2);
+      String spec = matcher.group(2);
 
-      Expression expression = null;
-      if (StringUtils.isNotEmpty(modifiers)) {
-        if (RESERVED_MODIFIER.equalsIgnoreCase(modifiers)) {
-          expression = new ReservedExpression(variableName);
+      Expression expression;
+      if (StringUtils.isNotEmpty(modifier)) {
+        if (RESERVED_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new ReservedExpression(spec);
+        } else if (FRAGMENT_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new FragmentExpression(spec);
+        } else if (DOT_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new DotExpression(spec);
+        } else if (PATH_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new PathSegmentExpression(spec);
+        } else if (PATH_STYLE_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new PathStyleExpression(spec);
+        } else if (FORM_STYLE_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new FormStyleExpression(spec);
+        } else if (FORM_CONT_STYLE_MODIFIER.equalsIgnoreCase(modifier)) {
+          expression = new FormContinuationStyleExpression(spec);
+        } else {
+          throw new IllegalStateException("Expression " + variableSpec + " is not supported");
         }
       } else {
-        expression = new SimpleExpression(variableName);
-      }
-
-      if (expression == null) {
-        throw new IllegalStateException("Expression " + variableSpec + " is not supported");
+        expression = new SimpleExpression(spec);
       }
 
       /* expansion limit */
@@ -44,7 +60,7 @@ public class Expressions {
           limit = Integer.parseInt(expansionLimit);
         } catch (NumberFormatException nfe) {
           throw new IllegalArgumentException("Error occurred parsing the expansion limit for the "
-              + "variable: " + variableName + ".  Limit provided is not a valid integer.");
+              + "variable: " + spec + ".  Limit provided is not a valid integer.");
         }
       }
       expression.setLimit(limit);
