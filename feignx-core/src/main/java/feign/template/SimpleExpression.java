@@ -2,8 +2,12 @@ package feign.template;
 
 public class SimpleExpression extends Expression {
 
-  public SimpleExpression(String variableSpecification) {
+  SimpleExpression(String variableSpecification) {
     super(variableSpecification);
+  }
+
+  SimpleExpression(String variableSpecification, boolean includeName) {
+    super(variableSpecification, includeName);
   }
 
   @Override
@@ -12,10 +16,9 @@ public class SimpleExpression extends Expression {
     return UriUtils.isUnreserved(character);
   }
 
-
   @Override
-  protected char getListDelimiter() {
-    return ',';
+  protected String getDelimiter() {
+    return Expression.DEFAULT_DELIMITER;
   }
 
   @Override

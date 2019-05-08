@@ -2,43 +2,14 @@ package feign.template;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-public abstract class ExpressionTest {
+public abstract class StyleExpressionTest extends ExpressionTest {
 
-  /* Constants for each example.  Taken from RFC 6570 */
-  public static List<String> count = Arrays.asList("one", "two", "three");
-  static List<String> dom = Arrays.asList("example", "com");
-  static String dub = "me/too";
-  static String dubEncoded = "me%2Ftoo";
-  static String var = "value";
-  static String hello = "Hello World!";
-  static String helloEncoded = "Hello%20World%21";
-  static String helloReserved = "Hello%20World!";
-  static String half = "50%";
-  static String who = "fred";
-  static String base = "http://example.com/home/";
-  static String path = "/foo/bar";
-  static List<String> list = Arrays.asList("red", "green", "blue");
-  static Map<String, String> keys = new LinkedHashMap<String, String>() {{
-    put("semi", ";");
-    put("dot", ".");
-    put("comma", ",");
-  }};
-  static String v = "6";
-  static String x = "1024";
-  static String y = "768";
-  static String empty = "";
-  static Map<String, String> emptyKeys = Collections.emptyMap();
-  static final String undef = null;
-
-  protected abstract Expression getExpression(String variableSpecification, int limit);
-
+  @Override
   @Test
   void expand_withSingleVariable() {
     Expression expression = this.getExpression("{var}", -1);
@@ -46,30 +17,34 @@ public abstract class ExpressionTest {
     assertThat(expression.getLimit()).isEqualTo(-1);
 
     String result = expression.expand(Collections.singletonMap("var", var));
-    assertThat(result).isEqualTo(expression.getPrefix() + var);
+    assertThat(result).isEqualTo(expression.getPrefix() + "var=" + var);
   }
 
+  @Override
   @Test
   void expand_withHalf() {
     Expression expression = this.getExpression("{half}", -1);
     String result = expression.expand(Collections.singletonMap("half", half));
-    assertThat(result).isEqualTo(expression.getPrefix() + "50%25");
+    assertThat(result).isEqualTo(expression.getPrefix() + "half=50%25");
   }
 
+  @Override
   @Test
   void expand_withBase() {
     Expression expression = this.getExpression("{base}", -1);
     String result = expression.expand(Collections.singletonMap("base", base));
-    assertThat(result).isEqualTo(expression.getPrefix() + "http%3A%2F%2Fexample.com%2Fhome%2F");
+    assertThat(result).isEqualTo(expression.getPrefix() + "base=http%3A%2F%2Fexample.com%2Fhome%2F");
   }
 
+  @Override
   @Test
   void expand_withPath() {
     Expression expression = this.getExpression("{path}", -1);
     String result = expression.expand(Collections.singletonMap("path", path));
-    assertThat(result).isEqualTo(expression.getPrefix() + "%2Ffoo%2Fbar");
+    assertThat(result).isEqualTo(expression.getPrefix() + "path=%2Ffoo%2Fbar");
   }
 
+  @Override
   @Test
   void expand_withMultipleVariables() {
     Expression expression = this.getExpression("{x,hello,y}", -1);
@@ -81,10 +56,11 @@ public abstract class ExpressionTest {
     variables.put("hello", hello);
     variables.put("y", y);
     String result = expression.expand(variables);
-    assertThat(result).isEqualTo(expression.getPrefix() + x + expression.getDelimiter()
-        + helloEncoded + expression.getDelimiter() + y);
+    assertThat(result).isEqualTo(expression.getPrefix() + "x=" +x + expression.getDelimiter()
+        + "hello=" + helloEncoded + expression.getDelimiter() + "y=" + y);
   }
 
+  @Override
   @Test
   void expand_withRepeatedVariables() {
     Expression expression = this.getExpression("{who,who}", -1);
@@ -94,10 +70,11 @@ public abstract class ExpressionTest {
     Map<String, Object> variables = new LinkedHashMap<>();
     variables.put("who", who);
     String result = expression.expand(variables);
-    assertThat(result).isEqualTo(expression.getPrefix() + who + expression.getDelimiter()
-        + who);
+    assertThat(result).isEqualTo(expression.getPrefix() + "who=" + who + expression.getDelimiter()
+        + "who=" + who);
   }
 
+  @Override
   @Test
   void expand_undefinedAreRemoved() {
     Expression expression = this.getExpression("{x,undef}", -1);
@@ -106,9 +83,10 @@ public abstract class ExpressionTest {
     variables.put("x", x);
     variables.put("undef", undef);
     String result = expression.expand(variables);
-    assertThat(result).isEqualTo(expression.getPrefix() + x);
+    assertThat(result).isEqualTo(expression.getPrefix() + "x=" + x);
   }
 
+  @Override
   @Test
   void expand_missingIsUndefined() {
     Expression expression = this.getExpression("{x,undef}", -1);
@@ -116,9 +94,10 @@ public abstract class ExpressionTest {
     Map<String, Object> variables = new LinkedHashMap<>();
     variables.put("x", x);
     String result = expression.expand(variables);
-    assertThat(result).isEqualTo(expression.getPrefix() + x);
+    assertThat(result).isEqualTo(expression.getPrefix() + "x=" + x);
   }
 
+  @Override
   @Test
   void expand_mixedUndefinedAreRemoved() {
     Expression expression = this.getExpression("{x,undef,v}", -1);
@@ -128,9 +107,73 @@ public abstract class ExpressionTest {
     variables.put("undef", undef);
     variables.put("v", v);
     String result = expression.expand(variables);
-    assertThat(result).isEqualTo(expression.getPrefix() + x + expression.getDelimiter() + v);
+    assertThat(result).isEqualTo(expression.getPrefix() + "x=" + x + expression.getDelimiter()
+        + "v=" + v);
   }
 
+  @Override
+  @Test
+  void expand_withLimit() {
+    Expression expression = this.getExpression("{var}", 3);
+    assertThat(expression.getVariables()).hasSize(1);
+    assertThat(expression.getLimit()).isEqualTo(3);
+
+    String result = expression.expand(Collections.singletonMap("var", var));
+    assertThat(result).isEqualTo(expression.getPrefix() + "var=" + var.substring(0, 3));
+  }
+
+  @Override
+  @Test
+  void expand_withIterable() {
+    Expression expression = this.getExpression("{list}", -1);
+
+    String result = expression.expand(
+        Collections.singletonMap("list", list));
+    assertThat(result).isEqualTo(expression.getPrefix() + "list=red"
+        + Expression.DEFAULT_DELIMITER + "green"
+        + Expression.DEFAULT_DELIMITER + "blue");
+  }
+
+  @Override
+  @Test
+  void expand_withIterableExploded() {
+    Expression expression = this.getExpression("{list*}", -1);
+
+    String result = expression.expand(
+        Collections.singletonMap("list", list));
+    assertThat(result).isEqualTo(expression.getPrefix() + "list=red"
+        + expression.getDelimiter() + "list=green"
+        + expression.getDelimiter() + "list=blue");
+  }
+
+  @Override
+  @Test
+  void expand_withEmptyIterable() {
+    Expression expression = this.getExpression("{list}", -1);
+    String result = expression.expand(Collections.singletonMap("list", Collections.emptyList()));
+    assertThat(result).isEmpty();
+  }
+
+  @Override
+  @Test
+  void expand_withEmptyIterableExploded() {
+    Expression expression = this.getExpression("{list*}", -1);
+    String result = expression.expand(Collections.singletonMap("list", Collections.emptyList()));
+    assertThat(result).isEmpty();
+  }
+
+  @Override
+  @Test
+  void expand_withComplexVariableName_andPctEncodedList() {
+    Expression expression = this.getExpression("{list[]}", -1);
+    String result = expression.expand(
+        Collections.singletonMap("list[]", list));
+    assertThat(result).isEqualTo(expression.getPrefix() + "list%5B%5D=red"
+        + Expression.DEFAULT_DELIMITER + "green"
+        + Expression.DEFAULT_DELIMITER + "blue");
+  }
+
+  @Override
   @Test
   void expand_emptyAreKept() {
     Expression expression =  this.getExpression("{x,empty}", -1);
@@ -139,84 +182,32 @@ public abstract class ExpressionTest {
     variables.put("x", x);
     variables.put("empty", empty);
     String result = expression.expand(variables);
-    assertThat(result).isEqualTo(expression.getPrefix() + x + expression.getDelimiter());
+    assertThat(result).isEqualTo(expression.getPrefix() + "x=" + x
+        + expression.getDelimiter() + "empty=");
   }
 
-  @Test
-  void expand_withLimit() {
-    Expression expression = this.getExpression("{var}", 3);
-    assertThat(expression.getVariables()).hasSize(1);
-    assertThat(expression.getLimit()).isEqualTo(3);
-
-    String result = expression.expand(Collections.singletonMap("var", var));
-    assertThat(result).isEqualTo(expression.getPrefix() + var.substring(0, 3));
-  }
-
-  @Test
-  void expand_withIterable() {
-    Expression expression = this.getExpression("{list}", -1);
-
-    String result = expression.expand(
-        Collections.singletonMap("list", list));
-    assertThat(result).isEqualTo(expression.getPrefix() + "red"
-        + Expression.DEFAULT_DELIMITER + "green"
-        + Expression.DEFAULT_DELIMITER + "blue");
-  }
-
-  @Test
-  void expand_withIterableExploded() {
-    Expression expression = this.getExpression("{list*}", -1);
-
-    String result = expression.expand(
-        Collections.singletonMap("list", list));
-    assertThat(result).isEqualTo(expression.getPrefix() + "red"
-        + expression.getDelimiter() + "green"
-        + expression.getDelimiter() + "blue");
-  }
-
-  @Test
-  void expand_withEmptyIterable() {
-    Expression expression = this.getExpression("{list}", -1);
-    String result = expression.expand(Collections.singletonMap("list", Collections.emptyList()));
-    assertThat(result).isEmpty();
-  }
-
-  @Test
-  void expand_withEmptyIterableExploded() {
-    Expression expression = this.getExpression("{list*}", -1);
-    String result = expression.expand(Collections.singletonMap("list", Collections.emptyList()));
-    assertThat(result).isEmpty();
-  }
-
-  @Test
-  void expand_withComplexVariableName_andPctEncodedList() {
-    Expression expression = this.getExpression("{list[]}", -1);
-    String result = expression.expand(
-        Collections.singletonMap("list[]", list));
-    assertThat(result).isEqualTo(expression.getPrefix() + "red"
-        + Expression.DEFAULT_DELIMITER + "green"
-        + Expression.DEFAULT_DELIMITER + "blue");
-  }
-
+  @Override
   @Test
   void expand_withValueAlreadyEncoded() {
     Expression expression = this.getExpression("{hello}", -1);
     String result = expression.expand(Collections.singletonMap("hello", helloEncoded));
-    assertThat(result).isEqualTo(expression.getPrefix() + helloEncoded);
+    assertThat(result).isEqualTo(expression.getPrefix() + "hello=" + helloEncoded);
   }
 
+  @Override
   @Test
   void expand_withMap() {
     Expression expression = this.getExpression("{keys}", -1);
     String result = expression.expand(Collections.singletonMap("keys", keys));
     assertThat(result).isEqualTo(expression.getPrefix()
-        + "semi" + Expression.DEFAULT_DELIMITER + "%3B"
+        + "keys=semi" + Expression.DEFAULT_DELIMITER + "%3B"
         + Expression.DEFAULT_DELIMITER + "dot"
         + Expression.DEFAULT_DELIMITER + "."
         + Expression.DEFAULT_DELIMITER + "comma"
         + Expression.DEFAULT_DELIMITER + "%2C");
   }
 
+  @Override
   @Test
   public void expand_withMapExploded() {
     Expression expression = this.getExpression("{keys*}", -1);
@@ -227,6 +218,7 @@ public abstract class ExpressionTest {
         + "comma=%2C");
   }
 
+  @Override
   @Test
   public void expand_withEmptyMap() {
     Expression expression = this.getExpression("{keys}", -1);
@@ -234,6 +226,7 @@ public abstract class ExpressionTest {
     assertThat(result).isEmpty();
   }
 
+  @Override
   @Test
   public void expand_withEmptyMapExploded() {
     Expression expression = this.getExpression("{keys*}", -1);
