@@ -159,7 +159,6 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   }
 
   private Type getMethodReturnType(Method method) {
-    Type genericType = method.getGenericReturnType();
-    return genericType;
+    return method.getGenericReturnType();
   }
 }

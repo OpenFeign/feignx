@@ -9,7 +9,9 @@ import feign.template.UriTemplate;
 import feign.impl.type.TypeDefinitionFactory;
 import feign.impl.type.TypeDefinition;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -117,6 +119,42 @@ public final class TargetMethodDefinition {
   }
 
   /**
+   * The Uri for this Method.
+   *
+   * @return the templated uri.
+   */
+  public String getUri() {
+    return (this.template != null) ? this.template.toString() : "";
+  }
+
+  /**
+   * The Headers registered.
+   *
+   * @return headers registered.
+   */
+  public Collection<HttpHeader> getHeaders() {
+    return Collections.unmodifiableCollection(this.headers);
+  }
+
+  /**
+   * The Template Parameters registered for this method.
+   *
+   * @return the parameters registered.
+   */
+  public Collection<TemplateParameter> getTemplateParameters() {
+    return Collections.unmodifiableCollection(this.parameterMap.values());
+  }
+
+  /**
+   * The Http Method registered for this method call.
+   *
+   * @return the http method.
+   */
+  public HttpMethod getMethod() {
+    return method;
+  }
+
+  /**
    * Name of the Method.
    *
    * @param name method name.
@@ -157,6 +195,15 @@ public final class TargetMethodDefinition {
    */
   public TargetMethodDefinition uri(String uri) {
     Assert.isNotNull(uri, "uri is required");
+    if (this.template != null) {
+      /* if the provided uri is absolute, we need to replace it, encode it so we can parse it */
+      String encodedUri = uri.replaceAll("\\{", "%7B")
+          .replaceAll("}", "%7D");
+      if (!URI.create(encodedUri).isAbsolute()) {
+        /* append the new uri */
+        uri = this.template.toString() + uri;
+      }
+    }
     this.template = UriTemplate.create(uri);
     return this;
   }
@@ -271,5 +318,15 @@ public final class TargetMethodDefinition {
   @Override
   public int hashCode() {
     return Objects.hash(name);
+  }
+
+  @Override
+  public String toString() {
+    return "TargetMethodDefinition ["
+        + "tag='" + tag + "'"
+        + ", return=" + this.returnType.getType().getName()
+        + ", template=" + template
+        + ", method=" + method
+        + ", followRedirects=" + followRedirects + "]";
   }
 }

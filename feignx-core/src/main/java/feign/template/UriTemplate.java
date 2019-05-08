@@ -1,16 +1,21 @@
 package feign.template;
 
+import feign.support.Assert;
 import feign.support.StringUtils;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Uri Template based on RFC 6570.
  */
 public class UriTemplate {
 
+  private final String uri;
   private final List<Chunk> chunks = new ArrayList<>();
 
   /**
@@ -30,6 +35,8 @@ public class UriTemplate {
    * @param uri to parse.
    */
   private UriTemplate(String uri) {
+    Assert.isNotEmpty(uri, "A uri is required.");
+    this.uri = uri;
     this.parse(uri);
   }
 
@@ -56,6 +63,12 @@ public class UriTemplate {
     return URI.create(expanded.toString());
   }
 
+  public Collection<Chunk> getExpressions() {
+    return this.chunks.stream()
+        .filter(chunk -> chunk instanceof Expression)
+        .collect(Collectors.toSet());
+  }
+
   /**
    * Expand the given Expression.
    *
@@ -74,30 +87,8 @@ public class UriTemplate {
    * @param uri to parse.
    */
   private void parse(String uri) {
-    /* take the uri provided, converting temporarily into a URI so we can parse
-     * each section of the uri separately, as there are different rules on how
-     * an expression should expand based on it's position in the URI
-     */
-    String encodedUri = uri.replaceAll("\\{", "%7B")
-        .replaceAll("}", "%7D");
-    URI templateUri = URI.create(encodedUri);
-
-    /* parse each section of the uri, creating expressions as necessary */
-    this.parseSegment(templateUri.getScheme());
-    this.parseSegment(templateUri.getAuthority());
-    this.parseSegment(templateUri.getPath());
-    this.parseSegment(templateUri.getQuery());
-    this.parseSegment(templateUri.getFragment());
-  }
-
-  /**
-   * Parse the Segment of the URI.
-   *
-   * @param segment to parse.
-   */
-  private void parseSegment(String segment) {
-    if (StringUtils.isNotEmpty(segment)) {
-      ChunkTokenizer tokenizer = new ChunkTokenizer(segment);
+    if (StringUtils.isNotEmpty(uri)) {
+      ChunkTokenizer tokenizer = new ChunkTokenizer(uri);
       while (tokenizer.hasNext()) {
         String chunk = tokenizer.next();
         if (Expressions.isExpression(chunk)) {
@@ -112,9 +103,7 @@ public class UriTemplate {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    this.chunks.forEach(chunk -> sb.append(chunk.getValue()));
-    return sb.toString();
+    return this.uri;
   }
 
   /**
