@@ -3,9 +3,8 @@ package feign;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Per HttpRequest Options.
+ * Per Request Options.
  */
-@SuppressWarnings("WeakerAccess")
 public final class RequestOptions {
 
   /* default read timeout is 60 seconds */

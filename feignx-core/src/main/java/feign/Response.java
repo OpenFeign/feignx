@@ -1,10 +1,12 @@
 package feign;
 
-import feign.http.HttpHeader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * The Response model.
+ */
 public interface Response extends AutoCloseable {
 
   /**

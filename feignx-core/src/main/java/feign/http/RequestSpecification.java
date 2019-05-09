@@ -1,5 +1,6 @@
 package feign.http;
 
+import feign.Header;
 import feign.Request;
 import feign.RequestOptions;
 import feign.support.Assert;
@@ -21,7 +22,7 @@ public class RequestSpecification {
 
   private HttpMethod method;
   private URI uri;
-  private final Map<String, HttpHeader> headers = new LinkedHashMap<>();
+  private final Map<String, Header> headers = new LinkedHashMap<>();
   private final Map<String, List<String>> parameters = new LinkedHashMap<>();
   private byte[] content;
   private long connectTimeout;
@@ -63,7 +64,7 @@ public class RequestSpecification {
    * @param name of the Header.
    * @return the HttpHeader for the name, if set.
    */
-  public Optional<HttpHeader> header(String name) {
+  public Optional<Header> header(String name) {
     return Optional.ofNullable(this.headers.get(name));
   }
 

@@ -3,6 +3,7 @@ package feign.http.client;
 import feign.Client;
 import feign.Request;
 import feign.Response;
+import feign.exception.FeignException;
 import feign.http.HttpException;
 import feign.http.HttpHeader;
 import feign.http.HttpRequest;
@@ -28,7 +29,7 @@ public class UrlConnectionClient implements Client {
    * @throws HttpException if any error occurred during processing.
    */
   @Override
-  public Response request(Request request) throws HttpException {
+  public Response request(Request request) throws FeignException {
     if (!HttpRequest.class.isAssignableFrom(request.getClass())) {
       throw new IllegalArgumentException("UrlConnectionClient only support HttpRequests");
     }
