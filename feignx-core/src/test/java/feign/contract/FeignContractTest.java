@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import feign.Contract;
 import feign.TargetMethodDefinition;
 import feign.http.HttpMethod;
-import feign.http.RequestOptions;
+import feign.RequestOptions;
 import feign.impl.UriTarget;
 import feign.template.SimpleTemplateParameter;
 import java.util.Collection;

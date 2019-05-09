@@ -1,6 +1,7 @@
 package feign.http;
 
 import feign.Request;
+import feign.RequestOptions;
 import feign.support.Assert;
 import feign.support.StringUtils;
 import java.net.URI;

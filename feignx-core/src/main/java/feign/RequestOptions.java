@@ -1,4 +1,4 @@
-package feign.http;
+package feign;
 
 import java.util.concurrent.TimeUnit;
 
@@ -52,7 +52,7 @@ public final class RequestOptions {
     return new Builder();
   }
 
-  static class Builder {
+  public static class Builder {
     private boolean followRedirects = true;
     private long readTimeout = DEFAULT_READ_TIMEOUT;
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;

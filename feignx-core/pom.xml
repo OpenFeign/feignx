@@ -65,10 +65,11 @@
         <artifactId>assertj-assertions-generator-maven-plugin</artifactId>
         <configuration>
           <targetDir>src/test/java</targetDir>
+          <generateAssertionsInPackage>feign.assertions</generateAssertionsInPackage>
           <classes>
             <param>feign.http.HttpHeader</param>
             <param>feign.http.HttpRequest</param>
-            <param>feign.http.Response</param>
+            <param>feign.http.HttpResponse</param>
           </classes>
           <generateAssertions>true</generateAssertions>
           <generateBddAssertions>false</generateBddAssertions>

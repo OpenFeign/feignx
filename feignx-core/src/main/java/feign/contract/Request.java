@@ -1,7 +1,7 @@
 package feign.contract;
 
 import feign.http.HttpMethod;
-import feign.http.RequestOptions;
+import feign.RequestOptions;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

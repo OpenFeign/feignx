@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Http Response model.
  */
-public class HttpResponse implements Response {
+public final class HttpResponse implements Response {
 
   private int status;
   private String reason;

@@ -1,6 +1,7 @@
 package feign.http;
 
 import feign.Request;
+import feign.RequestOptions;
 import java.net.URI;
 
 public final class HttpRequest implements Request {

@@ -7,7 +7,7 @@ import feign.http.HttpException;
 import feign.http.HttpHeader;
 import feign.http.HttpRequest;
 import feign.http.HttpResponse;
-import feign.http.RequestOptions;
+import feign.RequestOptions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;

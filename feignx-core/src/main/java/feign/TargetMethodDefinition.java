@@ -2,7 +2,6 @@ package feign;
 
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
-import feign.http.RequestOptions;
 import feign.http.RequestSpecification;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
