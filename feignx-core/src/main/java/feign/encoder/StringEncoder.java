@@ -1,4 +1,4 @@
-package feign.http.encoder;
+package feign.encoder;
 
 import feign.RequestEncoder;
 import feign.http.RequestSpecification;

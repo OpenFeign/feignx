@@ -1,4 +1,4 @@
-package feign.http.decoder;
+package feign.decoder;
 
 import feign.http.HttpException;
 import feign.http.Response;

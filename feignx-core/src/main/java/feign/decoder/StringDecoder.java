@@ -1,6 +1,5 @@
-package feign.http.decoder;
+package feign.decoder;
 
-import feign.exception.FeignException;
 import feign.http.Response;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
