@@ -1,8 +1,8 @@
 package feign.decoder;
 
-import feign.http.HttpException;
-import feign.http.Response;
 import feign.ResponseDecoder;
+import feign.exception.FeignException;
+import feign.http.Response;
 import java.io.InputStream;
 
 /**
@@ -37,7 +37,8 @@ public abstract class AbstractResponseDecoder implements ResponseDecoder {
       /* dispatch to the sub classes */
       return this.decodeInternal(response, type);
     } catch (Exception ex) {
-      throw new HttpException("Error decoding the Response", ex, null, response);
+      throw new FeignException("Error decoding the Response", ex,
+          this.getClass().getName() + "#decode");
     }
   }
 

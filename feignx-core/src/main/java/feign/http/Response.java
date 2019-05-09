@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Http Response model.
  */
-public final class Response implements AutoCloseable {
+public class Response implements AutoCloseable {
 
   private int status;
   private String reason;

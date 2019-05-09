@@ -8,10 +8,12 @@ import feign.contract.Headers;
 import feign.contract.Param;
 import feign.contract.Request;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FeignTests {
 
+  @Disabled
   @Test
   void createTarget_andExecuteRequest() {
     GitHub gitHub = Feign.builder()
