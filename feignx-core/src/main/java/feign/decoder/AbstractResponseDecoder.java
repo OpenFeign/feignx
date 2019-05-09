@@ -1,8 +1,8 @@
 package feign.decoder;
 
+import feign.Response;
 import feign.ResponseDecoder;
 import feign.exception.FeignException;
-import feign.http.Response;
 import java.io.InputStream;
 
 /**

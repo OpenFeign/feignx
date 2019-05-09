@@ -3,7 +3,7 @@ package feign.http;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Per Request Options.
+ * Per HttpRequest Options.
  */
 @SuppressWarnings("WeakerAccess")
 public final class RequestOptions {

@@ -1,12 +1,12 @@
 package feign.impl;
 
-import feign.TargetMethodDefinition;
-import feign.exception.ExceptionHandler;
 import feign.Client;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
-import feign.http.Response;
+import feign.Response;
 import feign.ResponseDecoder;
+import feign.TargetMethodDefinition;
+import feign.exception.ExceptionHandler;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RunnableFuture;
@@ -26,7 +26,7 @@ public class BlockingTargetMethodHandler extends AbstractTargetMethodHandler {
    * @param decoder to use when parsing the response.
    * @param exceptionHandler to delegate to when an exception occurs.
    */
-  public BlockingTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
+  BlockingTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
       RequestEncoder encoder, List<RequestInterceptor> interceptors,
       Client client, ResponseDecoder decoder,
       ExceptionHandler exceptionHandler, Executor executor) {

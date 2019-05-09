@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 
 /**
- * Annotation that marks a given method parameter as the Request Body.
+ * Annotation that marks a given method parameter as the HttpRequest Body.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

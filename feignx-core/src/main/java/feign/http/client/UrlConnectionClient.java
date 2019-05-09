@@ -1,11 +1,13 @@
 package feign.http.client;
 
 import feign.Client;
+import feign.Request;
+import feign.Response;
 import feign.http.HttpException;
 import feign.http.HttpHeader;
-import feign.http.Request;
+import feign.http.HttpRequest;
+import feign.http.HttpResponse;
 import feign.http.RequestOptions;
-import feign.http.Response;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -19,7 +21,7 @@ import java.net.URL;
 public class UrlConnectionClient implements Client {
 
   /**
-   * Send the Request to the destination. and process the response.
+   * Send the HttpRequest to the destination. and process the response.
    *
    * @param request to send.
    * @return Response received.
@@ -27,17 +29,20 @@ public class UrlConnectionClient implements Client {
    */
   @Override
   public Response request(Request request) throws HttpException {
-    HttpURLConnection connection = this.send(request);
+    if (!HttpRequest.class.isAssignableFrom(request.getClass())) {
+      throw new IllegalArgumentException("UrlConnectionClient only support HttpRequests");
+    }
+    HttpURLConnection connection = this.send((HttpRequest) request);
     return this.receive(connection);
   }
 
   /**
-   * Send the Request.
+   * Send the HttpRequest.
    *
    * @param request to send.
    * @return connection with the result of the request.
    */
-  private HttpURLConnection send(Request request) {
+  private HttpURLConnection send(HttpRequest request) {
     try {
       /* convert the uri to a url */
       URL url = request.uri().toURL();
@@ -89,7 +94,7 @@ public class UrlConnectionClient implements Client {
       int statusCode = connection.getResponseCode();
 
       /* build up the common response objects */
-      Response.Builder builder = Response.builder();
+      HttpResponse.Builder builder = HttpResponse.builder();
       builder.status(statusCode)
           .reason(connection.getResponseMessage())
           .contentLength(connection.getContentLength());

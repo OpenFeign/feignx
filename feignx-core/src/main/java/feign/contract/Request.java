@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
 public @interface Request {
 
   /**
-   * Uri for this Request.
+   * Uri for this HttpRequest.
    *
    * @return the uri.
    */
@@ -34,7 +34,7 @@ public @interface Request {
   HttpMethod method() default HttpMethod.GET;
 
   /**
-   * Uri for the Request.  Alias for value.
+   * Uri for the HttpRequest.  Alias for value.
    *
    * @return the uri.
    */
@@ -49,7 +49,7 @@ public @interface Request {
   boolean followRedirects() default true;
 
   /**
-   * Request Connection Timeout value, in milliseconds.
+   * HttpRequest Connection Timeout value, in milliseconds.
    *
    * @return how long to wait before failing when connecting to the target.
    */

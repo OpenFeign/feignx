@@ -1,5 +1,7 @@
 package feign.http;
 
+import feign.Header;
+import feign.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +12,7 @@ import java.util.List;
 /**
  * Http Response model.
  */
-public class Response implements AutoCloseable {
+public class HttpResponse implements Response {
 
   private int status;
   private String reason;
@@ -22,7 +24,7 @@ public class Response implements AutoCloseable {
     return new Builder();
   }
 
-  private Response() {
+  private HttpResponse() {
     super();
   }
 
@@ -69,7 +71,7 @@ public class Response implements AutoCloseable {
    *
    * @return response headers.
    */
-  public List<HttpHeader> headers() {
+  public List<Header> headers() {
     return Collections.unmodifiableList(this.headers);
   }
 
@@ -125,7 +127,7 @@ public class Response implements AutoCloseable {
 
   public static class Builder {
 
-    private Response response = new Response();
+    private HttpResponse response = new HttpResponse();
 
     public Builder status(int status) {
       response.status(status);

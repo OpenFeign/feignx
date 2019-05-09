@@ -77,7 +77,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   }
 
   /**
-   * Process the Request annotation.
+   * Process the HttpRequest annotation.
    *
    * @param request annotation to process.
    * @param targetMethodDefinition for the request.

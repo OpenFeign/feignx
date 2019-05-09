@@ -1,16 +1,16 @@
 package feign.impl;
 
+import feign.Client;
+import feign.Request;
+import feign.RequestEncoder;
+import feign.RequestInterceptor;
+import feign.Response;
+import feign.ResponseDecoder;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.exception.ExceptionHandler;
 import feign.exception.FeignException;
-import feign.Client;
-import feign.http.Request;
-import feign.RequestEncoder;
-import feign.RequestInterceptor;
 import feign.http.RequestSpecification;
-import feign.http.Response;
-import feign.ResponseDecoder;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
 import java.util.Collections;
@@ -23,8 +23,8 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 
 /**
- * Base HttpMethod Handler implementation.  Request preparation is always done on the calling
- * thread.  Request execution is delegated to the provided {@link Executor}.  Response processing is
+ * Base HttpMethod Handler implementation.  HttpRequest preparation is always done on the calling
+ * thread.  HttpRequest execution is delegated to the provided {@link Executor}.  Response processing is
  * the responsibility of the subclasses.
  */
 public abstract class AbstractTargetMethodHandler implements TargetMethodHandler {
@@ -68,7 +68,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   }
 
   /**
-   * Execute the Request pipeline.
+   * Execute the HttpRequest pipeline.
    *
    * @param arguments for the method.
    * @return the result of the request.
@@ -109,7 +109,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   }
 
   /**
-   * Process the results of the Request.
+   * Process the results of the HttpRequest.
    *
    * @param response Future containing the results of the request.
    * @return the result of the request, decoded if necessary.

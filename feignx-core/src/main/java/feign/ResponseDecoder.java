@@ -1,7 +1,5 @@
 package feign;
 
-import feign.http.Response;
-
 @FunctionalInterface
 public interface ResponseDecoder {
 

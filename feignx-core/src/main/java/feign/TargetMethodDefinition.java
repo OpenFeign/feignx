@@ -117,7 +117,7 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * Argument Index registered for the value that should be used as the Request body.
+   * Argument Index registered for the value that should be used as the HttpRequest body.
    *
    * @return the request body argument index.
    */
@@ -222,7 +222,7 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * Request connection timeout, in milliseconds.
+   * HttpRequest connection timeout, in milliseconds.
    *
    * @param connectTimeout in milliseconds.
    * @return the reference chain.
@@ -244,7 +244,7 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * Request URI for the Method.
+   * HttpRequest URI for the Method.
    *
    * @param uri from the method.
    * @return the reference chain.
@@ -290,7 +290,7 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * Http Method for the Request defined.
+   * Http Method for the HttpRequest defined.
    *
    * @param httpMethod for the request.
    * @return the reference chain.
@@ -301,9 +301,9 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * Registers which argument in the method signature containing the Request body.
+   * Registers which argument in the method signature containing the HttpRequest body.
    *
-   * @param argumentIndex for the Request body object.
+   * @param argumentIndex for the HttpRequest body object.
    * @return the reference chain.
    */
   public TargetMethodDefinition body(Integer argumentIndex) {

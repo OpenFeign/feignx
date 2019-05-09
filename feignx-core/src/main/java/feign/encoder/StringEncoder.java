@@ -6,7 +6,7 @@ import feign.support.Assert;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Request Encoder that encodes the request content as a String.  This implementation uses
+ * HttpRequest Encoder that encodes the request content as a String.  This implementation uses
  * the {@code toString()} method on the content object to encode the data.
  */
 public class StringEncoder implements RequestEncoder {

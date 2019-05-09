@@ -1,5 +1,6 @@
 package feign.http;
 
+import feign.Header;
 import feign.support.Assert;
 import java.util.Collection;
 import java.util.Collections;
@@ -7,7 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class HttpHeader {
+public class HttpHeader implements Header  {
 
   private final String name;
   private final Set<String> values = new LinkedHashSet<>();

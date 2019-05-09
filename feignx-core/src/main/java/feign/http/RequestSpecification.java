@@ -1,5 +1,6 @@
 package feign.http;
 
+import feign.Request;
 import feign.support.Assert;
 import feign.support.StringUtils;
 import java.net.URI;
@@ -13,7 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Immutable model that represents the parts of an Http Request.
+ * Immutable model that represents the parts of an Http HttpRequest.
  */
 public class RequestSpecification {
 
@@ -29,7 +30,7 @@ public class RequestSpecification {
   private boolean followRedirects;
 
   /**
-   * Creates a new Request Specification.
+   * Creates a new HttpRequest Specification.
    */
   public RequestSpecification() {
     this.method = HttpMethod.GET;
@@ -38,25 +39,25 @@ public class RequestSpecification {
   }
 
   /**
-   * URI for the Request.
+   * URI for the HttpRequest.
    *
-   * @return Request URI, if set.
+   * @return HttpRequest URI, if set.
    */
   public Optional<URI> uri() {
     return Optional.ofNullable(this.uri);
   }
 
   /**
-   * Http Request Method.
+   * Http HttpRequest Method.
    *
-   * @return Request Method.
+   * @return HttpRequest Method.
    */
   public HttpMethod method() {
     return this.method;
   }
 
   /**
-   * Http Header on the Request.
+   * Http Header on the HttpRequest.
    *
    * @param name of the Header.
    * @return the HttpHeader for the name, if set.
@@ -66,9 +67,9 @@ public class RequestSpecification {
   }
 
   /**
-   * Set the URI for the Request.
+   * Set the URI for the HttpRequest.
    *
-   * @param uri of the Request, cannot be {@literal null}
+   * @param uri of the HttpRequest, cannot be {@literal null}
    * @return the reference chain.
    */
   public RequestSpecification uri(URI uri) {
@@ -78,9 +79,9 @@ public class RequestSpecification {
   }
 
   /**
-   * Http Method for the Request.
+   * Http Method for the HttpRequest.
    *
-   * @param method of the Request.
+   * @param method of the HttpRequest.
    * @return the reference chain.
    */
   public RequestSpecification method(HttpMethod method) {
@@ -89,7 +90,7 @@ public class RequestSpecification {
   }
 
   /**
-   * Specify a Http Header on the Request.  If the Header is already present on the request and the
+   * Specify a Http Header on the HttpRequest.  If the Header is already present on the request and the
    * Header being requested supports multiple values, the value will be added.
    *
    * @param name of the Header.
@@ -109,7 +110,7 @@ public class RequestSpecification {
   }
 
   /**
-   * Specify a Request Parameter (Query Parameter).  If values for the parameter are already
+   * Specify a HttpRequest Parameter (Query Parameter).  If values for the parameter are already
    * present, the value provided is added to the list.
    *
    * @param name of the Parameter.
@@ -128,9 +129,9 @@ public class RequestSpecification {
   }
 
   /**
-   * Specify the Request content.
+   * Specify the HttpRequest content.
    *
-   * @param content to include in the Request body.
+   * @param content to include in the HttpRequest body.
    * @return the reference chain.
    */
   public RequestSpecification content(byte[] content) {
@@ -178,9 +179,9 @@ public class RequestSpecification {
   }
 
   /**
-   * Creates a new {@link Request} from this specification.
+   * Creates a new {@link feign.Request} from this specification.
    *
-   * @return a new Request instance.
+   * @return a new HttpRequest instance.
    */
   public Request build() {
     /* rebuild the uri with the new query string */
@@ -204,8 +205,8 @@ public class RequestSpecification {
     /* get the request options */
     RequestOptions options = this.getOptions();
 
-    /* create a new Request */
-    return new Request(
+    /* create a new HttpRequest */
+    return new HttpRequest(
         this.uri,
         this.method,
         this.headers.values().toArray(new HttpHeader[]{}),
