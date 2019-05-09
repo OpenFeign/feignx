@@ -2,6 +2,7 @@ package feign;
 
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
+import feign.http.RequestOptions;
 import feign.http.RequestSpecification;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
@@ -17,6 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +36,8 @@ public final class TargetMethodDefinition {
   private Map<Integer, TemplateParameter> parameterMap = new LinkedHashMap<>();
   private Integer bodyArgumentIndex = -1;
   private boolean followRedirects;
+  private long connectTimeout = RequestOptions.DEFAULT_CONNECT_TIMEOUT;
+  private long readTimeout = RequestOptions.DEFAULT_READ_TIMEOUT;
   private TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
 
   /**
@@ -60,6 +64,9 @@ public final class TargetMethodDefinition {
     this.parameterMap = targetMethodDefinition.parameterMap;
     this.bodyArgumentIndex = targetMethodDefinition.bodyArgumentIndex;
     this.followRedirects = targetMethodDefinition.followRedirects;
+    this.connectTimeout = targetMethodDefinition.connectTimeout;
+    this.readTimeout = targetMethodDefinition.readTimeout;
+    this.typeDefinitionFactory = targetMethodDefinition.typeDefinitionFactory;
 
     /* create a deep copy of the headers */
     this.headers = targetMethodDefinition.headers.stream().map(
@@ -155,6 +162,33 @@ public final class TargetMethodDefinition {
   }
 
   /**
+   * If requests made should follow 3xx responses automatically.
+   *
+   * @return if this request should follow redirects.
+   */
+  public boolean isFollowRedirects() {
+    return followRedirects;
+  }
+
+  /**
+   * How long to wait when connecting to the target.
+   *
+   * @return connection timeout in milliseconds.
+   */
+  public long getConnectTimeout() {
+    return connectTimeout;
+  }
+
+  /**
+   * How long to wait for data when reading from the target.
+   *
+   * @return read timeout in milliseconds.
+   */
+  public long getReadTimeout() {
+    return readTimeout;
+  }
+
+  /**
    * Name of the Method.
    *
    * @param name method name.
@@ -184,6 +218,28 @@ public final class TargetMethodDefinition {
    */
   public TargetMethodDefinition returnType(Type returnType) {
     this.returnType = this.typeDefinitionFactory.create(returnType, this.target.type());
+    return this;
+  }
+
+  /**
+   * Request connection timeout, in milliseconds.
+   *
+   * @param connectTimeout in milliseconds.
+   * @return the reference chain.
+   */
+  public TargetMethodDefinition connectTimeout(long connectTimeout) {
+    this.connectTimeout = connectTimeout;
+    return this;
+  }
+
+  /**
+   * Response Read Timeout, in milliseconds.
+   *
+   * @param readTimeout in milliseconds.
+   * @return the reference chain.
+   */
+  public TargetMethodDefinition readTimeout(long readTimeout) {
+    this.readTimeout = readTimeout;
     return this;
   }
 
@@ -276,7 +332,10 @@ public final class TargetMethodDefinition {
   public RequestSpecification requestSpecification(Map<String, ?> variables) {
     RequestSpecification requestSpecification = new RequestSpecification();
     requestSpecification.uri(this.template.expand(variables))
-        .method(this.method);
+        .method(this.method)
+        .connectTimeout(this.connectTimeout, TimeUnit.MILLISECONDS)
+        .readTimeout(this.readTimeout, TimeUnit.MILLISECONDS)
+        .followRedirects(this.followRedirects);
     if (!this.headers.isEmpty()) {
       for (HttpHeader header : headers) {
         header.values().forEach(value -> requestSpecification.header(header.name(), value));

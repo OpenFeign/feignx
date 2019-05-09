@@ -89,7 +89,9 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
 
     targetMethodDefinition.uri(uri)
         .method(httpMethod)
-        .followRedirects(followRedirects);
+        .followRedirects(followRedirects)
+        .connectTimeout(request.connectTimeout())
+        .readTimeout(request.readTimeout());
   }
 
   /**

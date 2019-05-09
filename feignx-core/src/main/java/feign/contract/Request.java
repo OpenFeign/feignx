@@ -1,6 +1,7 @@
 package feign.contract;
 
 import feign.http.HttpMethod;
+import feign.http.RequestOptions;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -46,5 +47,19 @@ public @interface Request {
    * @return if this request should follow redirect responses.
    */
   boolean followRedirects() default true;
+
+  /**
+   * Request Connection Timeout value, in milliseconds.
+   *
+   * @return how long to wait before failing when connecting to the target.
+   */
+  long connectTimeout() default RequestOptions.DEFAULT_CONNECT_TIMEOUT;
+
+  /**
+   * Read Timeout value, in milliseconds.
+   *
+   * @return how long to wait before failing when reading data from the target.
+   */
+  long readTimeout() default RequestOptions.DEFAULT_READ_TIMEOUT;
 
 }

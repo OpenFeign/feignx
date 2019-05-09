@@ -5,10 +5,10 @@ import java.util.concurrent.TimeUnit;
 public final class RequestOptions {
 
   /* default read timeout is 60 seconds */
-  private static final int DEFAULT_READ_TIMEOUT = 60 * 1000;
+  public static final long DEFAULT_READ_TIMEOUT = 60 * 1000;
 
   /* default connect timeout is 10 seconds */
-  private static final int DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
+  public static final long DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
 
   private boolean followRedirects = true;
   private long readTimeout = DEFAULT_READ_TIMEOUT;
