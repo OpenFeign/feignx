@@ -2,6 +2,10 @@ package feign.http;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Per Request Options.
+ */
+@SuppressWarnings("WeakerAccess")
 public final class RequestOptions {
 
   /* default read timeout is 60 seconds */
@@ -10,10 +14,17 @@ public final class RequestOptions {
   /* default connect timeout is 10 seconds */
   public static final long DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
 
-  private boolean followRedirects = true;
-  private long readTimeout = DEFAULT_READ_TIMEOUT;
-  private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+  private final boolean followRedirects;
+  private final long readTimeout;
+  private final long connectTimeout;
 
+  /**
+   * Creates a new RequestOptions.
+   *
+   * @param followRedirects flag to determine if 3xx responses should be automatically followed.
+   * @param readTimeout for how long to wait when reading data from the target, in milliseconds.
+   * @param connectTimeout for how long to wait when connecting to a target, in milliseconds.
+   */
   private RequestOptions(boolean followRedirects, long readTimeout, long connectTimeout) {
     this.followRedirects = followRedirects;
     this.readTimeout = readTimeout;
@@ -32,6 +43,11 @@ public final class RequestOptions {
     return Math.toIntExact(this.connectTimeout);
   }
 
+  /**
+   * A RequestOptions Builder instance.
+   *
+   * @return a new builder instance.
+   */
   public static Builder builder() {
     return new Builder();
   }
@@ -48,12 +64,16 @@ public final class RequestOptions {
     }
 
     public Builder setReadTimeout(long readTimeout, TimeUnit timeUnit) {
-      this.readTimeout = timeUnit.toMillis(readTimeout);
+      if (readTimeout != 0) {
+        this.readTimeout = timeUnit.toMillis(readTimeout);
+      }
       return this;
     }
 
     public Builder setConnectTimeout(long connectTimeout, TimeUnit timeUnit) {
-      this.connectTimeout = timeUnit.toMillis(connectTimeout);
+      if (connectTimeout != 0) {
+        this.connectTimeout = timeUnit.toMillis(connectTimeout);
+      }
       return this;
     }
 

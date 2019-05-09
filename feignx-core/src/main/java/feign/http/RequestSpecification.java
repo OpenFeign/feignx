@@ -98,9 +98,8 @@ public final class RequestSpecification {
   }
 
   /**
-   * Specify a Http Header on the Request.  If the Header is already present
-   * on the request and the Header being requested supports multiple values,
-   * the value will be added.
+   * Specify a Http Header on the Request.  If the Header is already present on the request and the
+   * Header being requested supports multiple values, the value will be added.
    *
    * @param name of the Header.
    * @param value for the Header.
@@ -189,6 +188,7 @@ public final class RequestSpecification {
 
   /**
    * Creates a new {@link Request} from this specification.
+   *
    * @return a new Request instance.
    */
   public Request build() {
@@ -235,7 +235,7 @@ public final class RequestSpecification {
         .filter(entry -> !entry.getValue().isEmpty())
         .forEach(entry -> {
           Iterator<String> it = entry.getValue().iterator();
-          while(it.hasNext()) {
+          while (it.hasNext()) {
             String value = it.next();
             parameters.append(entry.getKey())
                 .append("=")
@@ -260,13 +260,9 @@ public final class RequestSpecification {
    */
   private RequestOptions getOptions() {
     RequestOptions.Builder builder = RequestOptions.builder();
-    if (this.connectTimeoutUnit != null) {
-      builder.setConnectTimeout(this.connectTimeout, this.connectTimeoutUnit);
-    }
-    if (this.readTimeoutUnit != null) {
-      builder.setReadTimeout(this.readTimeout, this.readTimeoutUnit);
-    }
-    return builder.setFollowRedirects(this.followRedirects)
+    return builder.setConnectTimeout(this.connectTimeout, this.connectTimeoutUnit)
+        .setReadTimeout(this.readTimeout, this.readTimeoutUnit)
+        .setFollowRedirects(this.followRedirects)
         .build();
   }
 }
