@@ -2,6 +2,7 @@ package feign.encoder;
 
 import feign.RequestEncoder;
 import feign.http.RequestSpecification;
+import feign.support.Assert;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -12,8 +13,9 @@ public class StringEncoder implements RequestEncoder {
 
   @Override
   public void apply(Object content, RequestSpecification requestSpecification) {
-    /* use the content objects toString() method to populate the request */
-    requestSpecification.content(content.toString().getBytes(StandardCharsets.UTF_8));
+    if (content != null) {
+      /* use the content objects toString() method to populate the request */
+      requestSpecification.content(content.toString().getBytes(StandardCharsets.UTF_8));
+    }
   }
-
 }

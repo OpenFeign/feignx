@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Immutable model that represents the parts of an Http Request.
  */
-public final class RequestSpecification {
+public class RequestSpecification {
 
   private HttpMethod method;
   private URI uri;
@@ -35,15 +35,6 @@ public final class RequestSpecification {
     this.method = HttpMethod.GET;
     this.content = null;
     this.followRedirects = true;
-  }
-
-  /**
-   * The content slated to be sent.
-   *
-   * @return Request Content, if set.
-   */
-  public Optional<Object> content() {
-    return Optional.ofNullable(this.content);
   }
 
   /**
