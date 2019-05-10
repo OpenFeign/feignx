@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * Chunk that represents an Expression that, adheres to RFC 6570, and will be resolved during
@@ -20,7 +19,6 @@ import java.util.regex.Pattern;
 public abstract class Expression implements Chunk {
 
   static final String DEFAULT_DELIMITER = ",";
-  private static final Pattern PCT_ENCODED_PATTERN = Pattern.compile("%[0-9A-Fa-f][0-9A-Fa-f]");
   private static final String MULTIPLE_VALUE_DELIMITER = ",";
   private final List<String> variables = new ArrayList<>();
   private int limit;
@@ -267,7 +265,7 @@ public abstract class Expression implements Chunk {
           if (this.isCharacterAllowed((char) b)) {
             bos.write(b);
           } else {
-            pctEncode(b, bos);
+            UriUtils.pctEncode(b, bos);
           }
         }
         return new String(bos.toByteArray());
@@ -286,23 +284,9 @@ public abstract class Expression implements Chunk {
    * @return {@literal true} if the value is already pct-encoded, {@literal false} otherwise.
    */
   private boolean isPctEncoded(String value) {
-    return PCT_ENCODED_PATTERN.matcher(value).find();
+    return UriUtils.isPctEncoded(value);
   }
 
-
-  /**
-   * PCT Encodes the data provided, into the provided output stream.
-   *
-   * @param data to encode.
-   * @param encodedOutputStream to receive the encoded data.
-   */
-  private void pctEncode(byte data, ByteArrayOutputStream encodedOutputStream) {
-    encodedOutputStream.write('%');
-    char hex1 = Character.toUpperCase(Character.forDigit((data >> 4) & 0xF, 16));
-    char hex2 = Character.toUpperCase(Character.forDigit(data & 0xF, 16));
-    encodedOutputStream.write(hex1);
-    encodedOutputStream.write(hex2);
-  }
 
   /**
    * Determines if the provided character is allowed in the expanded value.

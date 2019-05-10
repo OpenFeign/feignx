@@ -80,7 +80,7 @@ public class UriTemplate {
    *
    * @return the expression list.
    */
-  public Collection<Chunk> getExpressions() {
+  Collection<Chunk> getExpressions() {
     return this.chunks.stream()
         .filter(chunk -> chunk instanceof Expression)
         .collect(Collectors.toSet());

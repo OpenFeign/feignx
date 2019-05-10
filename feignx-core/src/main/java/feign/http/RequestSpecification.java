@@ -5,8 +5,8 @@ import feign.Request;
 import feign.RequestOptions;
 import feign.support.Assert;
 import feign.support.StringUtils;
+import feign.template.UriUtils;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -188,19 +188,38 @@ public class RequestSpecification {
   public Request build() {
     /* rebuild the uri with the new query string */
     if (!this.parameters.isEmpty()) {
-      try {
-        String query = this.applyParameters(this.uri.getQuery());
-        if (StringUtils.isNotEmpty(query)) {
-          this.uri = new URI(this.uri.getScheme(),
-              this.uri.getUserInfo(),
-              this.uri.getHost(),
-              this.uri.getPort(),
-              this.uri.getPath(),
-              query,
-              this.uri.getFragment());
+      String query = this.applyParameters(this.uri.getQuery());
+      if (StringUtils.isNotEmpty(query)) {
+        /* this implementation is a bit more complicated due to the fact that new URI()
+         * can double-encode values when URI.create does not.
+         */
+        StringBuilder updated = new StringBuilder(this.uri.getScheme())
+            .append("://");
+
+        if (StringUtils.isNotEmpty(this.uri.getUserInfo())) {
+          updated.append(this.uri.getUserInfo());
+          updated.append("@");
         }
-      } catch (URISyntaxException se) {
-        throw new IllegalArgumentException(se);
+        updated.append(this.uri.getHost());
+
+        if (this.uri.getPort() != -1) {
+          updated.append(":");
+          updated.append(this.uri.getPort());
+        }
+
+        if (StringUtils.isNotEmpty(this.uri.getPath())) {
+          updated.append(this.uri.getPath());
+        }
+
+        updated.append("?");
+        updated.append(query);
+
+        if (StringUtils.isNotEmpty(this.uri.getFragment())) {
+          updated.append("#");
+          updated.append(this.uri.getFragment());
+        }
+
+        this.uri = URI.create(updated.toString());
       }
     }
 
@@ -232,18 +251,24 @@ public class RequestSpecification {
           Iterator<String> it = entry.getValue().iterator();
           while (it.hasNext()) {
             String value = it.next();
-            parameters.append(entry.getKey())
+            parameters.append(UriUtils.encode(entry.getKey()))
                 .append("=")
-                .append(value);
+                .append(UriUtils.encode(value));
             if (it.hasNext()) {
               parameters.append("&");
             }
           }
+          parameters.append("&");
         });
     if (StringUtils.isNotEmpty(query)) {
       query += "&" + parameters.toString();
     } else {
       query = parameters.toString();
+    }
+
+    /* strip any remaining ampersands */
+    if (query.endsWith("&")) {
+      query = query.substring(0, query.length() - 1);
     }
     return query;
   }

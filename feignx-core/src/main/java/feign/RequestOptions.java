@@ -1,5 +1,6 @@
 package feign;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -103,5 +104,32 @@ public final class RequestOptions {
     public RequestOptions build() {
       return new RequestOptions(this.followRedirects, this.readTimeout, this.connectTimeout);
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof RequestOptions)) {
+      return false;
+    }
+    RequestOptions options = (RequestOptions) obj;
+    return followRedirects == options.followRedirects
+        && readTimeout == options.readTimeout
+        && connectTimeout == options.connectTimeout;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(followRedirects, readTimeout, connectTimeout);
+  }
+
+  @Override
+  public String toString() {
+    return "RequestOptions [" + "followRedirects=" + followRedirects
+        + ", readTimeout=" + readTimeout
+        + ", connectTimeout=" + connectTimeout
+        + "]";
   }
 }

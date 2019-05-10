@@ -30,9 +30,7 @@ public class HttpHeader implements Header {
    * @param name for the header.
    */
   public HttpHeader(String name) {
-    Assert.isNotEmpty(name, "name is required.");
-    this.name = name;
-    this.multipleValuesAllowed = this.areMultipleValuesAllowed();
+    this(name, Collections.emptyList());
   }
 
   /**
@@ -43,11 +41,14 @@ public class HttpHeader implements Header {
    * @throws IllegalArgumentException if either the name or values is {@literal null}
    */
   public HttpHeader(String name, Collection<String> values) {
-    this(name);
     Assert.isNotNull(values, "values cannot be null.");
+    this.name = name;
+    this.multipleValuesAllowed = this.areMultipleValuesAllowed();
 
     /* create a deep copy of the values */
-    this.values.addAll(values);
+    if (!values.isEmpty()) {
+      values.forEach(this::value);
+    }
   }
 
   /**
@@ -110,12 +111,12 @@ public class HttpHeader implements Header {
       return false;
     }
     HttpHeader that = (HttpHeader) obj;
-    return name.equals(that.name);
+    return name.toLowerCase().equals(that.name.toLowerCase());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name);
+    return Objects.hash(name.toLowerCase());
   }
 
   @Override

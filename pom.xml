@@ -175,12 +175,12 @@
                   <limit implementation="org.jacoco.report.check.Limit">
                     <counter>BRANCH</counter>
                     <value>COVEREDRATIO</value>
-                    <minimum>0.80</minimum>
+                    <minimum>0.75</minimum>
                   </limit>
                   <limit implementation="org.jacoco.report.check.Limit">
                     <counter>COMPLEXITY</counter>
                     <value>COVEREDRATIO</value>
-                    <minimum>0.80</minimum>
+                    <minimum>0.75</minimum>
                   </limit>
                   <limit implementation="org.jacoco.report.check.Limit">
                     <counter>METHOD</counter>

@@ -50,11 +50,11 @@ public class HttpException extends RuntimeException {
   }
 
   public Optional<HttpRequest> getRequest() {
-    return Optional.of(this.request);
+    return Optional.ofNullable(this.request);
   }
 
   public Optional<HttpResponse> getResponse() {
-    return Optional.of(this.response);
+    return Optional.ofNullable(this.response);
   }
 
 

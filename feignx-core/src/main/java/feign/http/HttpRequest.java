@@ -3,6 +3,7 @@ package feign.http;
 import feign.Request;
 import feign.RequestOptions;
 import java.net.URI;
+import java.util.Arrays;
 
 /**
  * Http Request Model.
@@ -14,6 +15,13 @@ public final class HttpRequest implements Request {
   private HttpHeader[] headers;
   private RequestOptions options;
   private byte[] content;
+
+  /**
+   * Creates a new empty HttpRequest.
+   */
+  HttpRequest() {
+    super();
+  }
 
   /**
    * Creates a new HttpRequest.
@@ -53,4 +61,12 @@ public final class HttpRequest implements Request {
     return this.options;
   }
 
+  @Override
+  public String toString() {
+    return "HttpRequest [" + "uri=" + uri
+        + ", method=" + method
+        + ", headers=" + Arrays.toString(headers)
+        + ", options=" + options
+        + "]";
+  }
 }

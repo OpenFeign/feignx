@@ -32,7 +32,7 @@ public final class HttpResponse implements Response {
   /**
    * Creates a new HttpResponse.
    */
-  private HttpResponse() {
+  HttpResponse() {
     super();
   }
 

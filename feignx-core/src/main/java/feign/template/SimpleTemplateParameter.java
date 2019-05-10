@@ -55,11 +55,11 @@ public class SimpleTemplateParameter implements TemplateParameter {
       return false;
     }
     SimpleTemplateParameter that = (SimpleTemplateParameter) pbj;
-    return name.equals(that.name);
+    return name.toLowerCase().equals(that.name.toLowerCase());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name);
+    return Objects.hash(name.toLowerCase());
   }
 }

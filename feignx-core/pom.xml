@@ -65,6 +65,7 @@
         <artifactId>assertj-assertions-generator-maven-plugin</artifactId>
         <configuration>
           <targetDir>src/test/java</targetDir>
+          <generateAssertionsForAllFields>true</generateAssertionsForAllFields>
           <generateAssertionsInPackage>feign.assertions</generateAssertionsInPackage>
           <classes>
             <param>feign.http.HttpHeader</param>
