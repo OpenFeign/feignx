@@ -21,11 +21,4 @@ public @interface Param {
    */
   String value();
 
-  /**
-   * Determines if the resolved value of this parameter should be pct-encoded.  Default is
-   * {@literal true}
-   *
-   * @return if this parameter value should be pct-encoded.
-   */
-  boolean encode() default true;
 }

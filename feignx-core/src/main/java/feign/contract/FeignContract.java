@@ -131,8 +131,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   private void processParameter(Param parameter, Integer index,
       TargetMethodDefinition targetMethodDefinition) {
     String name = parameter.value();
-    boolean encode = parameter.encode();
-    targetMethodDefinition.templateParameter(index, new SimpleTemplateParameter(name, encode));
+    targetMethodDefinition.templateParameter(index, new SimpleTemplateParameter(name));
   }
 
   /**
