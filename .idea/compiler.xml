@@ -9,5 +9,9 @@
         <module name="feignx-core" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="feignx" target="1.8" />
+      <module name="feignx-core" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

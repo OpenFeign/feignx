@@ -128,6 +128,13 @@ public abstract class Expression implements Chunk {
    * @param builder to append the values into.
    */
   private void expand(String name, Iterable<?> values, StringBuilder builder) {
+    /* limits are not allowed on lists */
+    if (this.limit >= 0) {
+      /* limits are not allowed */
+      throw new IllegalStateException(
+          this.getValue() + ":Prefix Limits are not allowed on exploded composite or list values");
+    }
+
     StringBuilder expanded = new StringBuilder();
     for (Object value : values) {
       String delimiter = (this.explode) ? this.getDelimiter() : DEFAULT_DELIMITER;
@@ -161,6 +168,13 @@ public abstract class Expression implements Chunk {
    * @param builder to append the values into.
    */
   private void expand(String name, Map<?, ?> valueMap, StringBuilder builder) {
+    /* limits are not allowed on associative arrays */
+    if (this.limit >= 0) {
+      /* limits are not allowed */
+      throw new IllegalStateException(
+          this.getValue() + ":Prefix Limits are not allowed on exploded composite or list values");
+    }
+
     StringBuilder values = new StringBuilder();
     valueMap.forEach((key, value) -> {
       /* use the delimiter for the expression if exploded */
@@ -334,6 +348,7 @@ public abstract class Expression implements Chunk {
    * Set a limit to the number of characters to included in an exploded value.
    *
    * @param limit character limit.
+   * @throws IllegalStateException if a limit is applied to an exploded or prefixed value.
    */
   void setLimit(int limit) {
     this.limit = limit;

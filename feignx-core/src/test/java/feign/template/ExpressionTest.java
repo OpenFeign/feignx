@@ -1,6 +1,7 @@
 package feign.template;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -239,6 +240,21 @@ public abstract class ExpressionTest {
     Expression expression = this.getExpression("{keys*}", -1);
     String result = expression.expand(Collections.singletonMap("keys", emptyKeys));
     assertThat(result).isEmpty();
+  }
+
+
+  @Test
+  void expand_withLimitOnMap_isNotAllowed() {
+    Expression expression = this.getExpression("{keys}", 10);
+    assertThrows(IllegalStateException.class,
+        () -> expression.expand(Collections.singletonMap("keys", keys)));
+  }
+
+  @Test
+  void expand_withLimitOnList_isNotAllowed() {
+    Expression expression = this.getExpression("{list}", 10);
+    assertThrows(IllegalStateException.class,
+        () -> expression.expand(Collections.singletonMap("list", keys)));
   }
 
 }
