@@ -127,8 +127,8 @@ public class TypeDefinitionFactory {
   private TypeDefinition define(TypeVariable typeVariable, Class<?> context) {
     /* determine where this type definition has been declared */
     Class<?> declared =
-        (typeVariable.getGenericDeclaration() instanceof Class) ?
-            (Class<?>) typeVariable.getGenericDeclaration() : null;
+        (typeVariable.getGenericDeclaration() instanceof Class)
+            ? (Class<?>) typeVariable.getGenericDeclaration() : null;
     if (declared == null) {
       return null;
     }

@@ -20,32 +20,29 @@ public final class HttpResponse implements Response {
   private InputStream body;
   private int contentLength;
 
+  /**
+   * Creates a new HttpResponse Builder.
+   *
+   * @return a new builder instance.
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * Creates a new HttpResponse.
+   */
   private HttpResponse() {
     super();
   }
 
+  /**
+   * The Response Status Code.
+   *
+   * @param status code.
+   */
   private void status(int status) {
     this.status = status;
-  }
-
-  private void reason(String reason) {
-    this.reason = reason;
-  }
-
-  private void contentLength(int contentLength) {
-    this.contentLength = contentLength;
-  }
-
-  private void addHeader(HttpHeader header) {
-    this.headers.add(header);
-  }
-
-  private void body(InputStream body) {
-    this.body = body;
   }
 
   /**
@@ -58,6 +55,15 @@ public final class HttpResponse implements Response {
   }
 
   /**
+   * Set the reason from the Response.
+   *
+   * @param reason response reason.
+   */
+  private void reason(String reason) {
+    this.reason = reason;
+  }
+
+  /**
    * HTTP Status Reason.
    *
    * @return status reason.
@@ -67,12 +73,12 @@ public final class HttpResponse implements Response {
   }
 
   /**
-   * List of Headers provided in the Response.
+   * Set the Content Length.
    *
-   * @return response headers.
+   * @param contentLength of the response.
    */
-  public List<Header> headers() {
-    return Collections.unmodifiableList(this.headers);
+  private void contentLength(int contentLength) {
+    this.contentLength = contentLength;
   }
 
   /**
@@ -85,6 +91,15 @@ public final class HttpResponse implements Response {
   }
 
   /**
+   * Set the Response body.
+   *
+   * @param body input stream.
+   */
+  private void body(InputStream body) {
+    this.body = body;
+  }
+
+  /**
    * An Input Stream backed by the Response data.  It is the responsibility of the caller
    * to close this stream.
    *
@@ -92,6 +107,24 @@ public final class HttpResponse implements Response {
    */
   public InputStream body() {
     return this.body;
+  }
+
+  /**
+   * List of Headers provided in the Response.
+   *
+   * @return response headers.
+   */
+  public List<Header> headers() {
+    return Collections.unmodifiableList(this.headers);
+  }
+
+  /**
+   * Add the Header to the Response.
+   *
+   * @param header to add.
+   */
+  private void addHeader(HttpHeader header) {
+    this.headers.add(header);
   }
 
   /**

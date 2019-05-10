@@ -1,7 +1,7 @@
 package feign.proxy;
 
-import feign.TargetMethodHandler;
 import feign.Target;
+import feign.TargetMethodHandler;
 import feign.support.Assert;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles.Lookup;

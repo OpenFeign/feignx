@@ -29,7 +29,7 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
 
       /* process method parameters */
       Parameter[] parameters = method.getParameters();
-      for (int i = 0; i < parameters.length; i ++) {
+      for (int i = 0; i < parameters.length; i++) {
         Parameter parameter = parameters[i];
         this.processAnnotationsOnParameter(parameter, i, methodMetadata);
       }
@@ -38,7 +38,7 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
         /* no explicit @Body parameter defined, look for the first parameter that
          * does not have an annotation and register it as the body.
          */
-        for (int i = 0; i < parameters.length; i ++) {
+        for (int i = 0; i < parameters.length; i++) {
           Parameter parameter = parameters[i];
           if (parameter.getAnnotations().length == 0) {
             /* assume this is our body */
@@ -56,11 +56,14 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
     return methods;
   }
 
-  protected abstract void processAnnotationsOnType(Class<?> targetType, TargetMethodDefinition targetMethodDefinition);
+  protected abstract void processAnnotationsOnType(Class<?> targetType,
+      TargetMethodDefinition targetMethodDefinition);
 
-  protected abstract void processAnnotationsOnMethod(Class<?> targetType, Method method, TargetMethodDefinition targetMethodDefinition);
+  protected abstract void processAnnotationsOnMethod(Class<?> targetType, Method method,
+      TargetMethodDefinition targetMethodDefinition);
 
-  protected abstract void processAnnotationsOnParameter(Parameter parameter, Integer parameterIndex, TargetMethodDefinition targetMethodDefinition);
+  protected abstract void processAnnotationsOnParameter(Parameter parameter, Integer parameterIndex,
+      TargetMethodDefinition targetMethodDefinition);
 
 
 }

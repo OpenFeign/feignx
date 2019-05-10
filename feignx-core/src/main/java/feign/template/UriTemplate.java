@@ -63,12 +63,6 @@ public class UriTemplate {
     return URI.create(expanded.toString());
   }
 
-  public Collection<Chunk> getExpressions() {
-    return this.chunks.stream()
-        .filter(chunk -> chunk instanceof Expression)
-        .collect(Collectors.toSet());
-  }
-
   /**
    * Expand the given Expression.
    *
@@ -79,6 +73,17 @@ public class UriTemplate {
   private String expand(Expression expression, Map<String, ?> variables) {
     /* delegate to the expression */
     return expression.expand(variables);
+  }
+
+  /**
+   * The list of Expressions for this template.
+   *
+   * @return the expression list.
+   */
+  public Collection<Chunk> getExpressions() {
+    return this.chunks.stream()
+        .filter(chunk -> chunk instanceof Expression)
+        .collect(Collectors.toSet());
   }
 
   /**

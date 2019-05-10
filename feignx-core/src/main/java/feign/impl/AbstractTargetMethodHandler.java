@@ -24,8 +24,8 @@ import java.util.concurrent.RunnableFuture;
 
 /**
  * Base HttpMethod Handler implementation.  HttpRequest preparation is always done on the calling
- * thread.  HttpRequest execution is delegated to the provided {@link Executor}.  Response processing is
- * the responsibility of the subclasses.
+ * thread.  HttpRequest execution is delegated to the provided {@link Executor}.  Response
+ * processing is the responsibility of the subclasses.
  */
 public abstract class AbstractTargetMethodHandler implements TargetMethodHandler {
 
@@ -92,7 +92,8 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
       }
 
       /* execute the request on the provided executor */
-      RunnableFuture<Response> task = this.getTask(targetMethodDefinition, requestSpecification.build());
+      RunnableFuture<Response> task = this.getTask(
+          targetMethodDefinition, requestSpecification.build());
       this.executor.execute(task);
 
       /* process the results of the task */
@@ -140,7 +141,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    *
    * @param arguments to map.
    * @return a new Map, where the argument is matched up to the corresponding Template parameter
-   * name.
+   *        name.
    */
   private Map<String, Object> mapArguments(Object[] arguments) {
     Map<String, Object> variables = new LinkedHashMap<>();

@@ -12,47 +12,39 @@ public class HttpException extends RuntimeException {
   private HttpRequest request;
   private HttpResponse response;
 
-  public HttpException(String message) {
-    super(message);
-  }
-
+  /**
+   * Creates a new Http Exception.
+   *
+   * @param message for the exception.
+   * @param cause of the exception.
+   */
   public HttpException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public HttpException(Throwable cause) {
-    super(cause);
-  }
-
-  public HttpException(String message, HttpRequest request) {
-    super(message);
-    this.request = request;
-  }
-
+  /**
+   * Creates a new Http Exception.
+   *
+   * @param message for the exception.
+   * @param cause of the exception.
+   * @param request that was attempted.
+   */
   public HttpException(String message, Throwable cause, HttpRequest request) {
     super(message, cause);
     this.request = request;
   }
 
-  public HttpException(Throwable cause, HttpRequest request) {
-    super(cause);
-    this.request = request;
-  }
-
-  public HttpException(String message, HttpRequest request, HttpResponse response) {
-    super(message);
-    this.request = request;
-    this.response = response;
-  }
-
-  public HttpException(String message, Throwable cause, HttpRequest request, HttpResponse response) {
+  /**
+   * Creates a new Http Exception.
+   *
+   * @param message for the exception.
+   * @param cause of the exception.
+   * @param request that was attempted.
+   * @param response that was received.
+   */
+  public HttpException(String message, Throwable cause, HttpRequest request,
+      HttpResponse response) {
     super(message, cause);
-    this.request = request;
-    this.response = response;
-  }
-
-  public HttpException(Throwable cause, HttpRequest request, HttpResponse response) {
-    super(cause);
     this.request = request;
     this.response = response;
   }

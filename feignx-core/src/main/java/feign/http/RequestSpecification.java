@@ -41,34 +41,6 @@ public class RequestSpecification {
   }
 
   /**
-   * URI for the HttpRequest.
-   *
-   * @return HttpRequest URI, if set.
-   */
-  public Optional<URI> uri() {
-    return Optional.ofNullable(this.uri);
-  }
-
-  /**
-   * Http HttpRequest Method.
-   *
-   * @return HttpRequest Method.
-   */
-  public HttpMethod method() {
-    return this.method;
-  }
-
-  /**
-   * Http Header on the HttpRequest.
-   *
-   * @param name of the Header.
-   * @return the HttpHeader for the name, if set.
-   */
-  public Optional<Header> header(String name) {
-    return Optional.ofNullable(this.headers.get(name));
-  }
-
-  /**
    * Set the URI for the HttpRequest.
    *
    * @param uri of the HttpRequest, cannot be {@literal null}
@@ -78,6 +50,15 @@ public class RequestSpecification {
     Assert.isNotNull(uri, "uri is required.");
     this.uri = uri;
     return this;
+  }
+
+  /**
+   * URI for the HttpRequest.
+   *
+   * @return HttpRequest URI, if set.
+   */
+  public Optional<URI> uri() {
+    return Optional.ofNullable(this.uri);
   }
 
   /**
@@ -92,8 +73,17 @@ public class RequestSpecification {
   }
 
   /**
-   * Specify a Http Header on the HttpRequest.  If the Header is already present on the request and the
-   * Header being requested supports multiple values, the value will be added.
+   * Http HttpRequest Method.
+   *
+   * @return HttpRequest Method.
+   */
+  public HttpMethod method() {
+    return this.method;
+  }
+
+  /**
+   * Specify a Http Header on the HttpRequest.  If the Header is already present on the request and
+   * the Header being requested supports multiple values, the value will be added.
    *
    * @param name of the Header.
    * @param value for the Header.
@@ -109,6 +99,16 @@ public class RequestSpecification {
       this.headers.put(name, header);
     }
     return this;
+  }
+
+  /**
+   * Http Header on the HttpRequest.
+   *
+   * @param name of the Header.
+   * @return the HttpHeader for the name, if set.
+   */
+  public Optional<Header> header(String name) {
+    return Optional.ofNullable(this.headers.get(name));
   }
 
   /**
@@ -208,6 +208,7 @@ public class RequestSpecification {
     RequestOptions options = this.getOptions();
 
     /* create a new HttpRequest */
+    //noinspection SuspiciousToArrayCall
     return new HttpRequest(
         this.uri,
         this.method,

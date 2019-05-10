@@ -2,10 +2,10 @@ package feign.proxy;
 
 import feign.FeignConfiguration;
 import feign.Target;
+import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.TargetMethodHandlerFactory;
 import feign.http.RequestSpecification;
-import feign.TargetMethodDefinition;
 import feign.impl.TypeDrivenMethodHandlerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -100,7 +100,8 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     this.delegate.apply(requestSpecification);
   }
 
-  private void buildMethodHandlerMap(Target<?> target, Collection<TargetMethodDefinition> metadata) {
+  private void buildMethodHandlerMap(
+      Target<?> target, Collection<TargetMethodDefinition> metadata) {
     Method[] methods = target.type().getMethods();
 
     /* loop through the methods and map them to the appropriate method handler */

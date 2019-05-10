@@ -13,6 +13,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+/**
+ * Starting point for all Feign Configuration instances.
+ */
 public class BaseFeignConfiguration implements FeignConfiguration {
 
   private final Client client;
@@ -24,6 +27,18 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   private final List<RequestInterceptor> interceptors = new ArrayList<>();
   private final ExceptionHandler exceptionHandler;
 
+  /**
+   * Creates a new Base Feign Configuration.
+   *
+   * @param target for this configuration.
+   * @param contract to use.
+   * @param encoder to use.
+   * @param interceptors to apply.
+   * @param client to use.
+   * @param decoder to use.
+   * @param exceptionHandler to use.
+   * @param executor to use.
+   */
   public BaseFeignConfiguration(Target target, Contract contract, RequestEncoder encoder,
       List<RequestInterceptor> interceptors, Client client, ResponseDecoder decoder,
       ExceptionHandler exceptionHandler, Executor executor) {

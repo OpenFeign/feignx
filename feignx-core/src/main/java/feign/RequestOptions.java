@@ -56,12 +56,24 @@ public final class RequestOptions {
     private long readTimeout = DEFAULT_READ_TIMEOUT;
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-
+    /**
+     * Set if this request should automatically follow 3xx response codes.
+     *
+     * @param followRedirects flag.
+     * @return the builder chain.
+     */
     public Builder setFollowRedirects(boolean followRedirects) {
       this.followRedirects = followRedirects;
       return this;
     }
 
+    /**
+     * Set the read timout.
+     *
+     * @param readTimeout value.
+     * @param timeUnit for the timeout value.
+     * @return the builder chain.
+     */
     public Builder setReadTimeout(long readTimeout, TimeUnit timeUnit) {
       if (readTimeout != 0) {
         this.readTimeout = timeUnit.toMillis(readTimeout);
@@ -69,6 +81,13 @@ public final class RequestOptions {
       return this;
     }
 
+    /**
+     * Set the connect timeout.
+     *
+     * @param connectTimeout value.
+     * @param timeUnit for the timeout value.
+     * @return the builder chain.
+     */
     public Builder setConnectTimeout(long connectTimeout, TimeUnit timeUnit) {
       if (connectTimeout != 0) {
         this.connectTimeout = timeUnit.toMillis(connectTimeout);
@@ -76,6 +95,11 @@ public final class RequestOptions {
       return this;
     }
 
+    /**
+     * Build the RequestOptions instance.
+     *
+     * @return a new RequestOptions instance.
+     */
     public RequestOptions build() {
       return new RequestOptions(this.followRedirects, this.readTimeout, this.connectTimeout);
     }

@@ -4,6 +4,9 @@ import feign.support.StringUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * URI Template Expression factory.
+ */
 public class Expressions {
 
   private static final Pattern EXPRESSION_PATTERN =
@@ -17,6 +20,12 @@ public class Expressions {
   private static final String FORM_STYLE_MODIFIER = "?";
   private static final String FORM_CONT_STYLE_MODIFIER = "&";
 
+  /**
+   * Creates a new Expression.
+   *
+   * @param variableSpec with the expression specification.
+   * @return an Expression instance based on the specification.
+   */
   public static Expression create(String variableSpec) {
     /* parse the specification */
     Matcher matcher = EXPRESSION_PATTERN.matcher(variableSpec);

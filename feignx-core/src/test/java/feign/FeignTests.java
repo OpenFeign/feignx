@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 class FeignTests {
 
-  @Disabled
   @Test
   void createTarget_andExecuteRequest() {
     GitHub gitHub = Feign.builder()

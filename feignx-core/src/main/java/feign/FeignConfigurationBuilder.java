@@ -9,7 +9,8 @@ import java.util.concurrent.Executor;
  * @param <B> type of Builder to chain.
  * @param <C> type of FeignConfiguration to generate.
  */
-public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder, C extends FeignConfiguration> {
+public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder,
+    C extends FeignConfiguration> {
 
   /**
    * Request Encoder to use.
@@ -25,7 +26,7 @@ public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder, 
    * @param decoder instance.
    * @return the builder chain.
    */
-  B decoder(ResponseDecoder decoder) ;
+  B decoder(ResponseDecoder decoder);
 
   /**
    * Request Interceptor to apply.

@@ -1,8 +1,8 @@
 package feign.contract;
 
+import feign.TargetMethodDefinition;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
-import feign.TargetMethodDefinition;
 import feign.support.StringUtils;
 import feign.template.SimpleTemplateParameter;
 import java.lang.reflect.Method;
@@ -18,8 +18,8 @@ import java.util.List;
 public class FeignContract extends AbstractAnnotationDrivenContract {
 
   /**
-   * Process any Annotations present on the Target Type.  Any values determined here should
-   * be considered common for all methods in the Target.
+   * Process any Annotations present on the Target Type.  Any values determined here should be
+   * considered common for all methods in the Target.
    *
    * @param targetType to inspect.
    * @param targetMethodDefinition to store the resulting configuration.
@@ -128,7 +128,8 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * @param index of the parameter in the method signature.
    * @param targetMethodDefinition for the parameter.
    */
-  private void processParameter(Param parameter, Integer index, TargetMethodDefinition targetMethodDefinition) {
+  private void processParameter(Param parameter, Integer index,
+      TargetMethodDefinition targetMethodDefinition) {
     String name = parameter.value();
     boolean encode = parameter.encode();
     targetMethodDefinition.templateParameter(index, new SimpleTemplateParameter(name, encode));
@@ -149,7 +150,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
         .append("(");
     List<Type> parameters = Arrays.asList(method.getGenericParameterTypes());
     Iterator<Type> iterator = parameters.iterator();
-    while(iterator.hasNext()) {
+    while (iterator.hasNext()) {
       Type parameter = iterator.next();
       sb.append(parameter.getTypeName());
       if (iterator.hasNext()) {

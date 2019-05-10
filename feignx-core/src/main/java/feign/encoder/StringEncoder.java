@@ -2,7 +2,6 @@ package feign.encoder;
 
 import feign.RequestEncoder;
 import feign.http.RequestSpecification;
-import feign.support.Assert;
 import java.nio.charset.StandardCharsets;
 
 /**

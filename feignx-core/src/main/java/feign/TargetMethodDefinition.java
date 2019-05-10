@@ -3,11 +3,11 @@ package feign;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
+import feign.impl.type.TypeDefinition;
+import feign.impl.type.TypeDefinitionFactory;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
 import feign.template.UriTemplate;
-import feign.impl.type.TypeDefinitionFactory;
-import feign.impl.type.TypeDefinition;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Collection;
@@ -40,7 +40,7 @@ public final class TargetMethodDefinition {
   private TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
 
   /**
-   * Creates a new {@link TargetMethodDefinition}
+   * Creates a new {@link TargetMethodDefinition}.
    */
   public TargetMethodDefinition(Target<?> target) {
     Assert.isNotNull(target, "target is required.");

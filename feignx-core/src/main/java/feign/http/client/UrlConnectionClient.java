@@ -2,13 +2,13 @@ package feign.http.client;
 
 import feign.Client;
 import feign.Request;
+import feign.RequestOptions;
 import feign.Response;
 import feign.exception.FeignException;
 import feign.http.HttpException;
 import feign.http.HttpHeader;
 import feign.http.HttpRequest;
 import feign.http.HttpResponse;
-import feign.RequestOptions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
