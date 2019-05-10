@@ -17,6 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -127,7 +128,7 @@ public final class TargetMethodDefinition {
   /**
    * The Uri for this Method.
    *
-   * @return the templated uri.
+   * @return the template uri.
    */
   public String getUri() {
     return (this.template != null) ? this.template.toString() : "";
@@ -355,9 +356,6 @@ public final class TargetMethodDefinition {
     return this.template == null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -367,12 +365,9 @@ public final class TargetMethodDefinition {
       return false;
     }
     TargetMethodDefinition that = (TargetMethodDefinition) obj;
-    return name.equals(that.name);
+    return Objects.equals(name, that.name);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public int hashCode() {
     return Objects.hash(name);
@@ -380,11 +375,16 @@ public final class TargetMethodDefinition {
 
   @Override
   public String toString() {
-    return "TargetMethodDefinition ["
-        + "tag='" + tag + "'"
-        + ", return=" + this.returnType.getType().getName()
-        + ", template=" + template
-        + ", method=" + method
-        + ", followRedirects=" + followRedirects + "]";
+    return new StringJoiner(", ", TargetMethodDefinition.class.getSimpleName() + " [", "]")
+        .add("target=" + target)
+        .add("name='" + name + "'")
+        .add("tag='" + tag + "'")
+        .add("returnType=" + returnType)
+        .add("template=" + template)
+        .add("method=" + method)
+        .add("followRedirects=" + followRedirects)
+        .add("connectTimeout=" + connectTimeout)
+        .add("readTimeout=" + readTimeout)
+        .toString();
   }
 }

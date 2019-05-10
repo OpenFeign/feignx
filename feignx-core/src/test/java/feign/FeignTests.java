@@ -3,24 +3,42 @@ package feign;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import feign.contract.FeignContract;
 import feign.contract.Header;
 import feign.contract.Headers;
 import feign.contract.Param;
 import feign.contract.Request;
+import feign.decoder.StringDecoder;
+import feign.encoder.StringEncoder;
+import feign.exception.ExceptionHandler.RethrowExceptionHandler;
+import feign.http.RequestSpecification;
+import feign.http.client.UrlConnectionClient;
 import java.util.List;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FeignTests {
 
   @Test
-  void createTarget_andExecuteRequest() {
+  void createTarget() {
     GitHub gitHub = Feign.builder()
         .target(GitHub.class, "https://api.github.com");
     assertThat(gitHub).isNotNull();
+  }
 
-    String repositories = gitHub.getRepositories("openfeign");
-    assertThat(repositories).isNotEmpty();
+  @Test
+  void create_withConfiguration() {
+    GitHub gitHub = Feign.builder()
+        .client(new UrlConnectionClient())
+        .contract(new FeignContract())
+        .encoder(new StringEncoder())
+        .decoder(new StringDecoder())
+        .exceptionHandler(new RethrowExceptionHandler())
+        .interceptor(requestSpecification -> System.out.println("intercept"))
+        .executor(Executors.newSingleThreadExecutor())
+        .target(GitHub.class, "https://api.github.com");
+    assertThat(gitHub).isNotNull();
   }
 
   @Test
@@ -46,7 +64,7 @@ class FeignTests {
 
     @Request("/users/{owner}/repos")
     @Headers({@Header(name = "Accept", value = "application/json")})
-    String getRepositories(@Param("owner") String owner);
+    List<Repository> getRepositories(@Param("owner") String owner);
 
     List<String> getContributors();
 

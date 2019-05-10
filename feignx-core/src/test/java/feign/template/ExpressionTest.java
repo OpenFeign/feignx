@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 public abstract class ExpressionTest {
 
   /* Constants for each example.  Taken from RFC 6570 */
-  public static List<String> count = Arrays.asList("one", "two", "three");
+  static List<String> count = Arrays.asList("one", "two", "three");
   static List<String> dom = Arrays.asList("example", "com");
   static String dub = "me/too";
   static String dubEncoded = "me%2Ftoo";
@@ -45,6 +45,7 @@ public abstract class ExpressionTest {
     Expression expression = this.getExpression("{var}", -1);
     assertThat(expression.getVariables()).hasSize(1);
     assertThat(expression.getLimit()).isEqualTo(-1);
+    assertThat(expression.getValue()).isEqualTo("{var}");
 
     String result = expression.expand(Collections.singletonMap("var", var));
     assertThat(result).isEqualTo(expression.getPrefix() + var);
@@ -72,7 +73,14 @@ public abstract class ExpressionTest {
   }
 
   @Test
-  void expand_withMultipleVariables() {
+  public void expand_withMultipleVariables() {
+    Expression expression = this.getExpression("{count}", -1);
+    String result = expression.expand(Collections.singletonMap("count", count));
+    assertThat(result).isEqualTo(expression.getPrefix() + "one,two,three");
+  }
+
+  @Test
+  void expand_withMultipleVariablesEncoded() {
     Expression expression = this.getExpression("{x,hello,y}", -1);
     assertThat(expression.getVariables()).hasSize(3);
     assertThat(expression.getLimit()).isEqualTo(-1);
@@ -148,6 +156,7 @@ public abstract class ExpressionTest {
     Expression expression = this.getExpression("{var}", 3);
     assertThat(expression.getVariables()).hasSize(1);
     assertThat(expression.getLimit()).isEqualTo(3);
+    assertThat(expression.getValue()).isEqualTo("{var:3}");
 
     String result = expression.expand(Collections.singletonMap("var", var));
     assertThat(result).isEqualTo(expression.getPrefix() + var.substring(0, 3));

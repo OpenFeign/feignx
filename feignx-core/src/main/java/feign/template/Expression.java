@@ -94,7 +94,7 @@ public abstract class Expression implements Chunk {
           } else if (Map.class.isAssignableFrom(value.getClass())) {
 
             /* expand each key,value pair in the map */
-            Map<?,?> map = (Map<?, ?>) value;
+            Map<?, ?> map = (Map<?, ?>) value;
 
             /* mark the map empty if empty */
             emptyListOrMap = map.isEmpty();
@@ -213,8 +213,8 @@ public abstract class Expression implements Chunk {
   }
 
   /**
-   * Expands a single object into a String, limited if necessary.  This implementation uses
-   * {@link Object#toString()}.
+   * Expands a single object into a String, limited if necessary.  This implementation uses {@link
+   * Object#toString()}.
    *
    * @param value to expand.
    * @return the expanded value.
@@ -350,9 +350,10 @@ public abstract class Expression implements Chunk {
   @Override
   public String getValue() {
     if (this.limit > 0) {
-      return "{" + this.variables + ((this.explode) ? "*" : "") + ":" + this.limit + "}";
+      return "{" + String.join(",", this.variables) + ((this.explode) ? "*" : "") + ":"
+          + this.limit + "}";
     }
-    return "{" + this.variables + ((this.explode) ? "*" : "") + "}";
+    return "{" + String.join(",", this.variables) + ((this.explode) ? "*" : "") + "}";
   }
 
   @Override

@@ -47,7 +47,15 @@ public abstract class StyleExpressionTest extends ExpressionTest {
 
   @Override
   @Test
-  void expand_withMultipleVariables() {
+  public void expand_withMultipleVariables() {
+    Expression expression = this.getExpression("{count}", -1);
+    String result = expression.expand(Collections.singletonMap("count", count));
+    assertThat(result).isEqualTo(expression.getPrefix() + "count=one,two,three");
+  }
+
+  @Override
+  @Test
+  void expand_withMultipleVariablesEncoded() {
     Expression expression = this.getExpression("{x,hello,y}", -1);
     assertThat(expression.getVariables()).hasSize(3);
     assertThat(expression.getLimit()).isEqualTo(-1);

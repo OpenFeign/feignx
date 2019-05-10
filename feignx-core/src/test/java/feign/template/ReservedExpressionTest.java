@@ -41,7 +41,7 @@ public class ReservedExpressionTest extends ExpressionTest {
 
   @Override
   @Test
-  public void expand_withMultipleVariables() {
+  public void expand_withMultipleVariablesEncoded() {
     Expression expression = this.getExpression("{x,hello,y}", -1);
     assertThat(expression.getVariables()).hasSize(3);
     assertThat(expression.getLimit()).isEqualTo(-1);

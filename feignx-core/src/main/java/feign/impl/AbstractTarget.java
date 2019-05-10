@@ -4,6 +4,12 @@ import feign.Target;
 import feign.support.Assert;
 import java.util.Objects;
 
+/**
+ * Base implementation of all Targets.
+ *
+ * @param <T> type for this target.
+ */
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractTarget<T> implements Target<T> {
 
   private final Class<T> type;
