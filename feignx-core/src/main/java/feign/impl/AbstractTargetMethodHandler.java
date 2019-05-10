@@ -27,6 +27,7 @@ import java.util.concurrent.RunnableFuture;
  * thread.  HttpRequest execution is delegated to the provided {@link Executor}.  Response
  * processing is the responsibility of the subclasses.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractTargetMethodHandler implements TargetMethodHandler {
 
   private TargetMethodDefinition targetMethodDefinition;
