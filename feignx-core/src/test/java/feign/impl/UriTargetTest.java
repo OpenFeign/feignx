@@ -25,4 +25,18 @@ class UriTargetTest {
     assertThrows(IllegalStateException.class,
         () -> new UriTarget<>(String.class, "/relative"));
   }
+
+  @Test
+  void isEqual_whenNameAndTypeMatch() {
+    Target<?> one = new UriTarget<>(String.class, "https://www.example.com");
+    Target<?> two = new UriTarget<>(String.class, "https://www.example.com");
+    assertThat(one).isEqualTo(two);
+  }
+
+  @Test
+  void isNotEqual_whenNameAndTypeDoNotMatch() {
+    Target<?> one = new UriTarget<>(String.class, "https://www.example.com");
+    Target<?> two = new UriTarget<>(String.class, "another", "https://www.example.com");
+    assertThat(one).isNotEqualTo(two);
+  }
 }

@@ -60,13 +60,16 @@ public class UrlConnectionClient implements Client {
       connection.setAllowUserInteraction(false);
 
       /* apply the request headers */
-      for (HttpHeader header : request.headers()) {
-        header.values().forEach(value -> connection.addRequestProperty(header.name(), value));
+      if (request.headers() != null) {
+        for (HttpHeader header : request.headers()) {
+          header.values().forEach(value -> connection.addRequestProperty(header.name(), value));
+        }
       }
 
       /* write the request  */
       byte[] data = request.content();
       if (data != null) {
+        connection.setDoOutput(true);
         try (OutputStream os = connection.getOutputStream()) {
           os.write(data);
         }

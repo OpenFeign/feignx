@@ -47,8 +47,8 @@ public abstract class AbstractTarget<T> implements Target<T> {
       return false;
     }
     AbstractTarget<?> that = (AbstractTarget<?>) obj;
-    return type.equals(that.type)
-        && name.equals(that.name);
+    return type.equals(that.type) &&
+        name.equals(that.name);
   }
 
   @Override

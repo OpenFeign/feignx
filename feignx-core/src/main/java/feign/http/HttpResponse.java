@@ -19,6 +19,7 @@ public final class HttpResponse implements Response {
   private List<HttpHeader> headers = new ArrayList<>();
   private InputStream body;
   private int contentLength;
+  private boolean closed = false;
 
   /**
    * Creates a new HttpResponse Builder.
@@ -156,6 +157,16 @@ public final class HttpResponse implements Response {
     if (this.body != null) {
       this.body.close();
     }
+    this.closed = true;
+  }
+
+  /**
+   * If this Response has been closed.
+   *
+   * @return {@literal true} if close, {@literal false} otherwise.
+   */
+  public boolean isClosed() {
+    return this.closed;
   }
 
   public static class Builder {

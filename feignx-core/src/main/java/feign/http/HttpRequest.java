@@ -32,12 +32,12 @@ public final class HttpRequest implements Request {
    * @param options for the request.
    * @param content to include in the request.
    */
-  HttpRequest(URI uri, HttpMethod method, HttpHeader[] headers, RequestOptions options,
+  public HttpRequest(URI uri, HttpMethod method, HttpHeader[] headers, RequestOptions options,
       byte[] content) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
-    this.options = options;
+    this.options = (options == null) ? RequestOptions.builder().build() : options;
     this.content = content;
   }
 
