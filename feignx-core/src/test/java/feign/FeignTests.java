@@ -2,7 +2,10 @@ package feign;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
+import feign.FeignTests.GitHub.Repository;
 import feign.contract.FeignContract;
 import feign.contract.Header;
 import feign.contract.Headers;
@@ -13,18 +16,54 @@ import feign.encoder.StringEncoder;
 import feign.exception.ExceptionHandler.RethrowExceptionHandler;
 import feign.http.RequestSpecification;
 import feign.http.client.UrlConnectionClient;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.BodyWithContentType;
 
 class FeignTests {
 
+  private static ClientAndServer mockServerClient;
+
+  @BeforeAll
+  static void prepareServer() {
+    mockServerClient = ClientAndServer.startClientAndServer(9999);
+
+    mockServerClient.when(
+        request()
+            .withMethod("GET")
+            .withPath("/users/openfeign/repos")
+    ).respond(
+        response()
+            .withStatusCode(200)
+            .withBody("{\"name\":\"feign\"}"));
+  }
+
+  @AfterAll
+  static void shutdownServer() {
+    mockServerClient.stop();
+  }
+
   @Test
-  void createTarget() {
+  void createTargetAndExecute() {
     GitHub gitHub = Feign.builder()
-        .target(GitHub.class, "https://api.github.com");
+        .decoder(new ResponseDecoder() {
+          @SuppressWarnings("unchecked")
+          @Override
+          public <T> T decode(Response response, Class<T> type) {
+            return (T) Collections.singletonList(new Repository("openfeign"));
+          }
+        })
+        .target(GitHub.class, "http://localhost:9999");
     assertThat(gitHub).isNotNull();
+
+    List<Repository> repositories = gitHub.getRepositories("openfeign");
+    assertThat(repositories).isNotEmpty();
   }
 
   @Test
@@ -76,8 +115,9 @@ class FeignTests {
 
       private String name;
 
-      public Repository() {
+      Repository(String name) {
         super();
+        this.name = name;
       }
 
       public String getName() {
