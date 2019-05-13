@@ -39,23 +39,58 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
    * @param methods for this proxy to manage.
    * @param configuration for this instance.
    */
-  public ProxyTarget(
+  ProxyTarget(
       Collection<TargetMethodDefinition> methods, FeignConfiguration configuration) {
     this.delegate = configuration.getTarget();
     this.configuration = configuration;
     this.buildMethodHandlerMap(delegate, methods);
   }
 
+  /**
+   * Creates a new {@link ProxyTarget}
+   *
+   * @param methods for this proxy to manage.
+   * @param methodHandlerFactory to use when creating method handlers.
+   * @param configuration for this instance.
+   */
+  ProxyTarget(Collection<TargetMethodDefinition> methods,
+      TargetMethodHandlerFactory methodHandlerFactory,
+      FeignConfiguration configuration) {
+    this.delegate = configuration.getTarget();
+    this.methodHandlerFactory = methodHandlerFactory;
+    this.configuration = configuration;
+    this.buildMethodHandlerMap(delegate, methods);
+  }
+
+  /**
+   * The Target Type, defer to the delegate.
+   *
+   * @return the target type.
+   */
   @Override
   public Class<T> type() {
     return this.delegate.type();
   }
 
+  /**
+   * Name of this Target, defer to the delegate.
+   *
+   * @return the target name.
+   */
   @Override
   public String name() {
     return this.delegate.name();
   }
 
+  /**
+   * Invoke the desired method on the Proxy.
+   *
+   * @param proxy object being invoked.
+   * @param method being invoked.
+   * @param args for the method.
+   * @return the result of the method invocation.
+   * @throws Throwable if an error occurs during processing.
+   */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
@@ -95,11 +130,22 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     }
   }
 
+  /**
+   * Target the Request Specification.
+   *
+   * @param requestSpecification to target.
+   */
   @Override
   public void apply(RequestSpecification requestSpecification) {
     this.delegate.apply(requestSpecification);
   }
 
+  /**
+   * Creates a Map of Method to Method Handler based on the TargetMethodDefinitions provided.
+   *
+   * @param target to inspect.
+   * @param metadata containing the method definitions for the target.
+   */
   private void buildMethodHandlerMap(
       Target<?> target, Collection<TargetMethodDefinition> metadata) {
     Method[] methods = target.type().getMethods();
@@ -118,11 +164,25 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     }
   }
 
+  /**
+   * Creates a new GuardMethodHandler, for default/guard method implementations.
+   *
+   * @param method with a default/guard implementation.
+   * @param proxy to bind the handler to.
+   * @return a new TargetMethodHandler instance.
+   */
   private TargetMethodHandler createGuardMethodHandler(Method method, Object proxy) {
     /* create a new Guard HttpMethod Handler and register it to the map */
     return new GuardMethodHandler(method, this, proxy);
   }
 
+  /**
+   * Determines if the provided object is equal to this target.  Since this is a JDK proxy,
+   * we delegate to the proxied Target.
+   *
+   * @param obj to compare.
+   * @return {@literal true} if the objects are equal, {@literal false} otherwise.
+   */
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -134,11 +194,21 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     return this.delegate.equals(obj);
   }
 
+  /**
+   * Determines the hash for this object.  Defers to the delegate.
+   *
+   * @return hash code.
+   */
   @Override
   public int hashCode() {
     return this.delegate.hashCode();
   }
 
+  /**
+   * String value.  Defers to the delegate.
+   *
+   * @return string representation of the delegate.
+   */
   @Override
   public String toString() {
     return this.delegate.toString();

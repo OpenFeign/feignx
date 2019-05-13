@@ -36,7 +36,7 @@ class RequestSpecificationTest {
         .build();
     assertThat(httpRequest).hasUri(result)
         .hasMethod(HttpMethod.GET)
-        .hasHeaders(new HttpHeader("Accept", Collections.singletonList("value")))
+        .hasHeaders(Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("value"))))
         .hasOptions(options)
         .hasContent("data".getBytes(StandardCharsets.UTF_8));
   }

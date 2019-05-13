@@ -1,6 +1,7 @@
 package feign.http.client;
 
 import feign.Client;
+import feign.Header;
 import feign.Request;
 import feign.RequestOptions;
 import feign.Response;
@@ -61,7 +62,7 @@ public class UrlConnectionClient implements Client {
 
       /* apply the request headers */
       if (request.headers() != null) {
-        for (HttpHeader header : request.headers()) {
+        for (Header header : request.headers()) {
           header.values().forEach(value -> connection.addRequestProperty(header.name(), value));
         }
       }

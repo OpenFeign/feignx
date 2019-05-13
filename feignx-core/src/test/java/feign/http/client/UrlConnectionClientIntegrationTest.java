@@ -138,9 +138,11 @@ class UrlConnectionClientIntegrationTest {
 
   @Test
   void canSendRequest_withBody() throws Exception {
+
+
     HttpRequest request = new HttpRequest(
         URI.create("http://localhost:1080/create"), HttpMethod.POST,
-        new HttpHeader[]{new HttpHeader("Accept", Collections.singletonList("*/*"))},
+        Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("*/*"))),
         RequestOptions.builder().build(), "content".getBytes(StandardCharsets.UTF_8));
     try (Response response = this.urlConnectionClient.request(request)) {
       assertThat(response).isNotNull().isInstanceOf(HttpResponse.class);
@@ -154,7 +156,7 @@ class UrlConnectionClientIntegrationTest {
   void canReadResponseStream_whenBodyIsLarge() throws Exception {
     HttpRequest request = new HttpRequest(
         URI.create("Http://localhost:1080/large"), HttpMethod.GET,
-        new HttpHeader[]{}, RequestOptions.builder().build(), null);
+        Collections.emptyList(), RequestOptions.builder().build(), null);
     HttpResponse watched;
     try (Response response = this.urlConnectionClient.request(request)) {
       assertThat(response).isInstanceOf(HttpResponse.class);
@@ -206,7 +208,7 @@ class UrlConnectionClientIntegrationTest {
   void throwIllegalArgument_onMalformedRequest() {
     HttpRequest request = new HttpRequest(
         URI.create("myscheme://localhost:1080/create"), HttpMethod.GET,
-        null, RequestOptions.builder().build(), null);
+        Collections.emptyList(), RequestOptions.builder().build(), null);
     assertThrows(IllegalArgumentException.class, () -> this.urlConnectionClient.request(request));
   }
 
@@ -214,7 +216,7 @@ class UrlConnectionClientIntegrationTest {
   void throwIllegalArgument_onProtocolException() {
     HttpRequest request = new HttpRequest(
         URI.create("http://localhost:1080/create"), HttpMethod.CONNECT,
-        null, RequestOptions.builder().build(), null);
+        Collections.emptyList(), RequestOptions.builder().build(), null);
     assertThrows(IllegalArgumentException.class, () -> this.urlConnectionClient.request(request));
   }
 

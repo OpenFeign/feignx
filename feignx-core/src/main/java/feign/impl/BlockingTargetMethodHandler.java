@@ -1,12 +1,13 @@
 package feign.impl;
 
 import feign.Client;
+import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
 import feign.TargetMethodDefinition;
-import feign.exception.ExceptionHandler;
+import feign.ExceptionHandler;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RunnableFuture;
@@ -25,14 +26,15 @@ public class BlockingTargetMethodHandler extends AbstractTargetMethodHandler {
    * @param client to send the request and create the response.
    * @param decoder to use when parsing the response.
    * @param exceptionHandler to delegate to when an exception occurs.
+   * @param logger to use.
    */
   BlockingTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
       RequestEncoder encoder, List<RequestInterceptor> interceptors,
       Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor) {
+      ExceptionHandler exceptionHandler, Executor executor, Logger logger) {
     /* create a new method handler, with a synchronous executor */
     super(targetMethodDefinition, encoder, interceptors, client, decoder, exceptionHandler,
-        executor);
+        executor, logger);
   }
 
   /**
@@ -46,8 +48,10 @@ public class BlockingTargetMethodHandler extends AbstractTargetMethodHandler {
   protected Object handleResponse(RunnableFuture<Response> request) throws Exception {
 
     /* pull the result of the task immediately, waiting for it to complete */
+    log.debug("Waiting for the Response.");
     try (Response response = request.get()) {
       /* decode and close the response */
+      log.debug("Response received, decoding. Response: {}", response);
       return this.decode(response);
     }
   }

@@ -2,12 +2,13 @@ package feign.impl;
 
 import feign.Client;
 import feign.Contract;
+import feign.ExceptionHandler;
 import feign.FeignConfiguration;
+import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
 import feign.Target;
-import feign.exception.ExceptionHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +27,7 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   private final Executor executor;
   private final List<RequestInterceptor> interceptors = new ArrayList<>();
   private final ExceptionHandler exceptionHandler;
+  private final Logger logger;
 
   /**
    * Creates a new Base Feign Configuration.
@@ -38,10 +40,11 @@ public class BaseFeignConfiguration implements FeignConfiguration {
    * @param decoder to use.
    * @param exceptionHandler to use.
    * @param executor to use.
+   * @param logger to use.
    */
   public BaseFeignConfiguration(Target target, Contract contract, RequestEncoder encoder,
       List<RequestInterceptor> interceptors, Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor) {
+      ExceptionHandler exceptionHandler, Executor executor, Logger logger) {
     this.client = client;
     this.requestEncoder = encoder;
     this.responseDecoder = decoder;
@@ -50,6 +53,7 @@ public class BaseFeignConfiguration implements FeignConfiguration {
     this.target = target;
     this.interceptors.addAll(interceptors);
     this.exceptionHandler = exceptionHandler;
+    this.logger = logger;
   }
 
   @Override
@@ -91,5 +95,10 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   @Override
   public ExceptionHandler getExceptionHandler() {
     return this.exceptionHandler;
+  }
+
+  @Override
+  public Logger getLogger() {
+    return this.logger;
   }
 }

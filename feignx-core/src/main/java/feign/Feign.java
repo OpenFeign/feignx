@@ -3,11 +3,12 @@ package feign;
 import feign.contract.FeignContract;
 import feign.decoder.StringDecoder;
 import feign.encoder.StringEncoder;
-import feign.exception.ExceptionHandler.RethrowExceptionHandler;
+import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.http.client.UrlConnectionClient;
 import feign.impl.AbstractFeignConfigurationBuilder;
 import feign.impl.BaseFeignConfiguration;
 import feign.impl.UriTarget;
+import feign.logging.SimpleLogger;
 import feign.proxy.ProxyFeign;
 
 /**
@@ -63,6 +64,9 @@ public abstract class Feign {
 
       /* execute on the same thread */
       this.executor = Runnable::run;
+
+      /* default log configuration */
+      this.logger = SimpleLogger.builder().build();
     }
 
     /**
@@ -74,7 +78,7 @@ public abstract class Feign {
     public FeignConfiguration build() {
       return new BaseFeignConfiguration(
           this.target, this.contract, this.encoder, this.interceptors, this.client, this.decoder,
-          this.exceptionHandler, this.executor);
+          this.exceptionHandler, this.executor, this.logger);
     }
 
     /**

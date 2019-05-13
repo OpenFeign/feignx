@@ -2,6 +2,7 @@ package feign;
 
 import feign.http.HttpMethod;
 import java.net.URI;
+import java.util.List;
 
 /**
  * Information about a Request to be made.
@@ -23,6 +24,13 @@ public interface Request {
   byte[] content();
 
   /**
+   * Length of the Content to be sent.
+   *
+   * @return request content size.
+   */
+  int contentLength();
+
+  /**
    * Http Method for this request.
    *
    * @return http method.
@@ -34,7 +42,7 @@ public interface Request {
    *
    * @return request headers.
    */
-  Header[] headers();
+  List<Header> headers();
 
   /**
    * Options for this request.
