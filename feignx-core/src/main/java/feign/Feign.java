@@ -10,29 +10,66 @@ import feign.impl.BaseFeignConfiguration;
 import feign.impl.UriTarget;
 import feign.proxy.ProxyFeign;
 
+/**
+ * Feign instance builder.  Provides access to a {@link FeignConfigurationBuilder}, using a
+ * fluent-api to allow user's to configure each component of a {@link FeignConfiguration}
+ * that will be used when executing methods on the {@link Target}.
+ */
 public abstract class Feign {
 
+  /**
+   * Returns a new {@link FeignConfigurationBuilder}.
+   *
+   * @return FeignConfigurationBuilder instance.
+   */
   public static FeignConfigurationBuilderImpl builder() {
     return new FeignConfigurationBuilderImpl();
   }
 
+  /**
+   * Creates a new instance of the {@link Target} type in the configuration.  Implementations are
+   * expected to be thread-safe.
+   *
+   * @param configuration containing the dependencies the resulting target should use.
+   * @param <T> of the Target.
+   * @return a new Target instance.
+   */
   protected abstract <T> T create(FeignConfiguration configuration);
 
+  /**
+   * Default {@link FeignConfigurationBuilder}.  Provides access to the core Feign components.
+   */
   static class FeignConfigurationBuilderImpl extends
       AbstractFeignConfigurationBuilder<FeignConfigurationBuilderImpl, FeignConfiguration> {
 
+    /**
+     * Creates a new Builder, defining the default components.
+     */
     FeignConfigurationBuilderImpl() {
       super(FeignConfigurationBuilderImpl.class);
 
-      /* set our defaults */
+      /* use the Feign Contract annotations. */
       this.contract = new FeignContract();
+
+      /* assume all request and response items are strings */
       this.encoder = new StringEncoder();
       this.decoder = new StringDecoder();
+
+      /* use the java.net client */
       this.client = new UrlConnectionClient();
+
+      /* don't handle exceptions, throw them */
       this.exceptionHandler = new RethrowExceptionHandler();
+
+      /* execute on the same thread */
       this.executor = Runnable::run;
     }
 
+    /**
+     * Build the Feign Configuration.
+     *
+     * @return a new {@link FeignConfiguration} instance.
+     */
     @Override
     public FeignConfiguration build() {
       return new BaseFeignConfiguration(
@@ -40,6 +77,14 @@ public abstract class Feign {
           this.exceptionHandler, this.executor);
     }
 
+    /**
+     * Creates a new JDK Proxy backed Target instance.
+     *
+     * @param targetType containing the Target definition.
+     * @param uri for all requests in the target to be sent to.  Must be absolute.
+     * @param <T> type of the Target instance.
+     * @return a new Target instance.
+     */
     public <T> T target(Class<T> targetType, String uri) {
       this.target(new UriTarget<>(targetType, uri));
 
@@ -48,6 +93,4 @@ public abstract class Feign {
       return feign.create(this.build());
     }
   }
-
-
 }

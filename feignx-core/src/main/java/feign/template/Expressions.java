@@ -80,6 +80,12 @@ public class Expressions {
     }
   }
 
+  /**
+   * Determines if the provided variable specification is a valid Expression.
+   *
+   * @param variableSpec to evaluate.
+   * @return {@literal true} if the specification is a valid Expression, {@literal false} otherwise.
+   */
   public static boolean isExpression(String variableSpec) {
     return EXPRESSION_PATTERN.matcher(variableSpec).matches();
   }

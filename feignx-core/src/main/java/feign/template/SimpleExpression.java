@@ -1,5 +1,9 @@
 package feign.template;
 
+/**
+ * Expression that expands object into a single value, pct-encoding all values not in the
+ * unreserved set.
+ */
 public class SimpleExpression extends Expression {
 
   SimpleExpression(String variableSpecification) {

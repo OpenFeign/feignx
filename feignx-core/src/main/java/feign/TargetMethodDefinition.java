@@ -42,6 +42,8 @@ public final class TargetMethodDefinition {
 
   /**
    * Creates a new {@link TargetMethodDefinition}.
+   *
+   * @param target for this definition.
    */
   public TargetMethodDefinition(Target<?> target) {
     Assert.isNotNull(target, "target is required.");
@@ -110,7 +112,7 @@ public final class TargetMethodDefinition {
   /**
    * Unique Tag for this Method Configuration.
    *
-   * @return a {@link com.sun.javadoc.SeeTag} version of the method signature.
+   * @return a {@code javadoc.SeeTag} version of the method signature.
    */
   public String getTag() {
     return this.tag;

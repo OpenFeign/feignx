@@ -14,6 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+/**
+ * Base Configuration Builder.  Can be extended to add additional fluent methods customizing
+ * specific Feign extensions.
+ *
+ * @param <B> {@link FeignConfigurationBuilder} to chain.
+ * @param <C> {@link FeignConfiguration} being built.
+ */
 public abstract class AbstractFeignConfigurationBuilder
     <B extends AbstractFeignConfigurationBuilder<B, C>, C extends FeignConfiguration>
     implements FeignConfigurationBuilder<B, C> {
@@ -28,10 +35,21 @@ public abstract class AbstractFeignConfigurationBuilder
   protected ExceptionHandler exceptionHandler;
   protected Target<?> target;
 
+  /**
+   * Creates a new FeignConfigurationBuilder.
+   *
+   * @param self reference to the builder implementation to chain.
+   */
   protected AbstractFeignConfigurationBuilder(Class<B> self) {
     this.self = self.cast(this);
   }
 
+  /**
+   * Client implementation to use.
+   *
+   * @param client instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B client(Client client) {
     Assert.isNotNull(client, "client cannot be null.");
@@ -39,6 +57,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Request Encoder implementation to use.
+   *
+   * @param encoder instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B encoder(RequestEncoder encoder) {
     Assert.isNotNull(encoder, "encoder cannot be null");
@@ -46,6 +70,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Response Decoder implementation to use.
+   *
+   * @param decoder instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B decoder(ResponseDecoder decoder) {
     Assert.isNotNull(decoder, "decoder cannot be null.");
@@ -53,6 +83,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Executor to use when {@link Client}s are submitting requests.
+   *
+   * @param executor instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B executor(Executor executor) {
     Assert.isNotNull(executor, "executor cannot be null.");
@@ -60,6 +96,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Contract to apply to the Target instances.
+   *
+   * @param contract to apply.
+   * @return the builder reference chain.
+   */
   @Override
   public B contract(Contract contract) {
     Assert.isNotNull(contract, "contract cannot be null.");
@@ -67,6 +109,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Target instance to wrap.
+   *
+   * @param target instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B target(Target<?> target) {
     Assert.isNotNull(target, "target cannot be null.");
@@ -74,6 +122,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Exception Handler implementation to use.
+   *
+   * @param exceptionHandler instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B exceptionHandler(ExceptionHandler exceptionHandler) {
     Assert.isNotNull(exceptionHandler, "exception handler cannot be null.");
@@ -81,6 +135,12 @@ public abstract class AbstractFeignConfigurationBuilder
     return this.self;
   }
 
+  /**
+   * Request Interceptor to apply.
+   *
+   * @param interceptor instance.
+   * @return the builder reference chain.
+   */
   @Override
   public B interceptor(RequestInterceptor interceptor) {
     Assert.isNotNull(interceptor, "interceptor cannot be null.");

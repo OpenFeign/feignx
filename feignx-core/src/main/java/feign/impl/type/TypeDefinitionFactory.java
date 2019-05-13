@@ -8,6 +8,10 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Factory responsible for inspecting a given Generic {@link Type} and parsing the type variables
+ * into their actual class references, resulting in a new {@link TypeDefinition}.
+ */
 public class TypeDefinitionFactory {
 
   private static final TypeDefinitionFactory instance = new TypeDefinitionFactory();
@@ -183,6 +187,7 @@ public class TypeDefinitionFactory {
     }
 
     if (!context.isInterface()) {
+      /* concrete class, watch the class hierarchy */
       while (context != Object.class) {
         /* walk the class hierarchy to get the root definition */
         Class<?> superClass = context.getSuperclass();

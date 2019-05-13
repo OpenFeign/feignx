@@ -1,5 +1,8 @@
 package feign.http;
 
+/**
+ * Http Methods.
+ */
 public enum HttpMethod {
   GET,
   POST,

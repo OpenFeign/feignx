@@ -41,22 +41,47 @@ public final class HttpRequest implements Request {
     this.content = content;
   }
 
+  /**
+   * URI of the Request.
+   *
+   * @return request uri.
+   */
   public URI uri() {
     return this.uri;
   }
 
+  /**
+   * Request Content.  Can be {@literal null}.
+   *
+   * @return the request content, if any.
+   */
   public byte[] content() {
     return this.content;
   }
 
+  /**
+   * Http Method for the Request.
+   *
+   * @return the http method.
+   */
   public HttpMethod method() {
     return this.method;
   }
 
+  /**
+   * Headers for the Request.
+   *
+   * @return an array of Request Headers.
+   */
   public HttpHeader[] headers() {
     return this.headers;
   }
 
+  /**
+   * Options for the Request.
+   *
+   * @return request options.
+   */
   public RequestOptions options() {
     return this.options;
   }

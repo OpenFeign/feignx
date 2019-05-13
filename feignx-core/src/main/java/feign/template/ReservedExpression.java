@@ -1,8 +1,11 @@
 package feign.template;
 
+/**
+ * Expression that allows for characters in the Reserved to be included, without encoding.
+ */
 public class ReservedExpression extends SimpleExpression {
 
-  public ReservedExpression(String variableSpecification) {
+  ReservedExpression(String variableSpecification) {
     super(variableSpecification);
   }
 

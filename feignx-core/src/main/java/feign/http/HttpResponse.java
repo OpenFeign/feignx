@@ -169,35 +169,73 @@ public final class HttpResponse implements Response {
     return this.closed;
   }
 
+  /**
+   * Response Builder.
+   */
   public static class Builder {
 
     private HttpResponse response = new HttpResponse();
 
+    /**
+     * Status code of the Response.
+     *
+     * @param status code.
+     * @return the builder chain.
+     */
     public Builder status(int status) {
       response.status(status);
       return this;
     }
 
+    /**
+     * Reason of the Response.
+     *
+     * @param reason description.
+     * @return the builder chain.
+     */
     public Builder reason(String reason) {
       response.reason(reason);
       return this;
     }
 
+    /**
+     * Size of the Response.
+     *
+     * @param contentLength with the size of the response.
+     * @return the builder chain.
+     */
     public Builder contentLength(int contentLength) {
       response.contentLength(contentLength);
       return this;
     }
 
+    /**
+     * Add the Header to the Response.
+     *
+     * @param header to add.
+     * @return the builder chain.
+     */
     public Builder addHeader(HttpHeader header) {
       response.addHeader(header);
       return this;
     }
 
+    /**
+     * The Request Body input stream.
+     *
+     * @param body input stream.
+     * @return the builder chain.
+     */
     public Builder body(InputStream body) {
       response.body(body);
       return this;
     }
 
+    /**
+     * Build the Response.
+     *
+     * @return a new Response.
+     */
     public Response build() {
       return response;
     }

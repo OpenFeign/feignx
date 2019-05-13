@@ -15,12 +15,23 @@ public abstract class AbstractTarget<T> implements Target<T> {
   private final Class<T> type;
   private final String name;
 
+  /**
+   * Creates a new Target.
+   *
+   * @param type of the Target.
+   */
   protected AbstractTarget(Class<T> type) {
     Assert.isNotNull(type, "type is required.");
     this.type = type;
     this.name = type.getSimpleName();
   }
 
+  /**
+   * Creates a new Target.
+   *
+   * @param type of the Target.
+   * @param name of the Target.
+   */
   protected AbstractTarget(Class<T> type, String name) {
     Assert.isNotNull(type, "type is required.");
     Assert.isNotEmpty(name, "name is required.");
@@ -28,16 +39,34 @@ public abstract class AbstractTarget<T> implements Target<T> {
     this.name = name;
   }
 
+  /**
+   * Target Type.
+   *
+   * @return the target type.
+   */
   @Override
   public Class<T> type() {
     return this.type;
   }
 
+  /**
+   * Name of this Target.
+   *
+   * @return the target name.
+   */
   @Override
   public String name() {
     return this.name;
   }
 
+  /**
+   * Determines if the provided Target is equal to this instance.  Targets are considered equal when
+   * the contained type and match exactly.
+   *
+   * @param obj to compare.
+   * @return {@literal true} if the provided object is equal to this instance, {@literal false}
+   * otherwise.
+   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {

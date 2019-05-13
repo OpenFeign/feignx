@@ -2,6 +2,9 @@ package feign.exception;
 
 import java.util.function.Consumer;
 
+/**
+ * Consumer responsible for processing any Exceptions that occur during method processing.
+ */
 public interface ExceptionHandler extends Consumer<Throwable> {
 
   /**

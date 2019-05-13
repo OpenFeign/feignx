@@ -5,11 +5,18 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Type Definition for a Parameterized Type where one of the Type Variable's defined is a
+ * {@code ?} wildcard.
+ */
 public class WildCardTypeDefinition implements WildcardType, TypeDefinition {
 
   private List<TypeDefinition> upperBounds;
   private List<TypeDefinition> lowerBounds;
 
+  /**
+   * Creates a new WildcardType definition.
+   */
   WildCardTypeDefinition() {
     super();
     this.upperBounds = new ArrayList<>();

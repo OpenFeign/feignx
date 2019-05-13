@@ -20,16 +20,15 @@ import java.lang.reflect.Method;
 public class GuardMethodHandler implements TargetMethodHandler {
 
   private final MethodHandle guardMethodHandle;
-  private boolean bound = false;
 
   /**
    * Creates a new Guard HttpMethod Handler.
    *
    * @param method to proxy.
    * @param target instance this method is for.
+   * @param proxy to bind this handler to.
    */
-  @SuppressWarnings("JavaReflectionMemberAccess")
-  public GuardMethodHandler(Method method, Target<?> target, Object proxy) {
+  GuardMethodHandler(Method method, Target<?> target, Object proxy) {
     Assert.isNotNull(method, "method is required.");
     Assert.isNotNull(target, "target is required.");
     try {
