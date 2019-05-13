@@ -15,10 +15,11 @@ import feign.http.HttpHeader;
 import feign.http.HttpMethod;
 import feign.http.HttpRequest;
 import feign.http.HttpResponse;
+import java.io.BufferedInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,11 +28,16 @@ import org.mockserver.integration.ClientAndServer;
 
 class UrlConnectionClientIntegrationTest {
 
+  private static final Random random = new Random();
+  private static final byte[] data = new byte[2048];
   private static ClientAndServer mockServerClient;
   private UrlConnectionClient urlConnectionClient = new UrlConnectionClient();
 
   @BeforeAll
   static void startServer() {
+    /* seed the data buffer */
+    random.nextBytes(data);
+
     mockServerClient = ClientAndServer.startClientAndServer(1080);
 
     /* simple response for the index */
@@ -90,6 +96,19 @@ class UrlConnectionClientIntegrationTest {
             .withDelay(TimeUnit.SECONDS, 2)
             .withReasonPhrase("Service Unavailable")
             .withBody("Maintenance"));
+
+    /* large response */
+    mockServerClient.when(
+        request()
+            .withMethod("GET")
+            .withPath("/large")
+
+    ).respond(
+        response()
+            .withStatusCode(502)
+            .withDelay(TimeUnit.SECONDS, 2)
+            .withReasonPhrase("Service Unavailable")
+            .withBody(data));
   }
 
   @AfterAll
@@ -129,6 +148,26 @@ class UrlConnectionClientIntegrationTest {
       HttpResponse httpResponse = (HttpResponse) response;
       assertThat(httpResponse).hasStatus(201);
     }
+  }
+
+  @Test
+  void canReadResponseStream_whenBodyIsLarge() throws Exception {
+    HttpRequest request = new HttpRequest(
+        URI.create("Http://localhost:1080/large"), HttpMethod.GET,
+        new HttpHeader[]{}, RequestOptions.builder().build(), null);
+    HttpResponse watched;
+    try (Response response = this.urlConnectionClient.request(request)) {
+      assertThat(response).isInstanceOf(HttpResponse.class);
+      assertThat(response.contentLength()).isGreaterThanOrEqualTo(2048);
+
+      try (BufferedInputStream bufferedInputStream = new BufferedInputStream(response.body())) {
+        byte[] buffer = new byte[response.contentLength()];
+        int read = bufferedInputStream.read(buffer, 0, response.contentLength());
+        assertThat(read).isEqualTo(response.contentLength());
+      }
+      watched = (HttpResponse) response;
+    }
+    assertThat(watched.isClosed());
   }
 
   @Test
