@@ -15,6 +15,7 @@ import feign.decoder.StringDecoder;
 import feign.encoder.StringEncoder;
 import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.http.client.UrlConnectionClient;
+import feign.logging.SimpleLogger;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -50,7 +51,14 @@ class FeignTests {
 
   @Test
   void createTargetAndExecute() {
+    Logger logger = SimpleLogger.builder()
+        .setEnabled(true)
+        .setHeadersEnabled(true)
+        .setRequestEnabled(true)
+        .setResponseEnabled(true).build();
+
     GitHub gitHub = Feign.builder()
+        .logger(logger)
         .decoder(new ResponseDecoder() {
           @SuppressWarnings("unchecked")
           @Override
@@ -81,6 +89,11 @@ class FeignTests {
         .exceptionHandler(new RethrowExceptionHandler())
         .interceptor(requestSpecification -> System.out.println("intercept"))
         .executor(Executors.newSingleThreadExecutor())
+        .logger(SimpleLogger.builder()
+            .setEnabled(true)
+            .setHeadersEnabled(true)
+            .setRequestEnabled(true)
+            .setResponseEnabled(true).build())
         .target(GitHub.class, "https://api.github.com");
     assertThat(gitHub).isNotNull();
   }
