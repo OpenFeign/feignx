@@ -1,13 +1,13 @@
 package feign.impl;
 
 import feign.Client;
+import feign.ExceptionHandler;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
 import feign.TargetMethodDefinition;
-import feign.ExceptionHandler;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RunnableFuture;
