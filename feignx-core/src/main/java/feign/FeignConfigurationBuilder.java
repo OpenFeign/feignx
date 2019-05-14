@@ -1,6 +1,5 @@
 package feign;
 
-import feign.exception.ExceptionHandler;
 import java.util.concurrent.Executor;
 
 /**
@@ -75,6 +74,14 @@ public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder,
    * @return the builder chain.
    */
   B exceptionHandler(ExceptionHandler exceptionHandler);
+
+  /**
+   * Logger instance.
+   *
+   * @param logger instance to use.
+   * @return the builder chain.
+   */
+  B logger(Logger logger);
 
   /**
    * Build the Configuration.

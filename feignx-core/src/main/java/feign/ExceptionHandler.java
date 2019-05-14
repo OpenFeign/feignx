@@ -1,4 +1,4 @@
-package feign.exception;
+package feign;
 
 import java.util.function.Consumer;
 

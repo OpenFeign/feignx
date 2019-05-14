@@ -3,7 +3,8 @@ package feign.exception;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import feign.exception.ExceptionHandler.RethrowExceptionHandler;
+import feign.ExceptionHandler;
+import feign.ExceptionHandler.RethrowExceptionHandler;
 import org.junit.jupiter.api.Test;
 
 class RethrowExceptionHandlerTest {

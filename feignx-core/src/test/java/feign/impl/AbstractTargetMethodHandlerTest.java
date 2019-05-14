@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.Client;
+import feign.Logger;
 import feign.Request;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
@@ -18,7 +19,7 @@ import feign.Response;
 import feign.ResponseDecoder;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
-import feign.exception.ExceptionHandler;
+import feign.ExceptionHandler;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
 import feign.template.SimpleTemplateParameter;
@@ -55,6 +56,9 @@ class AbstractTargetMethodHandlerTest {
   @Mock
   private Response response;
 
+  @Mock
+  private Logger logger;
+
   private Executor executor = Executors.newSingleThreadExecutor();
 
   @BeforeEach
@@ -80,7 +84,8 @@ class AbstractTargetMethodHandlerTest {
         this.client,
         this.decoder,
         this.exceptionHandler,
-        this.executor);
+        this.executor,
+        this.logger);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
@@ -106,7 +111,8 @@ class AbstractTargetMethodHandlerTest {
         this.client,
         this.decoder,
         this.exceptionHandler,
-        this.executor);
+        this.executor,
+        this.logger);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
@@ -130,7 +136,8 @@ class AbstractTargetMethodHandlerTest {
         this.client,
         this.decoder,
         this.exceptionHandler,
-        this.executor);
+        this.executor,
+        this.logger);
 
     targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -154,7 +161,8 @@ class AbstractTargetMethodHandlerTest {
         this.client,
         this.decoder,
         this.exceptionHandler,
-        this.executor);
+        this.executor,
+        this.logger);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -181,7 +189,8 @@ class AbstractTargetMethodHandlerTest {
         this.client,
         this.decoder,
         this.exceptionHandler,
-        this.executor);
+        this.executor,
+        this.logger);
 
     assertThrows(IllegalStateException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
@@ -204,7 +213,8 @@ class AbstractTargetMethodHandlerTest {
         this.client,
         this.decoder,
         this.exceptionHandler,
-        this.executor);
+        this.executor,
+        this.logger);
 
     assertThrows(IllegalStateException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));

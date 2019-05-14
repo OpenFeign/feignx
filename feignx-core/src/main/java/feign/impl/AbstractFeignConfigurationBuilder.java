@@ -2,13 +2,14 @@ package feign.impl;
 
 import feign.Client;
 import feign.Contract;
+import feign.ExceptionHandler;
 import feign.FeignConfiguration;
 import feign.FeignConfigurationBuilder;
+import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
 import feign.Target;
-import feign.exception.ExceptionHandler;
 import feign.support.Assert;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ public abstract class AbstractFeignConfigurationBuilder
   protected Contract contract;
   protected ExceptionHandler exceptionHandler;
   protected Target<?> target;
+  protected Logger logger;
 
   /**
    * Creates a new FeignConfigurationBuilder.
@@ -145,6 +147,19 @@ public abstract class AbstractFeignConfigurationBuilder
   public B interceptor(RequestInterceptor interceptor) {
     Assert.isNotNull(interceptor, "interceptor cannot be null.");
     this.interceptors.add(interceptor);
+    return this.self;
+  }
+
+  /**
+   * Logger instance.
+   *
+   * @param logger instance to use.
+   * @return the builder reference chain.
+   */
+  @Override
+  public B logger(Logger logger) {
+    Assert.isNotNull(logger, "log cannot be null");
+    this.logger = logger;
     return this.self;
   }
 }

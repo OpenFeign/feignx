@@ -1,6 +1,5 @@
 package feign;
 
-import feign.exception.ExceptionHandler;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -65,4 +64,11 @@ public interface FeignConfiguration {
    * @return the Target instance.
    */
   <T> Target<T> getTarget();
+
+  /**
+   * Logger to use when logging request and responses.
+   *
+   * @return the log instance.
+   */
+  Logger getLogger();
 }

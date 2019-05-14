@@ -1,9 +1,12 @@
 package feign.http;
 
+import feign.Header;
 import feign.Request;
 import feign.RequestOptions;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Http Request Model.
@@ -12,7 +15,7 @@ public final class HttpRequest implements Request {
 
   private URI uri;
   private HttpMethod method;
-  private HttpHeader[] headers;
+  private List<Header> headers = new ArrayList<>();
   private RequestOptions options;
   private byte[] content;
 
@@ -32,11 +35,13 @@ public final class HttpRequest implements Request {
    * @param options for the request.
    * @param content to include in the request.
    */
-  public HttpRequest(URI uri, HttpMethod method, HttpHeader[] headers, RequestOptions options,
+  public HttpRequest(URI uri, HttpMethod method, Collection<Header> headers, RequestOptions options,
       byte[] content) {
     this.uri = uri;
     this.method = method;
-    this.headers = headers;
+    if (headers != null) {
+      this.headers.addAll(headers);
+    }
     this.options = (options == null) ? RequestOptions.builder().build() : options;
     this.content = content;
   }
@@ -46,6 +51,7 @@ public final class HttpRequest implements Request {
    *
    * @return request uri.
    */
+  @Override
   public URI uri() {
     return this.uri;
   }
@@ -55,8 +61,19 @@ public final class HttpRequest implements Request {
    *
    * @return the request content, if any.
    */
+  @Override
   public byte[] content() {
     return this.content;
+  }
+
+  /**
+   * Request Content size.
+   *
+   * @return content size.
+   */
+  @Override
+  public int contentLength() {
+    return (this.content != null) ? this.content.length : 0;
   }
 
   /**
@@ -64,6 +81,7 @@ public final class HttpRequest implements Request {
    *
    * @return the http method.
    */
+  @Override
   public HttpMethod method() {
     return this.method;
   }
@@ -73,7 +91,8 @@ public final class HttpRequest implements Request {
    *
    * @return an array of Request Headers.
    */
-  public HttpHeader[] headers() {
+  @Override
+  public List<Header> headers() {
     return this.headers;
   }
 
@@ -82,6 +101,7 @@ public final class HttpRequest implements Request {
    *
    * @return request options.
    */
+  @Override
   public RequestOptions options() {
     return this.options;
   }
@@ -90,7 +110,7 @@ public final class HttpRequest implements Request {
   public String toString() {
     return "HttpRequest [" + "uri=" + uri
         + ", method=" + method
-        + ", headers=" + Arrays.toString(headers)
+        + ", headers=" + headers
         + ", options=" + options
         + "]";
   }

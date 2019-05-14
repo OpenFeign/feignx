@@ -13,18 +13,17 @@ import feign.contract.Param;
 import feign.contract.Request;
 import feign.decoder.StringDecoder;
 import feign.encoder.StringEncoder;
-import feign.exception.ExceptionHandler.RethrowExceptionHandler;
-import feign.http.RequestSpecification;
+import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.http.client.UrlConnectionClient;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.BodyWithContentType;
 
 class FeignTests {
 
@@ -56,7 +55,13 @@ class FeignTests {
           @SuppressWarnings("unchecked")
           @Override
           public <T> T decode(Response response, Class<T> type) {
-            return (T) Collections.singletonList(new Repository("openfeign"));
+            try {
+              String data = new String(response.toByteArray(), StandardCharsets.UTF_8);
+              return (T) Collections.singletonList(new Repository(data));
+            } catch (IOException ioe) {
+              // ignored
+            }
+            return null;
           }
         })
         .target(GitHub.class, "http://localhost:9999");
@@ -105,7 +110,7 @@ class FeignTests {
     @Headers({@Header(name = "Accept", value = "application/json")})
     List<Repository> getRepositories(@Param("owner") String owner);
 
-    List<String> getContributors();
+    void getContributors();
 
     default String getOwner() {
       return "owner";
@@ -113,20 +118,13 @@ class FeignTests {
 
     class Repository {
 
-      private String name;
+      String name;
 
       Repository(String name) {
         super();
         this.name = name;
       }
 
-      public String getName() {
-        return name;
-      }
-
-      public void setName(String name) {
-        this.name = name;
-      }
     }
   }
 

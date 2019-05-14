@@ -2,6 +2,7 @@ package feign.http;
 
 import feign.Header;
 import feign.Response;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,7 @@ public final class HttpResponse implements Response {
   private InputStream body;
   private int contentLength;
   private boolean closed = false;
+  private byte[] content;
 
   /**
    * Creates a new HttpResponse Builder.
@@ -107,6 +109,12 @@ public final class HttpResponse implements Response {
    * @return a response data backed Input Stream.
    */
   public InputStream body() {
+    if (this.content != null) {
+      /* we have already read the entire contents, so return an array backed by the memory
+       * buffer.
+       */
+      return new ByteArrayInputStream(this.content);
+    }
     return this.body;
   }
 
@@ -135,6 +143,13 @@ public final class HttpResponse implements Response {
    * @throws IOException if the response could not be read.
    */
   public byte[] toByteArray() throws IOException {
+
+    if (this.content != null) {
+      /* we have already read this stream */
+      return this.content;
+    }
+
+    /* read the content into a memory buffer */
     try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
       byte[] input = new byte[this.contentLength];
       int len;
@@ -142,8 +157,9 @@ public final class HttpResponse implements Response {
         buffer.write(input, 0, len);
       }
       buffer.flush();
-      return buffer.toByteArray();
+      this.content = buffer.toByteArray();
     }
+    return this.content;
   }
 
   /**

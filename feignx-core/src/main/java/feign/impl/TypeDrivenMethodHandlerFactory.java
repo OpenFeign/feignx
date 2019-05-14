@@ -31,6 +31,7 @@ public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactor
         configuration.getClient(),
         configuration.getResponseDecoder(),
         configuration.getExceptionHandler(),
-        configuration.getExecutor());
+        configuration.getExecutor(),
+        configuration.getLogger());
   }
 }

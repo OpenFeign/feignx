@@ -242,7 +242,13 @@ public abstract class Expression implements Chunk {
     }
   }
 
-
+  /**
+   * Appends the result in a name-value pair format.
+   *
+   * @param name of the result.
+   * @param result value.
+   * @param builder to append the named result to.
+   */
   protected void appendNamedResult(String name, Object result, StringBuilder builder) {
     /* prepend the name */
     builder.append(this.encode(name))

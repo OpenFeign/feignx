@@ -227,11 +227,10 @@ public class RequestSpecification {
     RequestOptions options = this.getOptions();
 
     /* create a new HttpRequest */
-    //noinspection SuspiciousToArrayCall
     return new HttpRequest(
         this.uri,
         this.method,
-        this.headers.values().toArray(new HttpHeader[]{}),
+        this.headers.values(),
         options,
         this.content);
   }
