@@ -30,7 +30,7 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - feignx-dependencies-
 
-      - run: mvn dependency:go-offline
+      - run: mvn go-offline:resolve-dependencies dependency:resolve-plugins dependency:go-offline
 
       - save_cache:
           paths:
@@ -38,7 +38,7 @@ jobs:
           key: feignx-dependencies-{{ checksum "pom.xml" }}
 
       # run tests!
-      - run: mvn clean test
+      - run: mvn -o test
 
       - store_test_results:
           path: target/surefire-reports
