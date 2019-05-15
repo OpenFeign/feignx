@@ -56,6 +56,7 @@ code coverage.
 ## Built With
 
 * [Maven](https://maven.apache.org/) - Dependency Management
+* [Snyk](https://snyk.io/) - Security and Dependency Scanning
 
 ## Issues
 
