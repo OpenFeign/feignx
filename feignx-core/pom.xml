@@ -100,24 +100,6 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
-      <plugin>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-assertions-generator-maven-plugin</artifactId>
-        <configuration>
-          <targetDir>src/test/java</targetDir>
-          <generateAssertionsForAllFields>true</generateAssertionsForAllFields>
-          <generateAssertionsInPackage>feign.assertions</generateAssertionsInPackage>
-          <classes>
-            <param>feign.http.HttpHeader</param>
-            <param>feign.http.HttpRequest</param>
-            <param>feign.http.HttpResponse</param>
-          </classes>
-          <generateAssertions>true</generateAssertions>
-          <generateBddAssertions>false</generateBddAssertions>
-          <generateSoftAssertions>false</generateSoftAssertions>
-          <generateJUnitSoftAssertions>false</generateJUnitSoftAssertions>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
