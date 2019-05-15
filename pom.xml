@@ -287,6 +287,7 @@
               <exclude>**/LICENSE</exclude>
               <exclude>**/NOTICE</exclude>
               <exclude>**/*.md</exclude>
+              <exclude>**/*.yml</exclude>
               <exclude>**/*.properties</exclude>
               <exclude>src/resources/**</exclude>
               <exclude>src/main/resources/**</exclude>
