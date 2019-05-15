@@ -22,14 +22,14 @@ Reporting Issues
 > **Please do not create an issue for a question**, see [Getting Help](#Getting-Help) 
 for more information.
 
-#### Security Issues
+### Security Issues
 
 The Feign team take security issue very seriously.  All security issues should be reported to the maintainers directly at [insert email here]().
 A maintainer will respond to your request.
 
 Report security issues for third-party libraries to the person or team maintaining that library.  
 
-#### Bug Reports
+### Bug Reports
 
 When filing an issue, make sure to answer the following questions:
 
@@ -44,7 +44,7 @@ When filing an issue, make sure to answer the following questions:
 Open a new "Bug Report" issue and include your answers to these questions.  Maintainers periodically
 review these requests and will provide additional feedback.
 
-#### Feature Requests
+### Feature Requests
 
 If you find yourself looking for a feature that does not exist, or have suggestions on how to make 
 Feignx better, chances are you are not alone.  Many features have come from community members and 
@@ -55,7 +55,7 @@ you would like to see and why.  Here are few additional items to include in your
 * Describe the current behavior and how this feature may alter that behavior.
 * An explanation on why this feature will be useful.  Include as much detail as desired.
 
-##### What happens now?
+### What happens now?
 
 Look for feedback on your suggestion from maintainers and others from the community.  In some cases
 a workaround may be provided.  In others, more feedback may be required before a decision is made.
@@ -72,13 +72,13 @@ Unsure of where to start?  You can start by looking at our `good-first-issue` an
 Once you've found an issue, please be sure to assign it to yourself.  This will help the maintainers know
 which issues are being worked on and which ones need attention.
 
-#### Fork the repository
+### Fork the repository
 
 You will need to fork this repository to make changes and submit pull requests.  See the GitHub help
 pages on how to [Fork a Repository](https://help.github.com/en/articles/fork-a-repo).  Make all your 
 updates in your own copy and be sure to [use good commit messages](https://chris.beams.io/posts/git-commit/).
 
-#### Submitting your changes
+### Submitting your changes
  
 You've squashed that bug, updated that documentation, or implemented that amazing new feature the entire
 community has been looking for.  Now, to get that change submitted so the maintainers can review and provide
@@ -119,7 +119,7 @@ feedback.
  Expect feedback from the maintainers and possibly other contributors.  If any changes are needed, we will
  work with you to get your pull request ready and merged.
  
-##### Making updates to an open Pull Request.
+### Making updates to an open Pull Request.
  
 1.  Please do not **force push** `--force` changes to a branch with an open pull request.  Once shared, 
 please consider the branch public.  
@@ -129,7 +129,7 @@ this makes it easier for reviewers to keep track of the changes.
 Like with force pushes, rebasing and merging an open branch make reviewing the changes difficult.  It is also
 our practice to squash all commits when merging a pull request, so rebasing or merging should be unnecessary.
  
-##### When your change is accepted.
+### When your change is accepted.
  
 Celebrate :tada:, you've just become part of the Open Source community.
  
@@ -140,7 +140,7 @@ You can chat with the maintainers and contributors on [Gitter](https://gitter.im
 [Feign Channel](https://gitter.im/OpenFeign/feign).  This is the best way to reach the maintainers if
 you need immediate feedback.
 
-#### General Questions?
+### General Questions?
  
 For general questions, please use [Stack Overflow, using the `feign` tag](https://stackoverflow.com/questions/tagged/feign).
 Maintainer check this tag regularly and will do their best to respond promptly.  
