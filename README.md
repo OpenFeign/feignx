@@ -64,7 +64,7 @@ section of this repository.
 
 ## Contributing
 
-Please read [CONTRIBUTING](CONTRIBUTING.md) for details on our [Code of Conduct](code-of-conduct.md), 
+Please read [CONTRIBUTING](CONTRIBUTING.md) for details on our [Code of Conduct](CODE_OF_CONDUCT.md), 
 and the process for submitting [Pull Requests](https://github.com/openfeign/feignx/pulls) to us.
 
 ## Releases
