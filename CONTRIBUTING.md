@@ -97,7 +97,8 @@ feedback.
      
      **Code Style Violations**
      
-     Feignx follows the Google Style Guide.  Please ensure that your changes adhere to these guidelines.
+     Feignx follows the [Google Style Guide](https://google.github.io/styleguide/javaguide.html).  Please ensure that your changes
+     adhere to these guidelines.
      The build will report any violations and how to correct them.
      
      **License Violations**
