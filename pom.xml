@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2019 OpenFeign Contributors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -14,6 +31,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <feign.basedir>${project.basedir}</feign.basedir>
     <slf4j.version>1.7.26</slf4j.version>
   </properties>
 
@@ -225,6 +243,37 @@
             </rules>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>3.0</version>
+          <configuration>
+            <aggregate>true</aggregate>
+            <headerDefinitions>
+              <headerDefinition>${feign.basedir}/src/resources/header-definition.xml</headerDefinition>
+            </headerDefinitions>
+            <header>NOTICE</header>
+            <excludes>
+              <exclude>mvnw**</exclude>
+              <exclude>**/LICENSE</exclude>
+              <exclude>**/NOTICE</exclude>
+              <exclude>**/*.md</exclude>
+              <exclude>**/*.properties</exclude>
+              <exclude>src/resources/**</exclude>
+              <exclude>src/main/resources/**</exclude>
+              <exclude>src/test/resources/**</exclude>
+            </excludes>
+            <strictCheck>true</strictCheck>
+          </configuration>
+          <executions>
+            <execution>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -239,6 +288,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
