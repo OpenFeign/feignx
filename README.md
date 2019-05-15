@@ -1,6 +1,7 @@
 # FeignX 
 
 [![CircleCI](https://circleci.com/gh/OpenFeign/feignx/tree/master.svg?style=svg)](https://circleci.com/gh/OpenFeign/feignx/tree/master) ![codecov](https://codecov.io/gh/OpenFeign/feignx/branch/master/graph/badge.svg)
+[![Known Vulnerabilities](https://snyk.io/test/github/openfeign/feignx/badge.svg)](https://snyk.io/test/github/openfeign/feignx)
 
 FeignX, an experimental version of [Feign](https://github.com/OpenFeign/feign), extending the
 core concepts of Feign beyond HTTP and REST including support for pooled, asynchronous, non-blocking,
