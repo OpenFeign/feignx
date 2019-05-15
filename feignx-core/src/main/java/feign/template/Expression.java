@@ -1,6 +1,7 @@
 package feign.template;
 
 import feign.support.Assert;
+import feign.support.StringUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,7 +20,6 @@ import java.util.Objects;
 public abstract class Expression implements Chunk {
 
   static final String DEFAULT_DELIMITER = ",";
-  private static final String MULTIPLE_VALUE_DELIMITER = ",";
   private final List<String> variables = new ArrayList<>();
   private int limit;
   private boolean explode = false;
@@ -48,9 +48,10 @@ public abstract class Expression implements Chunk {
           variableSpecification.substring(0, variableSpecification.length() - 1);
     }
 
-    if (variableSpecification.contains(MULTIPLE_VALUE_DELIMITER)) {
+    if (variableSpecification.contains(Expressions.MULTIPLE_VALUE_DELIMITER)) {
       /* multiple variables are present in the spec */
-      String[] variableSpecifications = variableSpecification.split(MULTIPLE_VALUE_DELIMITER);
+      String[] variableSpecifications = variableSpecification
+          .split(Expressions.MULTIPLE_VALUE_DELIMITER);
       this.variables.addAll(Arrays.asList(variableSpecifications));
     } else {
       this.variables.add(variableSpecification);
@@ -79,43 +80,57 @@ public abstract class Expression implements Chunk {
     for (String variable : this.variables) {
       if (variables.containsKey(variable)) {
         Object value = variables.get(variable);
-        if (value != null) {
+        if (value == null) {
+          builder.append("undef");
+        } else if (Iterable.class.isAssignableFrom(value.getClass())) {
 
-          if (Iterable.class.isAssignableFrom(value.getClass())) {
+          /* expand each item in the list */
+          Iterable<?> list = (Iterable<?>) value;
 
-            /* expand each item in the list */
-            Iterable<?> list = (Iterable<?>) value;
+          /* mark the list empty by checking the iterator */
+          emptyListOrMap = !(list.iterator().hasNext());
 
-            /* mark the list empty by checking the iterator */
-            emptyListOrMap = !(list.iterator().hasNext());
+          /* expand the list */
+          this.expand(variable, list, builder);
+        } else if (Map.class.isAssignableFrom(value.getClass())) {
 
-            /* expand the list */
-            this.expand(variable, list, builder);
-          } else if (Map.class.isAssignableFrom(value.getClass())) {
+          /* expand each key,value pair in the map */
+          Map<?, ?> map = (Map<?, ?>) value;
 
-            /* expand each key,value pair in the map */
-            Map<?, ?> map = (Map<?, ?>) value;
+          /* mark the map empty if empty */
+          emptyListOrMap = map.isEmpty();
 
-            /* mark the map empty if empty */
-            emptyListOrMap = map.isEmpty();
+          /* expand the map */
+          this.expand(variable, map, builder);
+        } else {
 
-            /* expand the map */
-            this.expand(variable, map, builder);
-          } else {
+          /* append the delimiter for this simple value */
+          this.appendDelimiter(builder, this.getDelimiter());
 
-            /* append the delimiter for this simple value */
-            this.appendDelimiter(builder, this.getDelimiter());
-
-            /* expand the simple value */
-            this.expand(variable, value.toString(), builder);
-          }
+          /* expand the simple value */
+          this.expand(variable, value.toString(), builder);
         }
+      } else {
+        /* variable does not exist, undefined */
+        builder.append("undef");
+      }
+    }
+
+    /* remove any undefined values from the final map */
+    String result = builder.toString();
+    if (result.contains("undef")) {
+      String pattern = "undef";
+      result = result.replaceAll(pattern, "");
+
+      /* special handling, if nothing is left, the entire string is undefined */
+      if (StringUtils.isEmpty(result)) {
+        return null;
       }
     }
 
     /* special case: don't prepend the prefix if we have an empty list or map */
     String prefix = (emptyListOrMap) ? "" : this.getPrefix();
-    return prefix + builder.toString();
+    return prefix + result;
   }
 
   /**
@@ -220,10 +235,21 @@ public abstract class Expression implements Chunk {
    * @return the expanded value.
    */
   private String expand(Object value) {
+    if (value == null) {
+      return null;
+    }
+
     String result = value.toString();
 
     if (this.limit > 0) {
-      result = result.substring(0, this.limit);
+      int end = this.limit;
+
+      /* guard against aggressive limits */
+      if (this.limit > result.length()) {
+        end = result.length();
+      }
+
+      result = result.substring(0, end);
     }
 
     return this.encode(result);
@@ -235,7 +261,7 @@ public abstract class Expression implements Chunk {
    * @param builder to append to.
    * @param delimiter to append.
    */
-  private void appendDelimiter(StringBuilder builder, String delimiter) {
+  protected void appendDelimiter(StringBuilder builder, String delimiter) {
     if (builder.length() != 0) {
       /* only append if values are already present */
       builder.append(delimiter);

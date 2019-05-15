@@ -47,7 +47,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   }
 
   /**
-   * Creates a new {@link ProxyTarget}
+   * Creates a new {@link ProxyTarget}.
    *
    * @param methods for this proxy to manage.
    * @param methodHandlerFactory to use when creating method handlers.

@@ -1,9 +1,9 @@
 package feign;
 
+import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.contract.FeignContract;
 import feign.decoder.StringDecoder;
 import feign.encoder.StringEncoder;
-import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.http.client.UrlConnectionClient;
 import feign.impl.AbstractFeignConfigurationBuilder;
 import feign.impl.BaseFeignConfiguration;

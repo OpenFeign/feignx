@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 /**
- * Simple Logger implementation backed by SLF4J
+ * Simple Logger implementation backed by SLF4J.
  */
 public class SimpleLogger extends AbstractLogger {
 
@@ -54,30 +54,54 @@ public class SimpleLogger extends AbstractLogger {
     private boolean responseEnabled = false;
     private boolean headersEnabled = false;
 
+    /**
+     * Set if Logging should be enabled.
+     *
+     * @param enabled flag.
+     * @return the builder chain.
+     */
     public Builder setEnabled(boolean enabled) {
       this.enabled = enabled;
       return this;
     }
 
+    /**
+     * Set if Request information should be logged.
+     *
+     * @param requestEnabled flag.
+     * @return the builder chain.
+     */
     public Builder setRequestEnabled(boolean requestEnabled) {
       this.enabled = true;
       this.requestEnabled = requestEnabled;
       return this;
     }
 
+    /**
+     * Set if Response information should be logged.
+     *
+     * @param responseEnabled flag.
+     * @return the builder chain.
+     */
     public Builder setResponseEnabled(boolean responseEnabled) {
       this.enabled = true;
       this.responseEnabled = responseEnabled;
       return this;
     }
 
+    /**
+     * Set if Header information should be logged.
+     *
+     * @param headersEnabled flag.
+     * @return the builder chain.
+     */
     public Builder setHeadersEnabled(boolean headersEnabled) {
       this.enabled = true;
       this.headersEnabled = headersEnabled;
       return this;
     }
 
-    public SimpleLogger build(){
+    public SimpleLogger build() {
       return new SimpleLogger(this.enabled, this.requestEnabled, this.responseEnabled,
           this.headersEnabled);
     }

@@ -1,0 +1,23 @@
+{
+  "Feign Specific Examples: Complex Variable Names": {
+    "level": 4,
+    "variables": {
+      "list[]": [
+        "red",
+        "green",
+        "blue"
+      ],
+      "$data": "data"
+    },
+    "testcases": [
+      [
+        "{?list[]}",
+        "?list%5B%5D=red,green,blue"
+      ],
+      [
+        "{?list[]*}",
+        "?list%5B%5D=red&list%5B%5D=green&list%5B%5D=blue"
+      ]
+    ]
+  }
+}

@@ -111,6 +111,13 @@ public class UriUtils {
    * @return {@literal true} if the value is already pct-encoded, {@literal false} otherwise.
    */
   public static boolean isPctEncoded(String value) {
+    for (byte b : value.getBytes(StandardCharsets.UTF_8)) {
+      if (!isUnreserved((char) b) && b != '%') {
+        /* break if there are any unreserved character */
+        return false;
+      }
+    }
+    /* check if the entire string is already encoded */
     return PCT_ENCODED_PATTERN.matcher(value).find();
   }
 
