@@ -60,6 +60,8 @@ code coverage.
 
 * [Maven](https://maven.apache.org/) - Dependency Management
 * [Snyk](https://snyk.io/) - Security and Dependency Scanning
+* [Circle CI](https://circleci.com) - Continuous Integration and Deployment
+* [Codecov](https://codecov.io) - Code Coverage tracking and reporting
 
 ## Issues
 
