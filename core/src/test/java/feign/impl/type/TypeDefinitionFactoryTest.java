@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.impl.type;
 
@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 
 class TypeDefinitionFactoryTest {
@@ -38,6 +39,9 @@ class TypeDefinitionFactoryTest {
 
     assertThat(typeDefinition).isInstanceOf(ClassTypeDefinition.class);
     assertThat(typeDefinition.getType()).isAssignableFrom(String.class);
+    assertThat(typeDefinition.isCollectionLike()).isFalse();
+    assertThat(typeDefinition.isContainer()).isFalse();
+
   }
 
   @Test
@@ -58,6 +62,18 @@ class TypeDefinitionFactoryTest {
 
     assertThat(typeDefinition).isInstanceOf(ParameterizedTypeDefinition.class);
     assertThat(typeDefinition.getType()).isAssignableFrom(Map.class);
+  }
+
+  @Test
+  void optional_isParameterizedDefinition_andContainer() throws Exception {
+    Method method = Types.class.getMethod("wrapped");
+    TypeDefinition typeDefinition = this.typeDefinitionFactory.create(
+        method.getGenericReturnType(), Types.class);
+
+    assertThat(typeDefinition).isInstanceOf(ParameterizedTypeDefinition.class);
+    assertThat(typeDefinition.getType()).isAssignableFrom(Future.class);
+    assertThat(typeDefinition.isCollectionLike()).isFalse();
+    assertThat(typeDefinition.isContainer()).isTrue();
   }
 
 
@@ -120,7 +136,9 @@ class TypeDefinitionFactoryTest {
 
     assertThat(typeDefinition).isInstanceOf(GenericArrayTypeDefinition.class);
     assertThat(typeDefinition.getType()).isAssignableFrom(List.class);
+    assertThat(typeDefinition.isCollectionLike()).isTrue();
   }
+
 
   @Test
   void complexInheritedTypeArray_isGenericArrayTypeWhenResolved() throws Exception {
@@ -130,6 +148,7 @@ class TypeDefinitionFactoryTest {
 
     assertThat(typeDefinition).isInstanceOf(GenericArrayTypeDefinition.class);
     assertThat(typeDefinition.getType()).isAssignableFrom(List.class);
+    assertThat(typeDefinition.isCollectionLike()).isTrue();
 
     GenericArrayTypeDefinition genericArrayTypeDefinition =
         (GenericArrayTypeDefinition) typeDefinition;
@@ -243,6 +262,8 @@ class TypeDefinitionFactoryTest {
 
     assertThat(typeDefinition).isInstanceOf(ClassTypeDefinition.class);
     assertThat(typeDefinition.getType()).isAssignableFrom(String.class);
+    assertThat(typeDefinition.isCollectionLike()).isFalse();
+    assertThat(typeDefinition.isContainer()).isFalse();
   }
 
   /**
@@ -257,6 +278,8 @@ class TypeDefinitionFactoryTest {
     Map<String, Object> map();
 
     List<String>[] array();
+
+    Future<String> wrapped();
   }
 
   /**
@@ -280,7 +303,6 @@ class TypeDefinitionFactoryTest {
     I input();
 
     Collection<List<O>> contained();
-
   }
 
   /**
@@ -292,8 +314,6 @@ class TypeDefinitionFactoryTest {
 
   /**
    * Secondary Extension of Generic Types.
-   *
-   * @param <O>
    */
   interface ExtendedGenericTypes<O> extends GenericTypes<Number, O> {
 
@@ -316,8 +336,6 @@ class TypeDefinitionFactoryTest {
 
   /**
    * Generic Type Interface where the Type Variable is locally defined.
-   *
-   * @param <D>
    */
   interface LocalGenericTypes<D> extends LocalTypes {
 
@@ -327,7 +345,6 @@ class TypeDefinitionFactoryTest {
 
   /**
    * Simple Container Generic.
-   * @param <D>
    */
   @SuppressWarnings("WeakerAccess")
   class Container<D> {

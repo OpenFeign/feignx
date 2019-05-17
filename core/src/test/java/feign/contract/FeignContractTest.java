@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.contract;
 
@@ -48,7 +48,7 @@ class FeignContractTest {
     /* verify each method is registered */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("get")
-            && targetMethodDefinition.getReturnType() == String.class
+            && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
             && targetMethodDefinition.getTemplateParameters().contains(
             new SimpleTemplateParameter("parameter"))
@@ -60,7 +60,7 @@ class FeignContractTest {
     /* implicit body parameter */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("post")
-            && targetMethodDefinition.getReturnType() == String.class
+            && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.POST
             && targetMethodDefinition.getTemplateParameters().contains(
             new SimpleTemplateParameter("parameter"))
@@ -69,7 +69,7 @@ class FeignContractTest {
     /* explicit body parameter */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("put")
-            && targetMethodDefinition.getReturnType() == String.class
+            && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.PUT
             && targetMethodDefinition.getTemplateParameters()
             .contains(new SimpleTemplateParameter("parameter"))
@@ -78,7 +78,7 @@ class FeignContractTest {
     /* void return type */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("delete")
-            && targetMethodDefinition.getReturnType() == void.class
+            && targetMethodDefinition.getReturnType().getType() == void.class
             && targetMethodDefinition.getMethod() == HttpMethod.DELETE
             && targetMethodDefinition.getTemplateParameters()
             .contains(new SimpleTemplateParameter("parameter"))
@@ -87,7 +87,7 @@ class FeignContractTest {
     /* request options and generic return type */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("search")
-            && targetMethodDefinition.getReturnType() == List.class
+            && targetMethodDefinition.getReturnType().getType() == List.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
             && targetMethodDefinition.getBody() == -1
             && targetMethodDefinition.getConnectTimeout() == 1000

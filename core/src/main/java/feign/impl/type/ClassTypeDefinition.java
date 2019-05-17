@@ -12,16 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.impl.type;
-
-import java.lang.reflect.Type;
 
 /**
  * Type Definition for a concrete Class.
  */
-public class ClassTypeDefinition implements TypeDefinition, Type {
+public class ClassTypeDefinition extends AbstractTypeDefinition {
 
   private final Class<?> type;
 
@@ -34,8 +32,14 @@ public class ClassTypeDefinition implements TypeDefinition, Type {
     this.type = type;
   }
 
+  /**
+   * The concrete type.
+   *
+   * @return the wrapped type.
+   */
   @Override
   public Class<?> getType() {
     return this.type;
   }
+
 }

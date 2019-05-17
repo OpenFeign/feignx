@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.impl;
 
@@ -20,6 +20,7 @@ import feign.FeignConfiguration;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.TargetMethodHandlerFactory;
+import java.util.concurrent.Future;
 
 /**
  * Target Method Handler Factory that uses the {@link TargetMethodDefinition#getReturnType()}
@@ -39,15 +40,38 @@ public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactor
   public TargetMethodHandler create(TargetMethodDefinition targetMethodDefinition,
       FeignConfiguration configuration) {
 
-    /* return a blocking handler */
-    return new BlockingTargetMethodHandler(
-        targetMethodDefinition,
-        configuration.getRequestEncoder(),
-        configuration.getRequestInterceptors(),
-        configuration.getClient(),
-        configuration.getResponseDecoder(),
-        configuration.getExceptionHandler(),
-        configuration.getExecutor(),
-        configuration.getLogger());
+    Class<?> returnType = targetMethodDefinition.getReturnType().getType();
+    if (isFuture(returnType)) {
+      return new AsyncTargetMethodHandler(
+          targetMethodDefinition,
+          configuration.getRequestEncoder(),
+          configuration.getRequestInterceptors(),
+          configuration.getClient(),
+          configuration.getResponseDecoder(),
+          configuration.getExceptionHandler(),
+          configuration.getExecutor(),
+          configuration.getLogger());
+    } else {
+      /* return a blocking handler */
+      return new BlockingTargetMethodHandler(
+          targetMethodDefinition,
+          configuration.getRequestEncoder(),
+          configuration.getRequestInterceptors(),
+          configuration.getClient(),
+          configuration.getResponseDecoder(),
+          configuration.getExceptionHandler(),
+          configuration.getExecutor(),
+          configuration.getLogger());
+    }
+  }
+
+  /**
+   * Determines if the type provided is an implementation of a {@link Future}.
+   *
+   * @param type to evaluate.
+   * @return {@literal true} if the type implements {@link Future}, {@literal false} otherwise.
+   */
+  private boolean isFuture(Class<?> type) {
+    return Future.class.isAssignableFrom(type);
   }
 }

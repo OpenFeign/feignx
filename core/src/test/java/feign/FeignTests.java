@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign;
 
@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.FeignTests.GitHub.Repository;
 import feign.contract.FeignContract;
 import feign.contract.Header;
@@ -29,13 +30,13 @@ import feign.contract.Param;
 import feign.contract.Request;
 import feign.decoder.StringDecoder;
 import feign.encoder.StringEncoder;
-import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.http.client.UrlConnectionClient;
 import feign.logging.SimpleLogger;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -75,23 +76,31 @@ class FeignTests {
 
     GitHub gitHub = Feign.builder()
         .logger(logger)
-        .decoder(new ResponseDecoder() {
-          @SuppressWarnings("unchecked")
-          @Override
-          public <T> T decode(Response response, Class<T> type) {
-            try {
-              String data = new String(response.toByteArray(), StandardCharsets.UTF_8);
-              return (T) Collections.singletonList(new Repository(data));
-            } catch (IOException ioe) {
-              // ignored
-            }
-            return null;
-          }
-        })
+        .decoder(new GitHubDecoder())
         .target(GitHub.class, "http://localhost:9999");
     assertThat(gitHub).isNotNull();
 
     List<Repository> repositories = gitHub.getRepositories("openfeign");
+    assertThat(repositories).isNotEmpty();
+  }
+
+  @Test
+  void createTarget_andExecuteAsync() throws Exception {
+    Logger logger = SimpleLogger.builder()
+        .setEnabled(true)
+        .setHeadersEnabled(true)
+        .setRequestEnabled(true)
+        .setResponseEnabled(true).build();
+
+    GitHub gitHub = Feign.builder()
+        .logger(logger)
+        .decoder(new GitHubDecoder())
+        .executor(Executors.newFixedThreadPool(10))
+        .target(GitHub.class, "http://localhost:9999");
+    assertThat(gitHub).isNotNull();
+
+    CompletableFuture<List<Repository>> result = gitHub.getRepositoriesAsync("openfeign");
+    List<Repository> repositories = result.get();
     assertThat(repositories).isNotEmpty();
   }
 
@@ -139,6 +148,10 @@ class FeignTests {
     @Headers({@Header(name = "Accept", value = "application/json")})
     List<Repository> getRepositories(@Param("owner") String owner);
 
+    @Request("/users/{owner}/repos")
+    @Headers({@Header(name = "Accept", value = "application/json")})
+    CompletableFuture<List<Repository>> getRepositoriesAsync(@Param("owner") String owner);
+
     void getContributors();
 
     default String getOwner() {
@@ -154,6 +167,20 @@ class FeignTests {
         this.name = name;
       }
 
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  static class GitHubDecoder implements ResponseDecoder {
+
+    @Override
+    public <T> T decode(Response response, Class<T> type) {
+      try {
+        String data = new String(response.toByteArray(), StandardCharsets.UTF_8);
+        return (T) Collections.singletonList(new Repository(data));
+      } catch (IOException ioe) {
+        throw new RuntimeException(ioe.getMessage(), ioe);
+      }
     }
   }
 

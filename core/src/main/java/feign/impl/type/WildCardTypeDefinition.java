@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.impl.type;
 
@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Type Definition for a Parameterized Type where one of the Type Variable's defined is a
- * {@code ?} wildcard.
+ * Type Definition for a Parameterized Type where one of the Type Variable's defined is a {@code ?}
+ * wildcard.
  */
-public class WildCardTypeDefinition implements WildcardType, TypeDefinition {
+public class WildCardTypeDefinition extends AbstractTypeDefinition implements WildcardType {
 
   private List<TypeDefinition> upperBounds;
   private List<TypeDefinition> lowerBounds;
