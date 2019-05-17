@@ -49,12 +49,9 @@ public class ParameterizedTypeDefinition extends AbstractTypeDefinition implemen
    */
   @Override
   public Class<?> getActualType() {
-    if (this.isContainer() || this.isCollectionLike()) {
-      /* use the first type argument here */
-      TypeDefinition actualType = this.arguments[0];
-      return actualType.getType();
-    }
-    return super.getActualType();
+    /* use the first type argument here */
+    TypeDefinition actualType = this.arguments[0];
+    return actualType.getType();
   }
 
   /**
