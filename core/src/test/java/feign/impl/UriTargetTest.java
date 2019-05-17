@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import feign.Target;
+import feign.http.RequestSpecification;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 
 class UriTargetTest {
@@ -54,5 +56,13 @@ class UriTargetTest {
     Target<?> one = new UriTarget<>(String.class, "https://www.example.com");
     Target<?> two = new UriTarget<>(String.class, "another", "https://www.example.com");
     assertThat(one).isNotEqualTo(two);
+  }
+
+  @Test
+  void requestSpecification_mustNotContainAbsoluteUri() {
+    Target<?> target = new UriTarget<>(String.class, "Sample", "https://www.example.com");
+    RequestSpecification requestSpecification = new RequestSpecification();
+    requestSpecification.uri(URI.create("https://wwww.example.com"));
+    assertThrows(IllegalStateException.class, () -> target.apply(requestSpecification));
   }
 }

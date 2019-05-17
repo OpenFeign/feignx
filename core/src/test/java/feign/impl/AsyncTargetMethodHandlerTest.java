@@ -19,6 +19,7 @@ package feign.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -127,6 +128,38 @@ class AsyncTargetMethodHandlerTest {
     assertThat(future).isCompletedExceptionally();
     verifyZeroInteractions(this.decoder);
     verify(this.exceptionHandler, times(1)).accept(any(Throwable.class));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void methodNotHandled_returnsNull() throws Exception {
+    Collection<TargetMethodDefinition> methodDefinitions =
+        this.contract.apply(new UriTarget<>(Blog.class, "https://www.example.com"));
+    TargetMethodDefinition targetMethodDefinition = methodDefinitions.stream()
+        .findFirst().get();
+    ExceptionHandler mockHandler = mock(ExceptionHandler.class);
+    this.methodHandler = new AsyncTargetMethodHandler(
+        targetMethodDefinition,
+        encoder,
+        Collections.emptyList(),
+        client,
+        decoder,
+        mockHandler,
+        Executors.newFixedThreadPool(10),
+        logger);
+
+    when(this.client.request(any(feign.Request.class))).thenThrow(new RuntimeException("Failed"));
+    Object result = this.methodHandler.execute(new Object[]{});
+
+    /* ensure that the method handler returned a future, which contains a string */
+    assertThat(result).isInstanceOf(CompletableFuture.class);
+    CompletableFuture<String> future = (CompletableFuture<String>) result;
+    future.get();
+
+    assertThat(future).isCompleted();
+    assertThat(future).isCompletedWithValue(null);
+    verifyZeroInteractions(this.decoder);
+    verify(mockHandler, times(1)).accept(any(Throwable.class));
   }
 
   interface Blog {
