@@ -17,6 +17,7 @@
 package feign.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,7 @@ import feign.impl.AsyncTargetMethodHandlerTest.Blog.Post;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,13 +115,15 @@ class AsyncTargetMethodHandlerTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  void throwException_onFailure() {
+  void throwException_onFailure() throws Exception {
     when(this.client.request(any(feign.Request.class))).thenThrow(new RuntimeException("Failed"));
     Object result = this.methodHandler.execute(new Object[]{});
 
     /* ensure that the method handler returned a future, which contains a string */
     assertThat(result).isInstanceOf(CompletableFuture.class);
     CompletableFuture<String> future = (CompletableFuture<String>) result;
+    assertThrows(ExecutionException.class, future::get);
+
     assertThat(future).isCompletedExceptionally();
     verifyZeroInteractions(this.decoder);
     verify(this.exceptionHandler, times(1)).accept(any(Throwable.class));
