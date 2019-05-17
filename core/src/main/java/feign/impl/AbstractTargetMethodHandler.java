@@ -35,7 +35,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import org.slf4j.Logger;
@@ -124,9 +126,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
       final Request request = requestSpecification.build();
 
       log.debug("Creating new Task for the Request: {}", request);
-      RunnableFuture<Response> task = this.getTask(
-          targetMethodDefinition, requestSpecification.build());
-      this.executor.execute(task);
+      CompletableFuture<Response> task = this.getTask(requestSpecification.build());
 
       /* process the results of the task */
       return this.handleResponse(task);
@@ -142,15 +142,6 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
 
     /* method was not handled properly */
     throw methodNotHandled();
-  }
-
-  /**
-   * The method tag.
-   *
-   * @return the method tag.
-   */
-  protected String getTag() {
-    return this.targetMethodDefinition.getTag();
   }
 
   /**
@@ -178,7 +169,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @return the result of the request, decoded if necessary.
    * @throws Exception in the event the response could not be processed.
    */
-  protected abstract Object handleResponse(RunnableFuture<Response> response) throws Exception;
+  protected abstract Object handleResponse(CompletableFuture<Response> response) throws Exception;
 
   /**
    * Decode the Response.
@@ -239,20 +230,20 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   }
 
   /**
-   * Creates a new {@link RunnableFuture} wrapping the {@link Client}.
+   * Creates a new {@link CompletableFuture} wrapping the {@link Client}, running on the
+   * executor provided.
    *
    * @param request to send.
    * @return a Future containing the result of the request.
    * @throws IllegalStateException if the task could not be handled properly.
    */
-  private RunnableFuture<Response> getTask(
-      final TargetMethodDefinition methodMetadata, final Request request) {
-    return new FutureTask<>(() -> {
-      this.logRequest(methodMetadata.getTag(), request);
+  private CompletableFuture<Response> getTask(final Request request) {
+    return CompletableFuture.supplyAsync(() -> {
+      this.logRequest(targetMethodDefinition.getTag(), request);
       final Response response = client.request(request);
-      this.logResponse(methodMetadata.getTag(), response);
+      this.logResponse(targetMethodDefinition.getTag(), response);
       return response;
-    });
+    }, this.executor);
   }
 
   /**

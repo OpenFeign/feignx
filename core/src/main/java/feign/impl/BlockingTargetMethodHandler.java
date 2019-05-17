@@ -25,6 +25,7 @@ import feign.Response;
 import feign.ResponseDecoder;
 import feign.TargetMethodDefinition;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RunnableFuture;
 
@@ -61,7 +62,7 @@ public class BlockingTargetMethodHandler extends AbstractTargetMethodHandler {
    * @throws Exception if the response could not be processed.
    */
   @Override
-  protected Object handleResponse(RunnableFuture<Response> request) throws Exception {
+  protected Object handleResponse(CompletableFuture<Response> request) throws Exception {
 
     /* pull the result of the task immediately, waiting for it to complete */
     log.debug("Waiting for the Response.");
