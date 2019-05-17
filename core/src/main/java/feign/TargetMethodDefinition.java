@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign;
 
@@ -111,8 +111,8 @@ public final class TargetMethodDefinition {
    *
    * @return return Type.
    */
-  public Class<?> getReturnType() {
-    return returnType.getType();
+  public TypeDefinition getReturnType() {
+    return returnType;
   }
 
   /**

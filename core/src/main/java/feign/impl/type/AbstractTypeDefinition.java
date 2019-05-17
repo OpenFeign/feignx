@@ -16,33 +16,44 @@
 
 package feign.impl.type;
 
-import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.concurrent.Future;
 
 /**
- * Type Definition for a {@link GenericArrayType}, a ParameterizedType with an Array supplied
- * as the Type Variable.
+ * Basic Type Definition.
  */
-public class GenericArrayTypeDefinition extends AbstractTypeDefinition implements GenericArrayType {
-
-  private final TypeDefinition genericComponentType;
+public abstract class AbstractTypeDefinition implements TypeDefinition, Type {
 
   /**
-   * Creates a new {@link GenericArrayTypeDefinition}.
+   * Returns the type defined.
    *
-   * @param genericComponentType containing the Type to define.
+   * @return defined type.
    */
-  GenericArrayTypeDefinition(TypeDefinition genericComponentType) {
-    this.genericComponentType = genericComponentType;
+  @Override
+  public Class<?> getActualType() {
+    return this.getType();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Class<?> getType() {
-    return this.genericComponentType.getType();
+  public boolean isCollectionLike() {
+    Class<?> type = this.getType();
+    return type.isArray()
+        || Iterable.class.isAssignableFrom(type)
+        || Collection.class.isAssignableFrom(type);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Type getGenericComponentType() {
-    return this.genericComponentType;
+  public boolean isContainer() {
+    Class<?> type = this.getType();
+    return Future.class.isAssignableFrom(type);
   }
+
 }

@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.impl;
 
@@ -235,7 +235,7 @@ class AbstractTargetMethodHandlerTest {
     assertThrows(IllegalStateException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
     verify(this.client, times(1)).request(any(Request.class));
-    verify(this.exceptionHandler, times(2)).accept(any(Throwable.class));
+    verify(this.exceptionHandler, times(1)).accept(any(Throwable.class));
     verifyZeroInteractions(this.decoder);
   }
 

@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package feign.impl;
 
@@ -27,6 +27,7 @@ import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.exception.FeignException;
 import feign.http.RequestSpecification;
+import feign.impl.type.TypeDefinition;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
 import java.util.Collections;
@@ -144,6 +145,33 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   }
 
   /**
+   * The method tag.
+   *
+   * @return the method tag.
+   */
+  protected String getTag() {
+    return this.targetMethodDefinition.getTag();
+  }
+
+  /**
+   * The Executor for this method.
+   *
+   * @return the executor defined.
+   */
+  protected Executor getExecutor() {
+    return this.executor;
+  }
+
+  /**
+   * The Exception Handler defined.
+   *
+   * @return the exception handler.
+   */
+  protected ExceptionHandler getExceptionHandler() {
+    return this.exceptionHandler;
+  }
+
+  /**
    * Process the results of the HttpRequest.
    *
    * @param response Future containing the results of the request.
@@ -160,7 +188,8 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @throws feign.exception.FeignException if the response could not be decoded.
    */
   protected Object decode(Response response) {
-    Class<?> returnType = this.targetMethodDefinition.getReturnType();
+    TypeDefinition typeDefinition = targetMethodDefinition.getReturnType();
+    Class<?> returnType = typeDefinition.getType();
     if (Response.class == returnType) {
       /* no need to decode */
       log.debug("Response type is feign.Response, no decoding necessary.");
@@ -168,7 +197,27 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
     } else {
       /* decode the response */
       log.debug("Decoding Response: {}", response);
-      return this.decoder.decode(response, returnType);
+      return this.decode(response, typeDefinition);
+    }
+  }
+
+  /**
+   * Decode the Response, using the TypeDefinition provided.
+   *
+   * @param response to decode.
+   * @param typeDefinition to use to determine what the resulting type should be.
+   * @return the response body decoded into the desired type.
+   */
+  private Object decode(Response response, TypeDefinition typeDefinition) {
+    /* before jumping into and just passing the raw type the decoder, there are
+     * certain types that act as containers.  when decoding these types, we want to
+     * decode the 'contained' type and then wrap the result in the desired container,
+     */
+    if (typeDefinition.isContainer()) {
+      /* we want to decode the actual type */
+      return this.decoder.decode(response, typeDefinition.getActualType());
+    } else {
+      return this.decoder.decode(response, typeDefinition.getType());
     }
   }
 
@@ -176,8 +225,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * Map the Argument list to any registered Template Parameters.
    *
    * @param arguments to map.
-   * @return a new Map, where the argument is matched up to the corresponding Template parameter
-   *        name.
+   * @return a new Map, where the argument matches corresponding Template parameter name.
    */
   private Map<String, Object> mapArguments(Object[] arguments) {
     Map<String, Object> variables = new LinkedHashMap<>();
@@ -200,21 +248,10 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   private RunnableFuture<Response> getTask(
       final TargetMethodDefinition methodMetadata, final Request request) {
     return new FutureTask<>(() -> {
-      try {
-        this.logRequest(methodMetadata.getTag(), request);
-        final Response response = client.request(request);
-        this.logResponse(methodMetadata.getTag(), response);
-        return response;
-      } catch (Exception ex) {
-        log.error("Error occurred during method processing.  "
-                + "Passing to Exception Handler.  Exception: {}: {}",
-            ex.getClass().getSimpleName(), ex.getMessage());
-
-        exceptionHandler.accept(
-            new FeignException(
-                "Error occurred during request processing", ex, methodMetadata.getTag()));
-      }
-      throw methodNotHandled();
+      this.logRequest(methodMetadata.getTag(), request);
+      final Response response = client.request(request);
+      this.logResponse(methodMetadata.getTag(), response);
+      return response;
     });
   }
 
