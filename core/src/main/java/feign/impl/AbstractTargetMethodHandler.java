@@ -145,15 +145,6 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   }
 
   /**
-   * The Executor for this method.
-   *
-   * @return the executor defined.
-   */
-  protected Executor getExecutor() {
-    return this.executor;
-  }
-
-  /**
    * The Exception Handler defined.
    *
    * @return the exception handler.
