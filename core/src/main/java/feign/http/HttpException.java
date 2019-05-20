@@ -17,7 +17,6 @@
 package feign.http;
 
 import feign.Client;
-import feign.Request;
 import java.util.Optional;
 
 /**

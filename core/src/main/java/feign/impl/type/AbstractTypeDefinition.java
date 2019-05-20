@@ -18,7 +18,6 @@ package feign.impl.type;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.Future;
 
 /**
