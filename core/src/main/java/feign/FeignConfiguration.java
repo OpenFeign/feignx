@@ -87,4 +87,11 @@ public interface FeignConfiguration {
    * @return the log instance.
    */
   Logger getLogger();
+
+  /**
+   * Retry to use when processing requests.
+   *
+   * @return the retry instance.
+   */
+  Retry getRetry();
 }

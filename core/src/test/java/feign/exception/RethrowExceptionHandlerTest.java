@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import feign.ExceptionHandler;
 import feign.ExceptionHandler.RethrowExceptionHandler;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 class RethrowExceptionHandlerTest {
@@ -28,11 +29,16 @@ class RethrowExceptionHandlerTest {
   @Test
   void exceptions_shouldBeThrown() {
     ExceptionHandler exceptionHandler = new RethrowExceptionHandler();
+    RuntimeException exception = exceptionHandler.apply(new FeignException("Test", "method"));
+    assertThat(exception).isInstanceOf(FeignException.class);
+  }
 
-    RuntimeException exception = assertThrows(RuntimeException.class,
-        () -> exceptionHandler.accept(new FeignException("Test", "method")));
-
-    assertThat(exception.getCause()).isInstanceOf(FeignException.class);
+  @Test
+  void exceptions_shouldBeWrapped() {
+    ExceptionHandler exceptionHandler = new RethrowExceptionHandler();
+    RuntimeException exception = exceptionHandler.apply(new IOException("bad"));
+    assertThat(exception).isInstanceOf(RuntimeException.class);
+    assertThat(exception.getCause()).isInstanceOf(IOException.class);
   }
 
 }

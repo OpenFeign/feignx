@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import feign.Request;
 import feign.Response;
 import feign.http.HttpHeader;
+import feign.retry.RetryContext;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -152,5 +153,27 @@ class SimpleLoggerTest {
     simpleLogger.logResponse("test", response);
     verify(response, times(0)).toByteArray();
     verify(response, times(1)).headers();
+  }
+
+  @Test
+  void shouldLogRetry_whenEnabled() {
+    SimpleLogger simpleLogger = SimpleLogger.builder()
+        .setEnabled(true)
+        .build();
+    Response response = mock(Response.class);
+    simpleLogger.logRetry(
+        "test", new RetryContext(3, new IOException("bad"), response));
+    verify(response, times(1)).status();
+  }
+
+  @Test
+  void shouldLogRetry_whenNotEnabled() {
+    SimpleLogger simpleLogger = SimpleLogger.builder()
+        .setEnabled(false)
+        .build();
+    Response response = mock(Response.class);
+    simpleLogger.logRetry(
+        "test", new RetryContext(3, new IOException("bad"), response));
+    verifyZeroInteractions(response);
   }
 }

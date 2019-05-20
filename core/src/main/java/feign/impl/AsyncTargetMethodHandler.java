@@ -22,6 +22,7 @@ import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.TargetMethodDefinition;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -44,13 +45,14 @@ public class AsyncTargetMethodHandler extends AbstractTargetMethodHandler {
    * @param exceptionHandler to delegate to when an exception occurs.
    * @param executor to request the request on.
    * @param logger for logging requests and responses.
+   * @param retry for retrying requests.
    */
   AsyncTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
       RequestEncoder encoder, List<RequestInterceptor> interceptors,
       Client client, ResponseDecoder decoder, ExceptionHandler exceptionHandler,
-      Executor executor, Logger logger) {
+      Executor executor, Logger logger, Retry retry) {
     super(targetMethodDefinition, encoder, interceptors, client, decoder, exceptionHandler,
-        executor, logger);
+        executor, logger, retry);
   }
 
   /**

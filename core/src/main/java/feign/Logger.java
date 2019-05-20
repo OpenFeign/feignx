@@ -16,6 +16,8 @@
 
 package feign;
 
+import feign.retry.RetryContext;
+
 /**
  * Logger component responsible for log messages pertaining to specific components involved
  * in the Request/Response process.
@@ -37,5 +39,13 @@ public interface Logger {
    * @param response to log.
    */
   void logResponse(String methodName, Response response);
+
+  /**
+   * Log the {@link RetryContext} used during a retry.
+   *
+   * @param methodName of the method making the request.
+   * @param context to log.
+   */
+  void logRetry(String methodName, RetryContext context);
 
 }

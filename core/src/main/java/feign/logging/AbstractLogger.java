@@ -20,6 +20,7 @@ import feign.Header;
 import feign.Logger;
 import feign.Request;
 import feign.Response;
+import feign.retry.RetryContext;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.StringJoiner;
@@ -88,17 +89,7 @@ public abstract class AbstractLogger implements Logger {
   public void logResponse(String methodName, Response response) {
     if (this.enabled) {
       StringJoiner joiner = new StringJoiner(", ", "[", "]");
-      joiner.add("status=" + response.status());
-      joiner.add("reason=" + response.reason());
-      joiner.add("length=" + response.contentLength());
-
-      if (this.headersEnabled) {
-        for (Header header : response.headers()) {
-          StringJoiner headers = new StringJoiner(", ", "[", "]");
-          this.logHeader(header, headers);
-          joiner.add("headers=" + headers.toString());
-        }
-      }
+      this.getResponseLogMessage(joiner, response);
 
       if (this.responseEnabled) {
         int length = response.contentLength();
@@ -120,7 +111,36 @@ public abstract class AbstractLogger implements Logger {
 
       this.log(methodName, "Response: " + joiner.toString());
     }
+  }
 
+  @Override
+  public void logRetry(String methodName, RetryContext context) {
+    if (this.enabled) {
+      StringJoiner joiner = new StringJoiner(", ", "[", "]");
+      joiner.add("attempts=" + context.getAttempts());
+
+      context.getResponse().ifPresent(response -> getResponseLogMessage(joiner, response));
+      context.getLastException().ifPresent(throwable -> {
+        joiner.add("exception=" + throwable.getClass().getSimpleName());
+        joiner.add("message=" + throwable.getMessage());
+      });
+
+      this.log(methodName, joiner.toString());
+    }
+  }
+
+  private void getResponseLogMessage(StringJoiner joiner, Response response) {
+    joiner.add("status=" + response.status());
+    joiner.add("reason=" + response.reason());
+    joiner.add("length=" + response.contentLength());
+
+    if (this.headersEnabled) {
+      for (Header header : response.headers()) {
+        StringJoiner headers = new StringJoiner(", ", "[", "]");
+        this.logHeader(header, headers);
+        joiner.add("headers=" + headers.toString());
+      }
+    }
   }
 
   private void logHeader(Header header, StringJoiner joiner) {

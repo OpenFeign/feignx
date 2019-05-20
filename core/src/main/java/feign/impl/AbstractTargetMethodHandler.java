@@ -24,6 +24,7 @@ import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.exception.FeignException;
@@ -57,6 +58,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   private ExceptionHandler exceptionHandler;
   private Logger logger;
   private Executor executor;
+  private Retry retry;
 
   /**
    * Creates a new Abstract Target HttpMethod Handler.
@@ -69,17 +71,21 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @param exceptionHandler to delegate to when an exception occurs.
    * @param executor to request the request on.
    * @param logger for logging requests and responses.
+   * @param retry for retrying requests.
    */
   protected AbstractTargetMethodHandler(
       TargetMethodDefinition targetMethodDefinition, RequestEncoder encoder,
       List<RequestInterceptor> interceptors, Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor, feign.Logger logger) {
+      ExceptionHandler exceptionHandler, Executor executor, Logger logger,
+      Retry retry) {
     Assert.isNotNull(targetMethodDefinition, "targetMethodDefinition is required.");
     Assert.isNotNull(encoder, "encoder is required.");
     Assert.isNotNull(client, "client is required.");
     Assert.isNotNull(decoder, "decoder is required.");
     Assert.isNotNull(exceptionHandler, "exceptionHandler is required.");
     Assert.isNotNull(executor, "executor is required.");
+    Assert.isNotNull(retry, "retry is required");
+    Assert.isNotNull(logger, "logger is required.");
     this.encoder = encoder;
     this.interceptors = (interceptors == null) ? Collections.emptyList() : interceptors;
     this.client = client;
@@ -88,6 +94,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
     this.executor = executor;
     this.targetMethodDefinition = targetMethodDefinition;
     this.logger = logger;
+    this.retry = retry;
   }
 
   /**
@@ -120,7 +127,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
                 log.error("Error occurred during method processing.  "
                         + "Passing to Exception Handler.  Exception: {}: {}",
                     throwable.getClass().getSimpleName(), throwable.getMessage());
-                exceptionHandler.accept(throwable);
+                throw exceptionHandler.apply(throwable);
               } else {
                 try {
                   /* decode the response */
@@ -128,17 +135,9 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
                 } catch (Exception ex) {
                   log.error("Error occurred processing the response.  Passing to Exception Handler."
                       + "  Exception: {} {}", ex.getClass().getSimpleName(), ex.getMessage());
-                  exceptionHandler.accept(ex);
+                  throw exceptionHandler.apply(ex);
                 }
               }
-              log.warn(
-                  "All Methods are expected to either return a value or throw an Exception.  "
-                      + "This method did not provide either.  This means either that the value "
-                      + "of the method should be 'void' or that the Exception Handler did not "
-                      + "properly generate an exception.  Please review your target, method "
-                      + "definition, and exception handler.");
-              throw new IllegalStateException("Error occurred when trying to request the request "
-                  + "and either no Response was returned or an Exception was left unhandled.");
             }, this.executor);
 
     /* delegate any additional handling to the sub classes. */
@@ -213,10 +212,15 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @return a {@link CompletableFuture} containing the Response.
    */
   protected Response request(final Request request) {
-    this.logRequest(targetMethodDefinition.getTag(), request);
-    final Response response = client.request(request);
-    this.logResponse(targetMethodDefinition.getTag(), response);
-    return response;
+    try {
+      this.logRequest(targetMethodDefinition.getTag(), request);
+      final Response response =
+          this.retry.execute(targetMethodDefinition.getTag(), request, req -> client.request(req));
+      this.logResponse(targetMethodDefinition.getTag(), response);
+      return response;
+    } catch (Throwable th) {
+      throw new FeignException(th.getMessage(), th, this.targetMethodDefinition.getTag());
+    }
   }
 
   /**

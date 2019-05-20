@@ -24,6 +24,7 @@ import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.Target;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +45,7 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   private final List<RequestInterceptor> interceptors = new ArrayList<>();
   private final ExceptionHandler exceptionHandler;
   private final Logger logger;
+  private final Retry retry;
 
   /**
    * Creates a new Base Feign Configuration.
@@ -57,10 +59,12 @@ public class BaseFeignConfiguration implements FeignConfiguration {
    * @param exceptionHandler to use.
    * @param executor to use.
    * @param logger to use.
+   * @param retry to use.
    */
   public BaseFeignConfiguration(Target target, Contract contract, RequestEncoder encoder,
       List<RequestInterceptor> interceptors, Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor, Logger logger) {
+      ExceptionHandler exceptionHandler, Executor executor, Logger logger,
+      Retry retry) {
     this.client = client;
     this.requestEncoder = encoder;
     this.responseDecoder = decoder;
@@ -70,6 +74,7 @@ public class BaseFeignConfiguration implements FeignConfiguration {
     this.interceptors.addAll(interceptors);
     this.exceptionHandler = exceptionHandler;
     this.logger = logger;
+    this.retry = retry;
   }
 
   @Override
@@ -116,5 +121,10 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   @Override
   public Logger getLogger() {
     return this.logger;
+  }
+
+  @Override
+  public Retry getRetry() {
+    return this.retry;
   }
 }

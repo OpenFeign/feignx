@@ -51,7 +51,7 @@ public class UrlConnectionClient implements Client {
       throw new IllegalArgumentException("UrlConnectionClient only support HttpRequests");
     }
     HttpURLConnection connection = this.send((HttpRequest) request);
-    return this.receive(connection);
+    return this.receive((HttpRequest) request, connection);
   }
 
   /**
@@ -77,10 +77,8 @@ public class UrlConnectionClient implements Client {
       connection.setAllowUserInteraction(false);
 
       /* apply the request headers */
-      if (request.headers() != null) {
-        for (Header header : request.headers()) {
-          header.values().forEach(value -> connection.addRequestProperty(header.name(), value));
-        }
+      for (Header header : request.headers()) {
+        header.values().forEach(value -> connection.addRequestProperty(header.name(), value));
       }
 
       /* write the request  */
@@ -109,7 +107,7 @@ public class UrlConnectionClient implements Client {
    * @param connection with the Response.
    * @return the Response model.
    */
-  private Response receive(HttpURLConnection connection) {
+  private Response receive(HttpRequest request, HttpURLConnection connection) {
     try {
       /* execute the request */
       int statusCode = connection.getResponseCode();
@@ -125,14 +123,23 @@ public class UrlConnectionClient implements Client {
           .filter(entry -> entry.getKey() != null)
           .forEach(entry -> builder.addHeader(new HttpHeader(entry.getKey(), entry.getValue())));
 
+      boolean successful = true;
       if (statusCode > 399) {
         builder.body(connection.getErrorStream());
+        successful = false;
       } else {
         builder.body(connection.getInputStream());
       }
-      return builder.build();
+      HttpResponse response = (HttpResponse) builder.build();
+      if (!successful) {
+        /* the request was not successful, read the entire response and throw */
+        response.read();
+        throw new HttpException("Error occurred processing the request", request, response);
+      }
+      /* return the response for handling */
+      return response;
     } catch (IOException ioe) {
-      throw new HttpException("Error occurred processing the response", ioe);
+      throw new HttpException("Error occurred processing the response", ioe, request);
     }
   }
 }

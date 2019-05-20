@@ -19,11 +19,13 @@ package feign.http;
 import static feign.assertions.HttpRequestAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import feign.Header;
 import feign.Request;
 import feign.RequestOptions;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
@@ -50,6 +52,7 @@ class RequestSpecificationTest {
         .setConnectTimeout(1, TimeUnit.SECONDS)
         .setReadTimeout(2, TimeUnit.SECONDS)
         .build();
+    assertThat(requestSpecification.method()).isEqualByComparingTo(HttpMethod.GET);
     assertThat(httpRequest).hasUri(result)
         .hasMethod(HttpMethod.GET)
         .hasHeaders(Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("value"))))
@@ -144,5 +147,21 @@ class RequestSpecificationTest {
         "https://user:password@www.example.com:8080?name=value&filter=name&filter=address"
             + "&sort=desc");
     assertThat(httpRequest).hasUri(result);
+  }
+
+  @SuppressWarnings("OptionalGetWithoutIsPresent")
+  @Test
+  void appendHeaderValue() {
+    RequestSpecification requestSpecification = new RequestSpecification();
+    Request request = requestSpecification.uri(URI.create("https://www.example.com"))
+        .header("Accept", "application/json")
+        .header("Accept", "text/html")
+        .method(HttpMethod.GET)
+        .build();
+    assertThat(request.headers()).isNotEmpty();
+    assertThat(requestSpecification.header("Accept")).isNotEmpty();
+    Optional<Header> header = requestSpecification.header("Accept");
+    assertThat(header.get().values()).isNotEmpty().hasSize(2);
+
   }
 }

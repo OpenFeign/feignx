@@ -17,6 +17,7 @@
 package feign.http;
 
 import static feign.assertions.HttpHeaderAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
@@ -63,9 +64,29 @@ class HttpHeaderTest {
   }
 
   @Test
+  void headersAreEqual_toItself() {
+    HttpHeader httpHeader = new HttpHeader("X-Custom");
+    assertThat(httpHeader).isEqualTo(httpHeader);
+  }
+
+
+  @Test
   void headersAreEqual_whenNamesMatch() {
     HttpHeader httpHeader = new HttpHeader("X-Custom");
     assertThat(httpHeader).isEqualTo(new HttpHeader("X-Custom"));
+  }
+
+  @Test
+  void headersAreNotEqual_whenNotAHeader() {
+    HttpHeader httpHeader = new HttpHeader("X-Custom");
+    assertThat(httpHeader).isNotEqualTo("String");
+    assertThat(httpHeader).isNotEqualTo(null);
+  }
+
+  @Test
+  void headerToString_isNotNull() {
+    HttpHeader httpHeader = new HttpHeader("X-Custom");
+    assertThat(httpHeader.toString()).isNotEmpty();
   }
 
 }

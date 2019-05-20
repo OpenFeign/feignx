@@ -23,10 +23,12 @@ import feign.ExceptionHandler;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.contract.Request;
 import feign.http.HttpMethod;
+import feign.retry.NoRetry;
 import feign.support.AuditingExecutor;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
@@ -52,13 +54,15 @@ class BlockingTargetMethodHandlerTest {
   @Mock
   private Logger logger;
 
+  private Retry retry = new NoRetry();
+
   @Test
   void usingDefaultExecutor_willUseTheCallingThread() throws Throwable {
     AuditingExecutor executor = new AuditingExecutor();
     TargetMethodDefinition methodDefinition = new TargetMethodDefinition(
         new UriTarget<>(Blog.class, "https://www.example.com"));
     TargetMethodHandler blockingHandler = new BlockingTargetMethodHandler(methodDefinition, encoder,
-        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger);
+        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger, retry);
 
     methodDefinition.returnType(void.class)
         .uri("/resources/{name}")

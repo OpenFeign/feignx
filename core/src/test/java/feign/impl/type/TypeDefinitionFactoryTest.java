@@ -18,6 +18,7 @@ package feign.impl.type;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import feign.impl.type.TypeDefinitionFactoryTest.Outside.Inside;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -41,7 +42,7 @@ class TypeDefinitionFactoryTest {
     assertThat(typeDefinition.getType()).isAssignableFrom(String.class);
     assertThat(typeDefinition.isCollectionLike()).isFalse();
     assertThat(typeDefinition.isContainer()).isFalse();
-
+    assertThat(typeDefinition.getActualType()).isAssignableFrom(String.class);
   }
 
   @Test
@@ -130,7 +131,7 @@ class TypeDefinitionFactoryTest {
 
   @Test
   void arrayType_isGenericArrayType() throws Exception {
-    Method method = Types.class.getMethod("array");
+    Method method = Types.class.getMethod("collectionArray");
     TypeDefinition typeDefinition = this.typeDefinitionFactory.create(
         method.getGenericReturnType(), Types.class);
 
@@ -266,6 +267,39 @@ class TypeDefinitionFactoryTest {
     assertThat(typeDefinition.isContainer()).isFalse();
   }
 
+  @Test
+  void array_isCollectionLike() throws Exception {
+    Method method = Types.class.getMethod("array");
+    TypeDefinition typeDefinition = this.typeDefinitionFactory.create(
+        method.getGenericReturnType(), Types.class);
+    assertThat(typeDefinition.isCollectionLike()).isTrue();
+  }
+
+  @Test
+  void collection_isCollectionLike() throws Exception {
+    Method method = Types.class.getMethod("collection");
+    TypeDefinition typeDefinition = this.typeDefinitionFactory.create(
+        method.getGenericReturnType(), Types.class);
+    assertThat(typeDefinition.isCollectionLike()).isTrue();
+  }
+
+  @Test
+  void iterable_isCollectionLike() throws Exception {
+    Method method = Types.class.getMethod("iterable");
+    TypeDefinition typeDefinition = this.typeDefinitionFactory.create(
+        method.getGenericReturnType(), Types.class);
+    assertThat(typeDefinition.isCollectionLike()).isTrue();
+  }
+
+  @Test
+  void parameterizedType_withOwner_isResolved() throws Exception {
+    Method method = Outside.class.getMethod("outside");
+    TypeDefinition typeDefinition = this.typeDefinitionFactory.create(
+        method.getGenericReturnType(), Outside.class);
+    assertThat(typeDefinition).isInstanceOf(ParameterizedTypeDefinition.class);
+    assertThat(((ParameterizedTypeDefinition) typeDefinition).getOwnerType()).isNotNull();
+  }
+
   /**
    * Interface with our simple types.
    */
@@ -277,9 +311,15 @@ class TypeDefinitionFactoryTest {
 
     Map<String, Object> map();
 
-    List<String>[] array();
+    List<String>[] collectionArray();
 
     Future<String> wrapped();
+
+    String[] array();
+
+    Collection<String> collection();
+
+    Iterable<String> iterable();
   }
 
   /**
@@ -371,4 +411,17 @@ class TypeDefinitionFactoryTest {
 
   }
 
+  /**
+   * Owned Type.
+   */
+  interface Outside<O> {
+
+    Inside<O> outside();
+
+    interface Inside<I> {
+
+      I inside();
+
+    }
+  }
 }
