@@ -17,7 +17,6 @@
 package feign;
 
 import feign.exception.FeignException;
-import feign.http.HttpException;
 
 /**
  * Target Client instance responsible for submitting the Request to the Target and processing

@@ -30,8 +30,4 @@ public class ReservedExpression extends SimpleExpression {
     return super.isCharacterAllowed(character) || UriUtils.isReserved(character);
   }
 
-  @Override
-  protected String getPrefix() {
-    return super.getPrefix();
-  }
 }

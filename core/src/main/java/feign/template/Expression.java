@@ -277,7 +277,7 @@ public abstract class Expression implements Chunk {
    * @param builder to append to.
    * @param delimiter to append.
    */
-  protected void appendDelimiter(StringBuilder builder, String delimiter) {
+  void appendDelimiter(StringBuilder builder, String delimiter) {
     if (builder.length() != 0) {
       /* only append if values are already present */
       builder.append(delimiter);
@@ -291,7 +291,7 @@ public abstract class Expression implements Chunk {
    * @param result value.
    * @param builder to append the named result to.
    */
-  protected void appendNamedResult(String name, Object result, StringBuilder builder) {
+  void appendNamedResult(String name, Object result, StringBuilder builder) {
     /* prepend the name */
     builder.append(this.encode(name))
         .append("=")

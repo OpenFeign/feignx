@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.StringJoiner;
 
+/**
+ * Base Logger implementation.
+ */
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractLogger implements Logger {
 
   private final boolean enabled;
@@ -31,6 +35,14 @@ public abstract class AbstractLogger implements Logger {
   private final boolean responseEnabled;
   private final boolean headersEnabled;
 
+  /**
+   * Creates a new Abstract Logger.
+   *
+   * @param enabled flag.
+   * @param requestEnabled flag.
+   * @param responseEnabled flag.
+   * @param headersEnabled flag.
+   */
   protected AbstractLogger(boolean enabled, boolean requestEnabled, boolean responseEnabled,
       boolean headersEnabled) {
     this.enabled = enabled;
@@ -111,7 +123,7 @@ public abstract class AbstractLogger implements Logger {
 
   }
 
-  protected void logHeader(Header header, StringJoiner joiner) {
+  private void logHeader(Header header, StringJoiner joiner) {
     joiner.add(header.name() + "=" + header.values());
   }
 
