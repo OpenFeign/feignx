@@ -37,9 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RunnableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,29 +101,20 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
 
     try {
       /* prepare the request specification */
-      log.debug("Started processing of request: {}", this.targetMethodDefinition.getTag());
-      final RequestSpecification requestSpecification = this.targetMethodDefinition
-          .requestSpecification(this.mapArguments(arguments));
-      log.debug("UriTemplate resolved: {}", requestSpecification.uri());
+      final RequestSpecification requestSpecification = this.resolve(arguments);
 
       /* apply any interceptors */
-      log.debug("Applying interceptors");
-      for (RequestInterceptor interceptor : this.interceptors) {
-        interceptor.accept(requestSpecification);
-      }
+      this.intercept(requestSpecification);
 
       /* encode the request */
-      if (this.targetMethodDefinition.getBody() != -1) {
-        Object body = arguments[this.targetMethodDefinition.getBody()];
-        log.debug("Encoding Request Body: {}", body.getClass().getSimpleName());
-        this.encoder.apply(body, requestSpecification);
-      }
+      Object body =
+          (this.targetMethodDefinition.getBody() != -1) ? arguments[this.targetMethodDefinition
+              .getBody()] : null;
+      this.encode(requestSpecification, body);
 
       /* execute the request on the provided executor */
       final Request request = requestSpecification.build();
-
-      log.debug("Creating new Task for the Request: {}", request);
-      CompletableFuture<Response> task = this.getTask(requestSpecification.build());
+      CompletableFuture<Response> task = this.getTask(request);
 
       /* process the results of the task */
       return this.handleResponse(task);
@@ -161,6 +149,45 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @throws Exception in the event the response could not be processed.
    */
   protected abstract Object handleResponse(CompletableFuture<Response> response) throws Exception;
+
+  /**
+   * Resolve any parameters and variables for this Request.
+   *
+   * @param arguments containing the values to use.
+   * @return a {@link RequestSpecification} instance.
+   */
+  protected RequestSpecification resolve(Object[] arguments) {
+    log.debug("Started processing of request: {}", this.targetMethodDefinition.getTag());
+    RequestSpecification requestSpecification = this.targetMethodDefinition
+        .requestSpecification(this.mapArguments(arguments));
+    log.debug("UriTemplate resolved: {}", requestSpecification.uri());
+    return requestSpecification;
+  }
+
+  /**
+   * Apply any {@link RequestInterceptor}s.
+   *
+   * @param requestSpecification to intercept.
+   */
+  protected void intercept(RequestSpecification requestSpecification) {
+    log.debug("Applying interceptors");
+    for (RequestInterceptor interceptor : this.interceptors) {
+      interceptor.accept(requestSpecification);
+    }
+  }
+
+  /**
+   * Encode the Request Body, if required.
+   *
+   * @param requestSpecification to receive the encoded result.
+   * @param body to encode, can be {@literal null}.
+   */
+  protected void encode(RequestSpecification requestSpecification, Object body) {
+    if (body != null) {
+      log.debug("Encoding Request Body: {}", body.getClass().getSimpleName());
+      this.encoder.apply(body, requestSpecification);
+    }
+  }
 
   /**
    * Decode the Response.
@@ -221,8 +248,8 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   }
 
   /**
-   * Creates a new {@link CompletableFuture} wrapping the {@link Client}, running on the
-   * executor provided.
+   * Creates a new {@link CompletableFuture} wrapping the {@link Client}, running on the executor
+   * provided.
    *
    * @param request to send.
    * @return a Future containing the result of the request.
