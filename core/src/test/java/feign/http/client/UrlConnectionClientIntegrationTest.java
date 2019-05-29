@@ -19,7 +19,9 @@ package feign.http.client;
 import static feign.assertions.HttpResponseAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -32,7 +34,11 @@ import feign.http.HttpMethod;
 import feign.http.HttpRequest;
 import feign.http.HttpResponse;
 import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Random;
@@ -118,12 +124,9 @@ class UrlConnectionClientIntegrationTest {
         request()
             .withMethod("GET")
             .withPath("/large")
-
     ).respond(
         response()
-            .withStatusCode(502)
-            .withDelay(TimeUnit.SECONDS, 2)
-            .withReasonPhrase("Service Unavailable")
+            .withStatusCode(200)
             .withBody(data));
   }
 
@@ -154,18 +157,33 @@ class UrlConnectionClientIntegrationTest {
 
   @Test
   void canSendRequest_withBody() throws Exception {
-
-
     HttpRequest request = new HttpRequest(
         URI.create("http://localhost:1080/create"), HttpMethod.POST,
         Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("*/*"))),
         RequestOptions.builder().build(), "content".getBytes(StandardCharsets.UTF_8));
     try (Response response = this.urlConnectionClient.request(request)) {
       assertThat(response).isNotNull().isInstanceOf(HttpResponse.class);
-
       HttpResponse httpResponse = (HttpResponse) response;
       assertThat(httpResponse).hasStatus(201);
     }
+  }
+
+  @Test
+  void cannotSendRequest_withBody_IOException() throws Exception {
+    URI uri = mock(URI.class);
+    URL url = mock(URL.class);
+    HttpURLConnection connection = mock(HttpURLConnection.class);
+    OutputStream os = mock(OutputStream.class);
+    when(uri.toURL()).thenReturn(url);
+    when(url.openConnection()).thenReturn(connection);
+    when(connection.getOutputStream()).thenReturn(os);
+    doThrow(new IOException("could not close")).when(os).close();
+
+    HttpRequest request = new HttpRequest(
+        uri, HttpMethod.POST,
+        Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("*/*"))),
+        RequestOptions.builder().build(), "content".getBytes(StandardCharsets.UTF_8));
+    assertThrows(HttpException.class, () -> urlConnectionClient.request(request));
   }
 
   @Test
@@ -189,34 +207,30 @@ class UrlConnectionClientIntegrationTest {
   }
 
   @Test
-  void readErrorStream_whenStatusIs4xx() throws Exception {
+  void readErrorStream_whenStatusIs4xx() {
     HttpRequest request = new HttpRequest(
         URI.create("http://localhost:1080/create"), HttpMethod.POST,
         null, RequestOptions.builder().build(), "incorrect".getBytes(StandardCharsets.UTF_8));
-    try (Response response = this.urlConnectionClient.request(request)) {
-      assertThat(response).isNotNull().isInstanceOf(HttpResponse.class);
-
-      HttpResponse httpResponse = (HttpResponse) response;
-      assertThat(httpResponse).hasStatus(400)
-          .hasReason("Bad Request");
-      String responseData = new String(httpResponse.toByteArray());
-      assertThat(responseData).isEqualTo("Incorrect Parameters");
-    }
-  }
-
-  @Test
-  void readErrorStream_whenStatusIs5xx() throws Exception {
-    HttpRequest request = new HttpRequest(
-        URI.create("http://localhost:1080/status"), HttpMethod.GET,
-        null, RequestOptions.builder().build(), null);
-    try (Response response = this.urlConnectionClient.request(request)) {
-      assertThat(response).isNotNull().isInstanceOf(HttpResponse.class);
-
-      HttpResponse httpResponse = (HttpResponse) response;
-      assertThat(httpResponse).hasStatus(503)
-          .hasReason("Service Unavailable");
-      String responseData = new String(httpResponse.toByteArray());
-      assertThat(responseData).isEqualTo("Maintenance");
+    try {
+      this.urlConnectionClient.request(request);
+    } catch (HttpException httpException) {
+      httpException.getResponse()
+          .ifPresent(httpResponse -> {
+            try  {
+              assertThat(httpResponse).hasStatus(400)
+                  .hasReason("Bad Request");
+              String responseData = new String(httpResponse.toByteArray());
+              assertThat(responseData).isEqualTo("Incorrect Parameters");
+            } catch (Exception ex) {
+              // ignored
+            } finally {
+              try {
+                httpResponse.close();
+              } catch (Exception ex) {
+                // ignored
+              }
+            }
+          });
     }
   }
 

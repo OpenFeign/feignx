@@ -36,12 +36,14 @@ import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.ExceptionHandler;
 import feign.exception.FeignException;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
+import feign.retry.NoRetry;
 import feign.template.SimpleTemplateParameter;
 import java.io.InputStream;
 import java.util.Collections;
@@ -52,8 +54,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@SuppressWarnings("ThrowableNotThrown")
 @ExtendWith(MockitoExtension.class)
 class AbstractTargetMethodHandlerTest {
 
@@ -68,8 +72,8 @@ class AbstractTargetMethodHandlerTest {
   @Mock
   private ResponseDecoder decoder;
 
-  @Mock
-  private ExceptionHandler exceptionHandler;
+  @Spy
+  private ExceptionHandler exceptionHandler = new RethrowExceptionHandler();
 
   @Mock
   private RequestInterceptor interceptor;
@@ -79,6 +83,8 @@ class AbstractTargetMethodHandlerTest {
 
   @Mock
   private Logger logger;
+
+  private Retry retry = new NoRetry();
 
   private Executor executor = Executors.newSingleThreadExecutor();
 
@@ -107,7 +113,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
@@ -135,7 +142,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
@@ -161,7 +169,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -187,7 +196,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -211,7 +221,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -236,7 +247,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -261,7 +273,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -289,12 +302,13 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
     verifyZeroInteractions(this.client, this.decoder);
-    verify(this.exceptionHandler, times(1)).accept(any(Throwable.class));
+    verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
   }
 
   @Test
@@ -313,12 +327,13 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         this.exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
     verify(this.client, times(1)).request(any(Request.class));
-    verify(this.exceptionHandler, times(1)).accept(any(Throwable.class));
+    verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
     verifyZeroInteractions(this.decoder);
   }
 
@@ -342,7 +357,8 @@ class AbstractTargetMethodHandlerTest {
         this.decoder,
         exceptionHandler,
         this.executor,
-        this.logger);
+        this.logger,
+        this.retry);
 
     assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name", "body")));
@@ -350,7 +366,7 @@ class AbstractTargetMethodHandlerTest {
     verify(client, times(1)).request(any(Request.class));
     verify(decoder, times(1)).decode(any(Response.class), eq(String.class));
     verify(interceptor, times(1)).accept(any(RequestSpecification.class));
-    verify(exceptionHandler, times(1)).accept(any(Throwable.class));
+    verify(exceptionHandler, times(1)).apply(any(Throwable.class));
   }
 
   interface TestInterface {

@@ -100,6 +100,14 @@ public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder,
   B logger(Logger logger);
 
   /**
+   * Retry instance.
+   *
+   * @param retry instance to use.
+   * @return the builder chain.
+   */
+  B retry(Retry retry);
+
+  /**
    * Build the Configuration.
    *
    * @return a FeignConfiguration instance.

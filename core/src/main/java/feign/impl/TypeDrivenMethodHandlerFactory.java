@@ -50,7 +50,8 @@ public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactor
           configuration.getResponseDecoder(),
           configuration.getExceptionHandler(),
           configuration.getExecutor(),
-          configuration.getLogger());
+          configuration.getLogger(),
+          configuration.getRetry());
     } else {
       /* return a blocking handler */
       return new BlockingTargetMethodHandler(
@@ -61,7 +62,8 @@ public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactor
           configuration.getResponseDecoder(),
           configuration.getExceptionHandler(),
           configuration.getExecutor(),
-          configuration.getLogger());
+          configuration.getLogger(),
+          configuration.getRetry());
     }
   }
 

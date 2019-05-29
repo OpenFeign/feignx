@@ -64,6 +64,19 @@ public class HttpException extends RuntimeException {
     this.response = response;
   }
 
+  /**
+   * Creates a new HttpException.
+   *
+   * @param message fo the exception.
+   * @param request that was attempted.
+   * @param response response that was received.
+   */
+  public HttpException(String message, HttpRequest request, HttpResponse response) {
+    super(message);
+    this.request = request;
+    this.response = response;
+  }
+
   public Optional<HttpRequest> getRequest() {
     return Optional.ofNullable(this.request);
   }

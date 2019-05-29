@@ -119,8 +119,8 @@ public final class HttpResponse implements Response {
   }
 
   /**
-   * An Input Stream backed by the Response data.  It is the responsibility of the caller
-   * to close this stream.
+   * An Input Stream backed by the Response data.  It is the responsibility of the caller to close
+   * this stream.
    *
    * @return a response data backed Input Stream.
    */
@@ -159,24 +159,30 @@ public final class HttpResponse implements Response {
    * @throws IOException if the response could not be read.
    */
   public byte[] toByteArray() throws IOException {
-
-    if (this.content != null) {
-      /* we have already read this stream */
-      return this.content;
-    }
-
-    /* read the content into a memory buffer */
-    try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-      byte[] input = new byte[this.contentLength];
-      int len;
-      while ((len = this.body.read(input, 0, input.length)) != -1) {
-        buffer.write(input, 0, len);
-      }
-      buffer.flush();
-      this.content = buffer.toByteArray();
-    }
+    this.read();
     return this.content;
   }
+
+  /**
+   * Read the content into our in-memory buffer.
+   *
+   * @throws IOException if the content could not be ready.
+   */
+  public void read() throws IOException {
+    if (this.content == null && this.body != null)
+      /* read the content into a memory buffer */ {
+      try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+        byte[] input = new byte[this.contentLength];
+        int len;
+        while ((len = this.body.read(input, 0, input.length)) != -1) {
+          buffer.write(input, 0, len);
+        }
+        buffer.flush();
+        this.content = buffer.toByteArray();
+      }
+    }
+  }
+
 
   /**
    * Close the Response.

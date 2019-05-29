@@ -22,6 +22,7 @@ import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.exception.FeignException;
 import java.util.List;
@@ -43,15 +44,18 @@ public class BlockingTargetMethodHandler extends AbstractTargetMethodHandler {
    * @param client to send the request and create the response.
    * @param decoder to use when parsing the response.
    * @param exceptionHandler to delegate to when an exception occurs.
-   * @param logger to use.
+   * @param executor for the request to run on.
+   * @param logger for logging requests and responses.
+   * @param retry for retrying requests.
    */
   BlockingTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
       RequestEncoder encoder, List<RequestInterceptor> interceptors,
       Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor, Logger logger) {
+      ExceptionHandler exceptionHandler, Executor executor, Logger logger,
+      Retry retry) {
     /* create a new method handler, with a synchronous executor */
     super(targetMethodDefinition, encoder, interceptors, client, decoder, exceptionHandler,
-        executor, logger);
+        executor, logger, retry);
   }
 
   /**

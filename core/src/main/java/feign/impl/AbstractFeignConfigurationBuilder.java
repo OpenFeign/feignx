@@ -25,6 +25,7 @@ import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.Target;
 import feign.support.Assert;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public abstract class AbstractFeignConfigurationBuilder
   protected ExceptionHandler exceptionHandler;
   protected Target<?> target;
   protected Logger logger;
+  protected Retry retry;
 
   /**
    * Creates a new FeignConfigurationBuilder.
@@ -176,6 +178,19 @@ public abstract class AbstractFeignConfigurationBuilder
   public B logger(Logger logger) {
     Assert.isNotNull(logger, "log cannot be null");
     this.logger = logger;
+    return this.self;
+  }
+
+  /**
+   * Retry instance.
+   *
+   * @param retry instance to use.
+   * @return the builder reference chain.
+   */
+  @Override
+  public B retry(Retry retry) {
+    Assert.isNotNull(retry, "retry cannot be null");
+    this.retry = retry;
     return this.self;
   }
 }

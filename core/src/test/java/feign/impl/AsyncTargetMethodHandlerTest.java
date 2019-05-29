@@ -33,11 +33,13 @@ import feign.Logger;
 import feign.RequestEncoder;
 import feign.Response;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.contract.FeignContract;
 import feign.contract.Request;
 import feign.impl.AsyncTargetMethodHandlerTest.Blog.Post;
+import feign.retry.NoRetry;
 import feign.support.AuditingExecutor;
 import java.io.InputStream;
 import java.util.Collection;
@@ -55,6 +57,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@SuppressWarnings("ThrowableNotThrown")
 @ExtendWith(MockitoExtension.class)
 class AsyncTargetMethodHandlerTest {
 
@@ -83,6 +86,8 @@ class AsyncTargetMethodHandlerTest {
 
   private AsyncTargetMethodHandler methodHandler;
 
+  private Retry retry = new NoRetry();
+
   private Executor executor = Executors.newFixedThreadPool(10);
 
   @BeforeEach
@@ -99,7 +104,8 @@ class AsyncTargetMethodHandlerTest {
         decoder,
         exceptionHandler,
         this.executor,
-        logger);
+        logger,
+        retry);
   }
 
   @SuppressWarnings("unchecked")
@@ -134,7 +140,7 @@ class AsyncTargetMethodHandlerTest {
 
     assertThat(future).isCompletedExceptionally();
     verifyZeroInteractions(this.decoder);
-    verify(this.exceptionHandler, times(1)).accept(any(Throwable.class));
+    verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
   }
 
   @SuppressWarnings("unchecked")
@@ -153,7 +159,8 @@ class AsyncTargetMethodHandlerTest {
         decoder,
         mockHandler,
         Executors.newFixedThreadPool(10),
-        logger);
+        logger,
+        retry);
 
     when(this.client.request(any(feign.Request.class))).thenThrow(new RuntimeException("Failed"));
     Object result = this.methodHandler.execute(new Object[]{});
@@ -165,7 +172,7 @@ class AsyncTargetMethodHandlerTest {
 
     assertThat(future).isCompletedExceptionally();
     verifyZeroInteractions(this.decoder);
-    verify(mockHandler, times(1)).accept(any(Throwable.class));
+    verify(mockHandler, times(1)).apply(any(Throwable.class));
   }
 
   @SuppressWarnings("unchecked")
@@ -177,7 +184,7 @@ class AsyncTargetMethodHandlerTest {
     TargetMethodDefinition targetMethodDefinition = methodDefinitions.stream()
         .findFirst().get();
     TargetMethodHandler asyncTargetMethodHandler = new AsyncTargetMethodHandler(targetMethodDefinition, encoder,
-        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger);
+        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger, retry);
 
     /* get the current thread id */
     long currentThread = Thread.currentThread().getId();

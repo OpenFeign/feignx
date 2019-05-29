@@ -304,6 +304,7 @@
               <exclude>src/resources/**</exclude>
               <exclude>src/main/resources/**</exclude>
               <exclude>src/test/resources/**</exclude>
+              <exclude>**/*.MockMaker</exclude>
             </excludes>
             <strictCheck>true</strictCheck>
           </configuration>

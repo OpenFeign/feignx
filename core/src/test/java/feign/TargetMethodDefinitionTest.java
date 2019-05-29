@@ -40,6 +40,18 @@ class TargetMethodDefinitionTest {
   }
 
   @Test
+  void equals_itself() {
+    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    assertThat(targetMethodDefinition).isEqualTo(targetMethodDefinition);
+  }
+
+  @Test
+  void notEqual_toOtherTypes() {
+    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    assertThat(targetMethodDefinition).isNotEqualTo("A String");
+  }
+
+  @Test
   void notEqual_name_caseSensitive() {
     TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
     targetMethodDefinition.name("Name");
@@ -47,5 +59,11 @@ class TargetMethodDefinitionTest {
     TargetMethodDefinition anotherDefinition = new TargetMethodDefinition(mock(Target.class));
     anotherDefinition.name("name");
     assertThat(targetMethodDefinition).isNotEqualTo(anotherDefinition);
+  }
+
+  @Test
+  void toString_isNotEmpty() {
+    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    assertThat(targetMethodDefinition.toString()).isNotEmpty();
   }
 }

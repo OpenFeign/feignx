@@ -26,6 +26,7 @@ import feign.impl.BaseFeignConfiguration;
 import feign.impl.UriTarget;
 import feign.logging.SimpleLogger;
 import feign.proxy.ProxyFeign;
+import feign.retry.NoRetry;
 
 /**
  * Feign instance builder.  Provides access to a {@link FeignConfigurationBuilder}, using a
@@ -83,6 +84,9 @@ public abstract class Feign {
 
       /* default log configuration */
       this.logger = SimpleLogger.builder().build();
+
+      /* default retry */
+      this.retry = new NoRetry();
     }
 
     /**
@@ -94,7 +98,7 @@ public abstract class Feign {
     public FeignConfiguration build() {
       return new BaseFeignConfiguration(
           this.target, this.contract, this.encoder, this.interceptors, this.client, this.decoder,
-          this.exceptionHandler, this.executor, this.logger);
+          this.exceptionHandler, this.executor, this.logger, this.retry);
     }
 
     /**

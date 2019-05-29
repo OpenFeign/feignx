@@ -26,7 +26,7 @@ public class StringUtils {
    *
    * @param value to evaluate.
    * @return {@literal true} if the value is not empty or {@literal null}, {@literal false}
-   *        otherwise.
+   *       otherwise.
    */
   public static boolean isNotEmpty(String value) {
     return value != null && !value.isEmpty();
@@ -40,6 +40,25 @@ public class StringUtils {
    */
   public static boolean isEmpty(String value) {
     return value == null || value.isEmpty();
+  }
+
+  /**
+   * Determines if the provided String is only numbers.
+   *
+   * @param value to evaluate.
+   * @return {@literal true} if the string contains only numbers, {@literal false} otherwise.
+   */
+  public static boolean isNumeric(String value) {
+    if (isNotEmpty(value)) {
+      int length = value.length();
+      for (int i = 0; i < length; i++) {
+        if (!Character.isDigit(value.charAt(i))) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
 }

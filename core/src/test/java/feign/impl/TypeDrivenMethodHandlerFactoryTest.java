@@ -26,6 +26,7 @@ import feign.FeignConfiguration;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.ResponseDecoder;
+import feign.Retry;
 import feign.Target;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
@@ -58,7 +59,8 @@ class TypeDrivenMethodHandlerFactoryTest {
         mock(ResponseDecoder.class),
         mock(ExceptionHandler.class),
         mock(Executor.class),
-        mock(Logger.class));
+        mock(Logger.class),
+        mock(Retry.class));
 
     this.methodHandlerFactory = new TypeDrivenMethodHandlerFactory();
   }

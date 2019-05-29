@@ -16,12 +16,12 @@
 
 package feign;
 
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Consumer responsible for processing any Exceptions that occur during method processing.
  */
-public interface ExceptionHandler extends Consumer<Throwable> {
+public interface ExceptionHandler extends Function<Throwable, RuntimeException> {
 
   /**
    * Throws a new RuntimeException based on the exception received.
@@ -29,9 +29,12 @@ public interface ExceptionHandler extends Consumer<Throwable> {
    * @param throwable to throw again.
    */
   @Override
-  default void accept(Throwable throwable) {
+  default RuntimeException apply(Throwable throwable) {
     /* always rethrow */
-    throw new RuntimeException(throwable);
+    if (throwable instanceof RuntimeException) {
+      return (RuntimeException) throwable;
+    }
+    return new RuntimeException(throwable);
   }
 
   /**
