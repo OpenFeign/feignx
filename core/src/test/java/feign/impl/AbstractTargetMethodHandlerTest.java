@@ -40,7 +40,6 @@ import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.ExceptionHandler;
-import feign.exception.FeignException;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
 import feign.retry.NoRetry;

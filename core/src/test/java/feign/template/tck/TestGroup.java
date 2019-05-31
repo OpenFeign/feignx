@@ -17,15 +17,22 @@
 package feign.template.tck;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import feign.template.ExpressionExpander;
+import feign.template.SimpleTemplateParameter;
+import feign.template.TemplateParameter;
+import feign.template.expander.ListExpander;
+import feign.template.expander.MapExpander;
+import feign.template.expander.SimpleExpander;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class TestGroup {
 
   private String level;
-  private Map<String, Object> variables;
+  private Map<TemplateParameter, Object> variables;
 
   @JsonProperty("testcases")
   private List<TestCase> testCases;
@@ -44,12 +51,22 @@ public class TestGroup {
     this.level = level;
   }
 
-  public Map<String, Object> getVariables() {
+  public Map<TemplateParameter, Object> getVariables() {
     return variables;
   }
 
   public void setVariables(Map<String, Object> variables) {
-    this.variables = variables;
+    for (Entry<String, Object> entry : variables.entrySet()) {
+      Object value = entry.getValue();
+      ExpressionExpander expander = new SimpleExpander();
+      if (value instanceof Map) {
+        expander = new MapExpander();
+      } else if (value instanceof Iterable) {
+        expander = new ListExpander();
+      }
+
+      this.variables.put(new SimpleTemplateParameter(entry.getKey(), expander), entry.getValue());
+    }
   }
 
   public List<TestCase> getTestCases() {

@@ -17,9 +17,6 @@
 package feign.retry;
 
 import feign.support.Assert;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Retry Condition that determines if the status code on the Response should trigger a retry.

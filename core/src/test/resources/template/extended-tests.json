@@ -151,7 +151,12 @@
   "Additional Examples 3: Empty Variables": {
     "variables": {
       "empty_list": [],
-      "empty_assoc": {}
+      "empty_assoc": {},
+      "assoc_with_empty": {
+        "key1": "key1",
+        "key2": "key2",
+        "empty": ""
+      }
     },
     "testcases": [
       [
@@ -188,6 +193,30 @@
         "{?empty_assoc*}",
         [
           ""
+        ]
+      ],
+      [
+        "{;assoc_with_empty*}",
+        [
+          ";key1=key1;key2=key2;empty="
+        ]
+      ],
+      [
+        "{;assoc_with_empty}",
+        [
+          ";assoc_with_empty=key1,key1,key2,key2,empty,"
+        ]
+      ],
+      [
+        "{?assoc_with_empty*}",
+        [
+          "?key1=key1&key2=key2&empty"
+        ]
+      ],
+      [
+        "{&assoc_with_empty*}",
+        [
+          "&key1=key1&key2=key2&empty"
         ]
       ]
     ]

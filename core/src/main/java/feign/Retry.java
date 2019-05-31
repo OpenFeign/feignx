@@ -16,7 +16,6 @@
 
 package feign;
 
-import feign.retry.ConditionalRetryBuilder;
 import java.util.function.Function;
 
 public interface Retry {

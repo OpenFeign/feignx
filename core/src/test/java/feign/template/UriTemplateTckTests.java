@@ -75,7 +75,7 @@ class UriTemplateTckTests {
     examples.forEach((name, testGroup) -> {
 
       /* create a new uri template from test group */
-      Map<String, Object> variables = testGroup.getVariables();
+      Map<TemplateParameter, Object> variables = testGroup.getVariables();
       for (TestCase testCase : testGroup.getTestCases()) {
         try {
           UriTemplate uriTemplate = UriTemplate.create(testCase.getExpression());

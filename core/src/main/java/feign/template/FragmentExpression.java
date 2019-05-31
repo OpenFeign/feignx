@@ -16,19 +16,18 @@
 
 package feign.template;
 
+import java.util.List;
+
 /**
  * Fragment based expression.  Assumes the same capability as a reserved expression, but prefixed
  * with a {@literal #}
  */
-public class FragmentExpression extends ReservedExpression {
+class FragmentExpression extends ReservedExpression {
 
-  public FragmentExpression(String variableSpecification) {
-    super(variableSpecification);
-  }
+  private static final String FRAGMENT = "#";
 
-  @Override
-  protected String getPrefix() {
-    return "#";
+  FragmentExpression(List<String> variableSpecs) {
+    super(variableSpecs, FRAGMENT);
   }
 
 }

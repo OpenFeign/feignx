@@ -17,6 +17,7 @@
 package feign.template;
 
 import feign.support.Assert;
+import feign.template.expander.SimpleExpander;
 import java.util.Objects;
 
 /**
@@ -25,9 +26,10 @@ import java.util.Objects;
 public class SimpleTemplateParameter implements TemplateParameter {
 
   private final String name;
+  private ExpressionExpander expander = new SimpleExpander();
 
   /**
-   * Creates a new SimpleTemplateParameter.
+   * Creates a new {@link SimpleTemplateParameter}.
    *
    * @param name of the parameter.
    * @throws IllegalArgumentException if the name is {@literal null} or empty.
@@ -37,11 +39,41 @@ public class SimpleTemplateParameter implements TemplateParameter {
     this.name = name;
   }
 
+  /**
+   * Creates a new {@link SimpleTemplateParameter}.
+   *
+   * @param name of the parameter.
+   * @param expander to use when expanding the expression contained.
+   */
+  public SimpleTemplateParameter(String name, ExpressionExpander expander) {
+    this(name);
+    Assert.isNotNull(expander, "expander is required.");
+    this.expander = expander;
+  }
+
+  /**
+   * The name of the parameter.
+   *
+   * @return parameter name.
+   */
   @Override
   public String name() {
     return this.name;
   }
 
+  /**
+   * {@link ExpressionExpander} instance to use when expanding this parameter.
+   *
+   * @return the expander to use during expansion.
+   */
+  @Override
+  public ExpressionExpander expander() {
+    return this.expander;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -54,6 +86,9 @@ public class SimpleTemplateParameter implements TemplateParameter {
     return name.toLowerCase().equals(that.name.toLowerCase());
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
     return Objects.hash(name.toLowerCase());

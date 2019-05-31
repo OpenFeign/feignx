@@ -18,7 +18,6 @@ package feign.assertions;
 
 import feign.http.HttpHeader;
 import feign.http.HttpRequest;
-import java.util.Arrays;
 import java.util.Collection;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Assertions;

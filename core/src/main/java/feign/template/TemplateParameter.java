@@ -28,4 +28,12 @@ public interface TemplateParameter {
    */
   String name();
 
+  /**
+   * {@link ExpressionExpander} instance to use when this parameter is expanded as part of a
+   * uri template.
+   *
+   * @return an {@link ExpressionExpander} instance.
+   */
+  ExpressionExpander expander();
+
 }

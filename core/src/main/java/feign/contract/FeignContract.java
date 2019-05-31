@@ -20,13 +20,18 @@ import feign.TargetMethodDefinition;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
 import feign.support.StringUtils;
+import feign.template.ExpressionExpander;
 import feign.template.SimpleTemplateParameter;
+import feign.template.expander.ListExpander;
+import feign.template.expander.MapExpander;
+import feign.template.expander.SimpleExpander;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contract that uses Feign annotations.
@@ -85,7 +90,10 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
       TargetMethodDefinition targetMethodDefinition) {
     if (parameter.isAnnotationPresent(Param.class)) {
       this.processParameter(
-          parameter.getAnnotation(Param.class), parameterIndex, targetMethodDefinition);
+          parameter.getAnnotation(Param.class),
+          parameterIndex,
+          parameter.getType(),
+          targetMethodDefinition);
     }
     if (parameter.isAnnotationPresent(Body.class)) {
       targetMethodDefinition.body(parameterIndex);
@@ -142,12 +150,25 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    *
    * @param parameter annotation to process.
    * @param index of the parameter in the method signature.
+   * @param type of the parameter.
    * @param targetMethodDefinition for the parameter.
    */
-  private void processParameter(Param parameter, Integer index,
+  private void processParameter(Param parameter, Integer index, Class<?> type,
       TargetMethodDefinition targetMethodDefinition) {
     String name = parameter.value();
-    targetMethodDefinition.templateParameter(index, new SimpleTemplateParameter(name));
+    ExpressionExpander expander;
+
+    /* inspect the type annotated */
+    if (Iterable.class.isAssignableFrom(type)) {
+      expander = new ListExpander();
+    } else if (Map.class.isAssignableFrom(type)) {
+      expander = new MapExpander();
+    } else {
+      expander = new SimpleExpander();
+    }
+
+    targetMethodDefinition.templateParameter(
+        index, new SimpleTemplateParameter(name, expander));
   }
 
   /**

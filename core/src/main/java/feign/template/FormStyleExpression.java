@@ -16,6 +16,8 @@
 
 package feign.template;
 
+import java.util.List;
+
 /**
  * Expression that expands values using a Query String {@code ?} and {@code &} style,
  * allowing for expansion of query parameters.
@@ -25,18 +27,26 @@ public class FormStyleExpression extends SimpleExpression {
   private static final String QUESTION = "?";
   static final String AMPERSAND = "&";
 
-  FormStyleExpression(String variableSpecification) {
-    super(variableSpecification, true);
+  FormStyleExpression(List<String> variableSpecs) {
+    super(variableSpecs, QUESTION);
+  }
+
+  FormStyleExpression(List<String> variableSpecs, String operator) {
+    super(variableSpecs, operator);
   }
 
   @Override
-  protected String getDelimiter() {
+  public String getSeparator() {
     return AMPERSAND;
   }
 
   @Override
-  protected String getPrefix() {
-    return QUESTION;
+  public boolean expandNamedParameters() {
+    return true;
   }
 
+  @Override
+  public boolean isFormStyle() {
+    return true;
+  }
 }

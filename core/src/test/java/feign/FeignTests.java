@@ -42,7 +42,9 @@ import feign.retry.ConditionalRetry;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +77,18 @@ class FeignTests {
     ).respond(
         response()
             .withStatusCode(503));
+
+    mockServerClient.when(
+        request()
+            .withMethod("GET")
+            .withPath("/search/repositories")
+            .withQueryStringParameter("sort", "stars")
+            .withQueryStringParameter("q", "topic:ruby+topic:rails")
+            .withQueryStringParameter("order", "desc")
+    ).respond(
+        response()
+            .withStatusCode(200)
+            .withBody("[{\"name\":\"feign\"},{\"name\":\"feignx\"}]"));
   }
 
   @AfterAll
@@ -118,6 +132,20 @@ class FeignTests {
     CompletableFuture<List<Repository>> result = gitHub.getRepositoriesAsync("openfeign");
     List<Repository> repositories = result.get();
     assertThat(repositories).isNotEmpty();
+  }
+
+  @Test
+  void createTarget_andExecute_withMapParameters() {
+    GitHub gitHub = Feign.builder()
+        .decoder(new GitHubDecoder())
+        .target(GitHub.class, "http://localhost:9999");
+    Map<String, String> parameters = new LinkedHashMap<>();
+    parameters.put("q", "topic:ruby+topic:rails");
+    parameters.put("sort", "stars");
+    parameters.put("order", "desc");
+    List<Repository> repositories = gitHub.searchRepositories(parameters);
+    assertThat(repositories).isNotNull().isNotEmpty();
+    assertThat(repositories.get(0).name).contains("feignx");
   }
 
   @Test
@@ -252,6 +280,9 @@ class FeignTests {
     @Request("/users/{owner}/repos/{repo}/contributors")
     List<Contributor> getContributors(
         @Param("owner") String owner, @Param("repo") String repository);
+
+    @Request("/search/repositories{?parameters*}")
+    List<Repository> searchRepositories(@Param("parameters") Map<String, String> parameters);
 
     void createPullRequest();
 

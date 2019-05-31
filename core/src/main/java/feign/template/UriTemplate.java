@@ -30,11 +30,12 @@ import java.util.stream.Collectors;
  */
 public class UriTemplate {
 
+  private static final String UNDEF = "undef";
   private final String uri;
   private final List<Chunk> chunks = new ArrayList<>();
 
   /**
-   * Creates a ne Uri Template.
+   * Creates a new Uri Template.
    *
    * @param uri containing the template.
    * @return a new UriTemplate instance.
@@ -61,33 +62,106 @@ public class UriTemplate {
    * @param variables with possible expression values.
    * @return a valid, expanded URI.
    */
-  public URI expand(Map<String, ?> variables) {
-    StringBuilder expanded = new StringBuilder();
+  public URI expand(Map<TemplateParameter, ?> variables) {
+    StringBuilder uri = new StringBuilder();
     for (Chunk chunk : chunks) {
       if (Expression.class.isAssignableFrom(chunk.getClass())) {
-        String result = this.expand((Expression) chunk, variables);
+        /* cast to an expression */
+        Expression expression = (Expression) chunk;
 
-        /* ignore undefined expressions */
-        if (result != null) {
-          expanded.append(result);
+        /* create a new String Builder for the expression */
+        StringBuilder expressionResult = new StringBuilder();
+
+        Collection<ExpressionVariable> expressionVariables = expression.getVariables();
+        for (ExpressionVariable expressionVariable : expressionVariables) {
+          /* locate the template parameter for the variable */
+          TemplateParameter parameter =
+              this.getParameterForExpression(expressionVariable, variables);
+          if (parameter != null) {
+            /* expand the variable */
+            String result = this.expandVariable(
+                parameter, expressionVariable, variables.get(parameter));
+            if (result != null) {
+              /* prepend the separator */
+              if (expressionResult.length() > 0
+                  && !"undef".equalsIgnoreCase(expressionResult.toString())) {
+                expressionResult.append(expression.getSeparator());
+              }
+
+              /* append the value to the result */
+              expressionResult.append(result);
+            } else {
+              /* expression is undefined */
+              expressionResult.append("undef");
+            }
+          } else {
+            /* expression is also undefined */
+            expressionResult.append("undef");
+          }
+        }
+
+        /* resolve the expression result */
+        String resolved = expressionResult.toString();
+
+        /* undefined expressions must be removed */
+        if (resolved.contains(UNDEF)) {
+          /* we want to remove all occurrences of "undef", and potentially any separators
+           * that may have been added.
+           */
+          resolved = resolved.replaceAll(UNDEF, "");
+          if (resolved.isEmpty()) {
+            /* all of the variables are undefined, ignore it */
+            resolved = null;
+          }
+        }
+
+        /* append the resolved expression */
+        if (resolved != null) {
+          expression.getOperator().ifPresent(uri::append);
+          uri.append(resolved);
         }
       } else {
-        expanded.append(chunk.getValue());
+        /* chunk is a literal, append the literal */
+        uri.append(chunk.getValue());
       }
     }
-    return URI.create(expanded.toString());
+    return URI.create(uri.toString());
   }
 
   /**
-   * Expand the given Expression.
+   * Locate the {@link TemplateParameter} for the given {@link ExpressionVariable}.
    *
-   * @param expression to expand.
-   * @param variables containing possible expanded values.
-   * @return the expanded value or {@literal null} if the expression variable is undefined.
+   * @param variable to evaluate.
+   * @param parameters to search.
+   * @return the {@link TemplateParameter} for the variable or {@literal null} if not found.
    */
-  private String expand(Expression expression, Map<String, ?> variables) {
-    /* delegate to the expression */
-    return expression.expand(variables);
+  private TemplateParameter getParameterForExpression(
+      ExpressionVariable variable, Map<TemplateParameter, ?> parameters) {
+    return parameters.keySet().stream()
+        .filter(
+            templateParameter -> templateParameter.name()
+                .equalsIgnoreCase(variable.getName()))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Expand an {@link ExpressionVariable}, using the value provided.
+   *
+   * @param parameter for the ExpressionVariable, contains the expander to use.
+   * @param variable to expand.
+   * @param value to use when expanding.
+   * @return the expanded variable value or {@literal null} if the value is not defined.
+   */
+  private String expandVariable(
+      TemplateParameter parameter, ExpressionVariable variable, Object value) {
+    if (value == null) {
+      return null;
+    }
+
+    /* delegate to the expander */
+    ExpressionExpander expander = parameter.expander();
+    return expander.expand(variable, value);
   }
 
   /**
