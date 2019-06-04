@@ -16,18 +16,23 @@
 
 package feign.template;
 
+import java.util.List;
+
 /**
  * Expression that allows for characters in the Reserved to be included, without encoding.
  */
-public class ReservedExpression extends SimpleExpression {
+class ReservedExpression extends SimpleExpression {
 
-  ReservedExpression(String variableSpecification) {
-    super(variableSpecification);
+  ReservedExpression(List<String> variableSpecs) {
+    super(variableSpecs);
+  }
+
+  ReservedExpression(List<String> variableSpecs, String operator) {
+    super(variableSpecs, operator);
   }
 
   @Override
-  protected boolean isCharacterAllowed(char character) {
+  public boolean isCharacterAllowed(char character) {
     return super.isCharacterAllowed(character) || UriUtils.isReserved(character);
   }
-
 }

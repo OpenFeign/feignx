@@ -16,33 +16,39 @@
 
 package feign.template;
 
+import java.util.List;
+
 /**
  * Expression that expands object into a single value, pct-encoding all values not in the
  * unreserved set.
  */
-public class SimpleExpression extends Expression {
+class SimpleExpression extends AbstractExpression {
 
-  SimpleExpression(String variableSpecification) {
-    super(variableSpecification);
+  SimpleExpression(List<String> variableSpecs) {
+    super(variableSpecs);
   }
 
-  SimpleExpression(String variableSpecification, boolean includeName) {
-    super(variableSpecification, includeName);
+  SimpleExpression(List<String> variableSpecs, String operator) {
+    super(variableSpecs, operator);
   }
 
   @Override
-  protected boolean isCharacterAllowed(char character) {
-    /* only unreserved and our delimiter are allowed */
+  public String getSeparator() {
+    return Expression.DEFAULT_SEPARATOR;
+  }
+
+  @Override
+  public boolean isCharacterAllowed(char character) {
     return UriUtils.isUnreserved(character);
   }
 
   @Override
-  protected String getDelimiter() {
-    return Expression.DEFAULT_DELIMITER;
+  public boolean expandNamedParameters() {
+    return false;
   }
 
   @Override
-  protected String getPrefix() {
-    return "";
+  public boolean isFormStyle() {
+    return false;
   }
 }

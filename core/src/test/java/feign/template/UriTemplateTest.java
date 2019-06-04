@@ -18,6 +18,8 @@ package feign.template;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import feign.template.expander.ListExpander;
+import feign.template.expander.MapExpander;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,14 +56,14 @@ class UriTemplateTest {
         .hasAtLeastOneElementOfType(FragmentExpression.class);
 
     /* expand it */
-    Map<String, Object> variables = new LinkedHashMap<>();
-    variables.put("scheme", "https://");
-    variables.put("host", Arrays.asList("example", "com"));
-    variables.put("path", Arrays.asList("resources","items"));
-    variables.put("params", Collections.singletonMap("filter", "name"));
-    variables.put("query", Collections.singletonMap("sort", "descending"));
-    variables.put("cont", Collections.singletonMap("page", "0"));
-    variables.put("fragment", "total");
+    Map<TemplateParameter, Object> variables = new LinkedHashMap<>();
+    variables.put(new SimpleTemplateParameter("scheme"), "https://");
+    variables.put(new SimpleTemplateParameter("host", new ListExpander()), Arrays.asList("example", "com"));
+    variables.put(new SimpleTemplateParameter("path", new ListExpander()), Arrays.asList("resources","items"));
+    variables.put(new SimpleTemplateParameter("params", new MapExpander()), Collections.singletonMap("filter", "name"));
+    variables.put(new SimpleTemplateParameter("query", new MapExpander()), Collections.singletonMap("sort", "descending"));
+    variables.put(new SimpleTemplateParameter("cont", new MapExpander()), Collections.singletonMap("page", "0"));
+    variables.put(new SimpleTemplateParameter("fragment"), "total");
 
     URI result = template.expand(variables);
     assertThat(result).isNotNull();

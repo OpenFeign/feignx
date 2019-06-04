@@ -16,12 +16,19 @@
 
 package feign.template;
 
-class SimpleExpressionTest extends ExpressionTest {
+/**
+ * Manages the expansion of a given Expression.
+ */
+@FunctionalInterface
+public interface ExpressionExpander {
 
-  @Override
-  protected Expression getExpression(String variableSpecification, int limit) {
-    Expression expression = new SimpleExpression(variableSpecification);
-    expression.setLimit(limit);
-    return expression;
-  }
+  /**
+   * Expand the given expression, using the value provided.
+   *
+   * @param variable to expand.
+   * @param value containing the variable values.
+   * @return the expanded result, an empty string, or {@literal null}.
+   */
+  String expand(ExpressionVariable variable, Object value);
+
 }

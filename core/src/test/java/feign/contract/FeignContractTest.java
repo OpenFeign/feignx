@@ -19,13 +19,17 @@ package feign.contract;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import feign.Contract;
+import feign.RequestOptions;
+import feign.Response;
 import feign.TargetMethodDefinition;
 import feign.http.HttpMethod;
-import feign.RequestOptions;
 import feign.impl.UriTarget;
 import feign.template.SimpleTemplateParameter;
+import feign.template.expander.ListExpander;
+import feign.template.expander.MapExpander;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class FeignContractTest {
@@ -50,8 +54,7 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("get")
             && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
-            && targetMethodDefinition.getTemplateParameters().contains(
-            new SimpleTemplateParameter("parameter"))
+            && targetMethodDefinition.getTemplateParameters().isEmpty()
             && targetMethodDefinition.getBody() == -1
             && targetMethodDefinition.getConnectTimeout() == RequestOptions.DEFAULT_CONNECT_TIMEOUT
             && targetMethodDefinition.getReadTimeout() == RequestOptions.DEFAULT_READ_TIMEOUT
@@ -89,10 +92,47 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("search")
             && targetMethodDefinition.getReturnType().getType() == List.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
+            && targetMethodDefinition.getTemplateParameters().isEmpty()
             && targetMethodDefinition.getBody() == -1
             && targetMethodDefinition.getConnectTimeout() == 1000
             && targetMethodDefinition.getReadTimeout() == 2000
             && !targetMethodDefinition.isFollowRedirects());
+
+    /* map parameter type */
+    assertThat(methodDefinitions).anySatisfy(targetMethodDefinition -> {
+      boolean properties = targetMethodDefinition.getName().equalsIgnoreCase("map")
+          && targetMethodDefinition.getReturnType().getType() == List.class
+          && targetMethodDefinition.getMethod() == HttpMethod.GET
+          && targetMethodDefinition.getBody() == -1;
+      assertThat(properties).isTrue();
+
+      targetMethodDefinition.getTemplateParameter(0)
+          .ifPresent(
+              parameter -> assertThat(parameter.expander()).isInstanceOf(MapExpander.class));
+    });
+
+    /* list parameter type */
+    assertThat(methodDefinitions).anySatisfy(
+        targetMethodDefinition -> {
+          boolean properties = targetMethodDefinition.getName().equalsIgnoreCase("list")
+              && targetMethodDefinition.getReturnType().getType() == List.class
+              && targetMethodDefinition.getMethod() == HttpMethod.GET
+              && targetMethodDefinition.getBody() == -1;
+          assertThat(properties).isTrue();
+
+          targetMethodDefinition.getTemplateParameter(0)
+              .ifPresent(
+                  parameter -> assertThat(parameter.expander()).isInstanceOf(ListExpander.class));
+        });
+
+    /* response return type */
+    assertThat(methodDefinitions).anyMatch(
+        targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("response")
+            && targetMethodDefinition.getReturnType().getType() == Response.class
+            && targetMethodDefinition.getMethod() == HttpMethod.GET
+            && targetMethodDefinition.getTemplateParameters()
+            .contains(new SimpleTemplateParameter("parameters"))
+            && targetMethodDefinition.getBody() == -1);
   }
 
   @Test
@@ -119,6 +159,7 @@ class FeignContractTest {
     assertThat(getDefinition.getUri()).isEqualTo("/resources/");
   }
 
+  @SuppressWarnings("unused")
   @Request("/resources")
   @Headers(value = @Header(name = "Accept", value = "application/json"))
   interface SimpleInterface {
@@ -138,8 +179,18 @@ class FeignContractTest {
     @Request(value = "/search", method = HttpMethod.GET, followRedirects = false,
         readTimeout = 2000, connectTimeout = 1000)
     List<String> search();
+
+    @Request("/map")
+    List<String> map(@Param("parameters") Map<String, String> parameters);
+
+    @Request("/list")
+    List<String> list(@Param("parameters") List<String> parameters);
+
+    @Request(value = "/response")
+    Response response(@Param("parameters") String parameters);
   }
 
+  @SuppressWarnings("unused")
   @Request("/resources")
   interface AbsoluteRequests {
 

@@ -278,15 +278,15 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * Map the Argument list to any registered Template Parameters.
    *
    * @param arguments to map.
-   * @return a new Map, where the argument matches corresponding Template parameter name.
+   * @return a new Map, where the argument matches corresponding Template parameter.
    */
-  private Map<String, Object> mapArguments(Object[] arguments) {
-    Map<String, Object> variables = new LinkedHashMap<>();
+  private Map<TemplateParameter, Object> mapArguments(Object[] arguments) {
+    Map<TemplateParameter, Object> variables = new LinkedHashMap<>();
     for (int i = 0; i < arguments.length; i++) {
       final Object argument = arguments[i];
       Optional<TemplateParameter> templateParameter =
           this.targetMethodDefinition.getTemplateParameter(i);
-      templateParameter.ifPresent(parameter -> variables.put(parameter.name(), argument));
+      templateParameter.ifPresent(parameter -> variables.put(parameter, argument));
     }
     return variables;
   }

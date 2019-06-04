@@ -16,25 +16,22 @@
 
 package feign.template;
 
+import java.util.List;
+
 /**
  * Expression that uses the dot {@code .} character as a prefix and exploded delimiter, allowing
  * for expansion of domain names and other dot like values on a URI.
  */
-public class DotExpression extends SimpleExpression {
+class DotExpression extends SimpleExpression {
 
   private static final String DOT = ".";
 
-  DotExpression(String variableSpecification) {
-    super(variableSpecification);
+  DotExpression(List<String> variableSpecs) {
+    super(variableSpecs, DOT);
   }
 
   @Override
-  protected String getPrefix() {
-    return DOT;
-  }
-
-  @Override
-  protected String getDelimiter() {
+  public String getSeparator() {
     return DOT;
   }
 }

@@ -16,25 +16,22 @@
 
 package feign.template;
 
+import java.util.List;
+
 /**
  * Expression that use the slash {@code /} character as a prefix and exploded delimiter, allowing
  * for expansion of path segments.
  */
-public class PathSegmentExpression extends SimpleExpression {
+class PathSegmentExpression extends SimpleExpression {
 
   private static final String SLASH = "/";
 
-  PathSegmentExpression(String variableSpecification) {
-    super(variableSpecification);
+  PathSegmentExpression(List<String> variableSpecs) {
+    super(variableSpecs, SLASH);
   }
 
   @Override
-  protected String getDelimiter() {
-    return SLASH;
-  }
-
-  @Override
-  protected String getPrefix() {
+  public String getSeparator() {
     return SLASH;
   }
 }

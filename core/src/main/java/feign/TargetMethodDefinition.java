@@ -26,15 +26,19 @@ import feign.template.TemplateParameter;
 import feign.template.UriTemplate;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -79,12 +83,16 @@ public final class TargetMethodDefinition {
     this.returnType = targetMethodDefinition.returnType;
     this.template = targetMethodDefinition.template;
     this.method = targetMethodDefinition.method;
-    this.parameterMap = targetMethodDefinition.parameterMap;
     this.bodyArgumentIndex = targetMethodDefinition.bodyArgumentIndex;
     this.followRedirects = targetMethodDefinition.followRedirects;
     this.connectTimeout = targetMethodDefinition.connectTimeout;
     this.readTimeout = targetMethodDefinition.readTimeout;
     this.typeDefinitionFactory = targetMethodDefinition.typeDefinitionFactory;
+
+    /* create a deep copy of the parameters */
+    this.parameterMap = targetMethodDefinition.parameterMap.entrySet()
+        .stream()
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
     /* create a deep copy of the headers */
     this.headers = targetMethodDefinition.headers.stream().map(
@@ -347,7 +355,7 @@ public final class TargetMethodDefinition {
    * @param variables to use when expanding the method's {@link UriTemplate}.
    * @return a {@link RequestSpecification} instance with the expanded URI, headers, and body.
    */
-  public RequestSpecification requestSpecification(Map<String, ?> variables) {
+  public RequestSpecification requestSpecification(Map<TemplateParameter, ?> variables) {
     RequestSpecification requestSpecification = new RequestSpecification();
     requestSpecification.uri(this.template.expand(variables))
         .method(this.method)

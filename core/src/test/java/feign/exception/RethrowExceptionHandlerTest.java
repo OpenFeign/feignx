@@ -17,7 +17,6 @@
 package feign.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import feign.ExceptionHandler;
 import feign.ExceptionHandler.RethrowExceptionHandler;

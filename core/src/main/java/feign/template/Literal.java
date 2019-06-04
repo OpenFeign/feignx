@@ -30,7 +30,7 @@ public class Literal implements Chunk {
    *
    * @param value of the chunk.
    */
-  public Literal(String value) {
+  Literal(String value) {
     Assert.isNotEmpty(value, "value is required.");
     this.value = value;
   }

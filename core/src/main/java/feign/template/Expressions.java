@@ -17,6 +17,8 @@
 package feign.template;
 
 import feign.support.StringUtils;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,11 +27,8 @@ import java.util.regex.Pattern;
  */
 public class Expressions {
 
-  public static final String MULTIPLE_VALUE_DELIMITER = ",";
-
-  private static final Pattern EXPRESSION_PATTERN =
-      Pattern.compile("^\\{(([+#./;?&]?)([\\d\\w_*,\\-\\[\\]%$]+)(:([\\d]*))?(,(.*))?)}$");
-
+  private static final String MULTIPLE_VALUE_DELIMITER = ",";
+  private static final Pattern EXPRESSION_PATTERN = Pattern.compile("^\\{([+#./;?&]?)(.*)}$");
   private static final String RESERVED_MODIFIER = "+";
   private static final String FRAGMENT_MODIFIER = "#";
   private static final String DOT_MODIFIER = ".";
@@ -41,93 +40,67 @@ public class Expressions {
   /**
    * Creates a new Expression.
    *
-   * @param variableSpec with the expression specification.
+   * @param expressionSpec with the expression specification.
    * @return an Expression instance based on the specification.
    */
-  public static Expression create(String variableSpec) {
+  public static Expression create(String expressionSpec) {
 
     /* parse the specification */
-    Matcher matcher = EXPRESSION_PATTERN.matcher(variableSpec);
+    Matcher matcher = EXPRESSION_PATTERN.matcher(expressionSpec);
     if (matcher.matches()) {
-      Expression expression;
+      /* look to see if there are any modifiers in the first group */
+      String operator = matcher.group(1);
 
       /* extract the full variable specification */
-      String spec = matcher.group(1);
+      String spec = matcher.group(2);
 
-      /* look to see if there are any modifiers in the first group */
-      String modifier = matcher.group(2);
-
-      /* split composite expressions */
-      if (spec.contains(MULTIPLE_VALUE_DELIMITER)) {
-        /* it's a composite expression, so we need to take everything after the modifier,
-         * and split it up, so each expression can be treated like it's own.
-         */
-        CompositeExpression composite = new CompositeExpression(spec);
-        String[] specs = spec.split(MULTIPLE_VALUE_DELIMITER);
-        for (String specification : specs) {
-          Expression contained = create(modifier, specification);
-          composite.append(contained);
-          composite.setDelimiter(contained.getDelimiter());
-          composite.setPrefix(contained.getPrefix());
-        }
-        expression = composite;
+      /* split the remainder of the expression */
+      if (StringUtils.isNotEmpty(spec)) {
+        /* create a new expression */
+        return create(operator, Arrays.asList(spec.split(MULTIPLE_VALUE_DELIMITER)));
       } else {
-        /* get the expression for the singular specification */
-        expression = create(modifier, spec);
+        throw new IllegalArgumentException("Supplied expression: " + expressionSpec
+            + " is not valid.  Please see RFC 6570 for more information how to construct an "
+            + "expression");
       }
-      return expression;
     } else {
-      throw new IllegalArgumentException("Supplied variable specification is not valid.  Please "
-          + "see RFC 6570 for more information how to construct a variable specification");
+      throw new IllegalArgumentException("Supplied expression: " + expressionSpec
+          + " is not valid.  Please see RFC 6570 for more information how to construct an "
+          + "expression");
     }
   }
 
-  private static Expression create(String modifier, String spec) {
+  /**
+   * Create a new Expression.
+   *
+   * @param operator for this expresion, can be {@literal null}.
+   * @param variables found in the expression.
+   * @return an {@link Expression} instance.
+   */
+  private static Expression create(String operator, List<String> variables) {
     Expression expression;
 
-    /* remove modifier */
-    if (StringUtils.isNotEmpty(modifier) && spec.startsWith(modifier)) {
-      spec = spec.substring(1);
-    }
-
-    /* expansion limit */
-    int limit = -1;
-    if (spec.contains(":")) {
-      String expansionLimit = spec.substring(spec.indexOf(":") + 1);
-      if (StringUtils.isNotEmpty(expansionLimit)) {
-        try {
-          /* read in the limit */
-          limit = Integer.parseInt(expansionLimit);
-        } catch (NumberFormatException nfe) {
-          throw new IllegalArgumentException("Error occurred parsing the expansion limit for the "
-              + "variable: " + spec + ".  Limit provided is not a valid integer.");
-        }
-      }
-      spec = spec.substring(0, spec.indexOf(":"));
-    }
-
-    if (StringUtils.isNotEmpty(modifier)) {
-      if (RESERVED_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new ReservedExpression(spec);
-      } else if (FRAGMENT_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new FragmentExpression(spec);
-      } else if (DOT_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new DotExpression(spec);
-      } else if (PATH_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new PathSegmentExpression(spec);
-      } else if (PATH_STYLE_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new PathStyleExpression(spec);
-      } else if (FORM_STYLE_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new FormStyleExpression(spec);
-      } else if (FORM_CONT_STYLE_MODIFIER.equalsIgnoreCase(modifier)) {
-        expression = new FormContinuationStyleExpression(spec);
+    if (StringUtils.isNotEmpty(operator)) {
+      if (RESERVED_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new ReservedExpression(variables);
+      } else if (FRAGMENT_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new FragmentExpression(variables);
+      } else if (DOT_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new DotExpression(variables);
+      } else if (PATH_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new PathSegmentExpression(variables);
+      } else if (PATH_STYLE_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new PathStyleExpression(variables);
+      } else if (FORM_STYLE_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new FormStyleExpression(variables);
+      } else if (FORM_CONT_STYLE_MODIFIER.equalsIgnoreCase(operator)) {
+        expression = new FormContinuationStyleExpression(variables);
       } else {
-        throw new IllegalStateException("Expression " + spec + " is not supported");
+        throw new IllegalStateException("Expression " + variables + " is not supported");
       }
     } else {
-      expression = new SimpleExpression(spec);
+      expression = new SimpleExpression(variables);
     }
-    expression.setLimit(limit);
     return expression;
 
   }
@@ -138,7 +111,7 @@ public class Expressions {
    * @param variableSpec to evaluate.
    * @return {@literal true} if the specification is a valid Expression, {@literal false} otherwise.
    */
-  public static boolean isExpression(String variableSpec) {
+  static boolean isExpression(String variableSpec) {
     return EXPRESSION_PATTERN.matcher(variableSpec).matches();
   }
 }

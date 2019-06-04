@@ -42,6 +42,7 @@
             [ "x{?empty|foo=none}" , false ],
             [ "/h{#hello+}" , false ],
             [ "/h#{hello+}" , false ],
+            [ "{list:1}",  false  ],
             [ "{keys:1}",  false  ],
             [ "{+keys:1}",  false  ],
             [ "{;keys:1*}",  false  ],
