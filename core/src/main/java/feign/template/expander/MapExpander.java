@@ -27,6 +27,13 @@ import java.util.Map;
  */
 public class MapExpander extends SimpleExpander {
 
+  /* Singleton instantiation */
+  private static final MapExpander instance = new MapExpander();
+
+  public static MapExpander getInstance() {
+    return instance;
+  }
+
   @Override
   public String expand(ExpressionVariable variable, Object value) {
 

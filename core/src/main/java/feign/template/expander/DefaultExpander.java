@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package feign.template;
+package feign.template.expander;
 
-/**
- * Manages the expansion of a given Expression.  Implementations are expected to provide a
- * default, no-argument constructor and be thread-safe, to encourage lazy initialization and reuse
- * between {@link feign.Target}s.
- */
-public interface ExpressionExpander {
+import feign.template.ExpressionExpander;
+import feign.template.ExpressionVariable;
 
-  /**
-   * Expand the given expression, using the value provided.
-   *
-   * @param variable to expand.
-   * @param value containing the variable values.
-   * @return the expanded result, an empty string, or {@literal null}.
-   */
-  String expand(ExpressionVariable variable, Object value);
+public class DefaultExpander implements ExpressionExpander {
 
+  @Override
+  public String expand(ExpressionVariable variable, Object value) {
+    throw new UnsupportedOperationException("expansion is not supported.");
+  }
 }

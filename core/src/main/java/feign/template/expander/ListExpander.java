@@ -25,6 +25,13 @@ import feign.template.ExpressionVariable;
  */
 public class ListExpander extends SimpleExpander {
 
+  /* Singleton instantiation */
+  private static final ListExpander instance = new ListExpander();
+
+  public static ListExpander getInstance() {
+    return instance;
+  }
+
   @Override
   public String expand(ExpressionVariable variable, Object value) {
 

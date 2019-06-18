@@ -31,6 +31,13 @@ import java.nio.charset.StandardCharsets;
  */
 public class SimpleExpander implements ExpressionExpander {
 
+  /* Singleton instantiation */
+  private static final SimpleExpander instance = new SimpleExpander();
+
+  public static SimpleExpander getInstance() {
+    return instance;
+  }
+
   @Override
   public String expand(ExpressionVariable variable, Object value) {
 
