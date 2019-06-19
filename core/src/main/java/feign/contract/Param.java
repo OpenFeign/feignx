@@ -16,6 +16,8 @@
 
 package feign.contract;
 
+import feign.template.ExpressionExpander;
+import feign.template.expander.DefaultExpander;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,4 +39,10 @@ public @interface Param {
    */
   String value();
 
+  /**
+   * Expander instance to use.
+   *
+   * @return the expression expander type.
+   */
+  Class<? extends ExpressionExpander> expander() default DefaultExpander.class;
 }

@@ -26,6 +26,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import feign.ExceptionHandler.RethrowExceptionHandler;
+import feign.FeignTests.GitHub.Issue;
 import feign.FeignTests.GitHub.Repository;
 import feign.contract.FeignContract;
 import feign.contract.Header;
@@ -39,9 +40,13 @@ import feign.http.HttpException;
 import feign.http.client.UrlConnectionClient;
 import feign.logging.SimpleLogger;
 import feign.retry.ConditionalRetry;
+import feign.template.ExpressionExpander;
+import feign.template.ExpressionVariable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +94,16 @@ class FeignTests {
         response()
             .withStatusCode(200)
             .withBody("[{\"name\":\"feign\"},{\"name\":\"feignx\"}]"));
+
+    mockServerClient.when(
+        request()
+            .withMethod("GET")
+            .withPath("/search/issues")
+            .withQueryStringParameter("ids", "1,2,3")
+    ).respond(
+        response()
+            .withStatusCode(200)
+            .withBody("[{\"name\":\"does not work\"}]"));
   }
 
   @AfterAll
@@ -106,7 +121,7 @@ class FeignTests {
 
     GitHub gitHub = Feign.builder()
         .logger(logger)
-        .decoder(new GitHubDecoder())
+        .decoder(new RepositoryDecoder())
         .target(GitHub.class, "http://localhost:9999");
     assertThat(gitHub).isNotNull();
 
@@ -124,7 +139,7 @@ class FeignTests {
 
     GitHub gitHub = Feign.builder()
         .logger(logger)
-        .decoder(new GitHubDecoder())
+        .decoder(new RepositoryDecoder())
         .executor(Executors.newFixedThreadPool(10))
         .target(GitHub.class, "http://localhost:9999");
     assertThat(gitHub).isNotNull();
@@ -137,7 +152,7 @@ class FeignTests {
   @Test
   void createTarget_andExecute_withMapParameters() {
     GitHub gitHub = Feign.builder()
-        .decoder(new GitHubDecoder())
+        .decoder(new RepositoryDecoder())
         .target(GitHub.class, "http://localhost:9999");
     Map<String, String> parameters = new LinkedHashMap<>();
     parameters.put("q", "topic:ruby+topic:rails");
@@ -168,7 +183,7 @@ class FeignTests {
         .logger(logger)
         .retry(retry)
         .client(client)
-        .decoder(new GitHubDecoder())
+        .decoder(new RepositoryDecoder())
         .target(GitHub.class, "http://localhost:9999");
 
     assertThrows(FeignException.class, () -> gitHub.getContributors("openfeign", "feign"));
@@ -206,7 +221,7 @@ class FeignTests {
         .retry(retry)
         .client(client)
         .exceptionHandler(exceptionHandler)
-        .decoder(new GitHubDecoder())
+        .decoder(new RepositoryDecoder())
         .target(GitHub.class, "http://localhost:9999");
 
     assertThrows(BusinessException.class, () -> gitHub.getContributors("openfeign", "feign"));
@@ -266,6 +281,17 @@ class FeignTests {
         gitHub::createPullRequest);
   }
 
+  @Test
+  void execute_withCustomExpander() {
+    GitHub gitHub = Feign.builder()
+        .decoder(new IssueDecoder())
+        .target(GitHub.class, "http://localhost:9999");
+    List<String> parameters = Arrays.asList("1", "2", "3");
+    List<Issue> issues = gitHub.searchIssues(parameters);
+    assertThat(issues).isNotNull().isNotEmpty();
+    assertThat(issues.get(0).name).contains("does not work");
+  }
+
 
   interface GitHub {
 
@@ -283,6 +309,9 @@ class FeignTests {
 
     @Request("/search/repositories{?parameters*}")
     List<Repository> searchRepositories(@Param("parameters") Map<String, String> parameters);
+
+    @Request("/search/issues{?ids}")
+    List<Issue> searchIssues(@Param(value = "ids", expander = IdExpander.class) List<String> ids);
 
     void createPullRequest();
 
@@ -310,10 +339,20 @@ class FeignTests {
         this.name = name;
       }
     }
+
+    class Issue {
+
+      String name;
+
+      Issue(String name) {
+        super();
+        this.name = name;
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")
-  static class GitHubDecoder implements ResponseDecoder {
+  static class RepositoryDecoder implements ResponseDecoder {
 
     @Override
     public <T> T decode(Response response, Class<T> type) {
@@ -326,10 +365,44 @@ class FeignTests {
     }
   }
 
+  @SuppressWarnings("unchecked")
+  static class IssueDecoder implements ResponseDecoder {
+
+    @Override
+    public <T> T decode(Response response, Class<T> type) {
+      try {
+        String data = new String(response.toByteArray(), StandardCharsets.UTF_8);
+        return (T) Collections.singletonList(new Issue(data));
+      } catch (IOException ioe) {
+        throw new RuntimeException(ioe.getMessage(), ioe);
+      }
+    }
+  }
+
   static class BusinessException extends RuntimeException {
 
     BusinessException(Throwable cause) {
       super(cause);
+    }
+  }
+
+  public static class IdExpander implements ExpressionExpander {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public String expand(ExpressionVariable variable, Object value) {
+      StringBuilder stringBuilder = new StringBuilder();
+      stringBuilder.append(variable.getName()).append("=");
+
+      Iterable<String> values = (Iterable<String>) value;
+      Iterator<String> iterator = values.iterator();
+      while (iterator.hasNext()) {
+        stringBuilder.append(iterator.next());
+        if (iterator.hasNext()) {
+          stringBuilder.append(",");
+        }
+      }
+      return stringBuilder.toString();
     }
   }
 
