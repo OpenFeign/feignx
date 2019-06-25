@@ -87,6 +87,21 @@ public class ExpressionVariable {
   }
 
   /**
+   * Creates a new Expression Variable.
+   *
+   * @param prefix of the variable.
+   * @param name of the variable.
+   * @param exploded flag if this variable should be expanded into it's exploded form.
+   * @param expression this variable is part of.
+   */
+  public ExpressionVariable(int prefix, String name, boolean exploded, Expression expression) {
+    this.prefix = prefix;
+    this.name = name;
+    this.exploded = exploded;
+    this.expression = expression;
+  }
+
+  /**
    * Name of the variable.
    *
    * @return variable name.
