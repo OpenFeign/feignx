@@ -19,6 +19,7 @@ package feign.template.expander;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import feign.contract.Param;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ExpanderUtilsTest {
@@ -62,7 +63,7 @@ class ExpanderUtilsTest {
 
   @Test
   void map_isSimple() {
-    assertThat(ExpanderUtils.isSimpleType(Iterable.class)).isTrue();
+    assertThat(ExpanderUtils.isSimpleType(Map.class)).isTrue();
   }
 
   @Test
