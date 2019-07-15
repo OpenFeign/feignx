@@ -17,10 +17,8 @@
 package feign.template.expander;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import feign.contract.Param;
-import java.beans.Introspector;
 import org.junit.jupiter.api.Test;
 
 class ExpanderUtilsTest {
