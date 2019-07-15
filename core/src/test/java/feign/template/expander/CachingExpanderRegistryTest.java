@@ -48,6 +48,12 @@ class CachingExpanderRegistryTest {
   }
 
   @Test
+  void complexType_shouldBeExpandedWith_BeanExpander() {
+    assertThat(this.expanderRegistry.getExpanderByType(SimpleExpander.class))
+        .isInstanceOf(BeanExpander.class);
+  }
+
+  @Test
   void expanderInstances_shouldBeReused() {
     /* this should register Strings with the SimpleExpander */
     ExpressionExpander expander = expanderRegistry.getExpanderByType(String.class);

@@ -40,12 +40,14 @@ public class CachingExpanderRegistry implements ExpanderRegistry {
     /* uses singleton instances for our internal expander instances */
     return this.expanderMapCache.computeIfAbsent(parameterType,
         type -> {
-          if (Iterable.class.isAssignableFrom(parameterType)) {
+          if (Iterable.class.isAssignableFrom(type)) {
             return ListExpander.getInstance();
-          } else if (Map.class.isAssignableFrom(parameterType)) {
+          } else if (Map.class.isAssignableFrom(type)) {
             return MapExpander.getInstance();
-          } else {
+          } else if (ExpanderUtils.isSimpleType(type)) {
             return SimpleExpander.getInstance();
+          } else {
+            return BeanExpander.getInstance(this);
           }
         });
   }
@@ -71,4 +73,6 @@ public class CachingExpanderRegistry implements ExpanderRegistry {
           }
         });
   }
+
+
 }
