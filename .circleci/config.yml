@@ -31,7 +31,7 @@ jobs:
           key: feignx-dependencies-{{ checksum "pom.xml" }}
       - run: mvn -o test
       - store_test_results:
-          path: target/surefire-reports
+          path: core/target/surefire-reports
       - codecov/upload:
           file: tests/target/site/jacoco-aggregate/jacoco.xml
 workflows:
