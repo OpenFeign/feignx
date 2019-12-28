@@ -16,6 +16,7 @@
 
 package feign.support;
 
+import java.util.Collection;
 import java.util.function.Predicate;
 
 /**
@@ -46,6 +47,19 @@ public final class Assert {
    */
   public static void isNotEmpty(String value, String message) {
     if (value == null || value.trim().isEmpty()) {
+      throw new IllegalArgumentException(message);
+    }
+  }
+
+  /**
+   * Ensures that the provided collection is not empty.
+   *
+   * @param value to evaluate.
+   * @param message to include in the thrown exception.
+   * @throws IllegalArgumentException if the value is {@literal null} or empty.
+   */
+  public static void isNotEmpty(Collection<?> value, String message) {
+    if (value == null || value.isEmpty()) {
       throw new IllegalArgumentException(message);
     }
   }

@@ -22,7 +22,6 @@ import feign.template.expander.ListExpander;
 import feign.template.expander.MapExpander;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,17 +42,6 @@ class UriTemplateTest {
         UriTemplate.create("{+scheme}www{.host*}{/path*}{;params}{?query*}{&cont*}{#fragment}");
     assertThat(template).isNotNull();
     assertThat(template.getExpressions()).isNotEmpty();
-
-    Collection<Chunk> expressions = template.getExpressions();
-    assertThat(expressions)
-        .hasAtLeastOneElementOfType(SimpleExpression.class)
-        .hasAtLeastOneElementOfType(ReservedExpression.class)
-        .hasAtLeastOneElementOfType(DotExpression.class)
-        .hasAtLeastOneElementOfType(PathSegmentExpression.class)
-        .hasAtLeastOneElementOfType(PathStyleExpression.class)
-        .hasAtLeastOneElementOfType(FormStyleExpression.class)
-        .hasAtLeastOneElementOfType(FormContinuationStyleExpression.class)
-        .hasAtLeastOneElementOfType(FragmentExpression.class);
 
     /* expand it */
     Map<TemplateParameter, Object> variables = new LinkedHashMap<>();

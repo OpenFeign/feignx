@@ -16,15 +16,23 @@
 
 package feign.template;
 
-import java.util.List;
-
 /**
- * Expression that expands values that represent the continuation of a Query String,
- * allowing for expansion of additional query parameters.
+ * Expression that expands values using a Query String {@code ?} and {@code &} style,
+ * allowing for expansion of query parameters.
  */
-class FormContinuationStyleExpression extends FormStyleExpression {
+class FormStyleExpansionPolicy extends ExpansionPolicy {
+  private static final FormStyleExpansionPolicy instance = new FormStyleExpansionPolicy();
 
-  FormContinuationStyleExpression(List<String> variableSpecs) {
-    super(variableSpecs, AMPERSAND);
+  /**
+   * Return a singleton instance of this Expansion Policy.
+   *
+   * @return expansion policy instance
+   */
+  public static FormStyleExpansionPolicy getInstance() {
+    return instance;
+  }
+
+  private FormStyleExpansionPolicy() {
+    super("?", "&", "=", true, false);
   }
 }

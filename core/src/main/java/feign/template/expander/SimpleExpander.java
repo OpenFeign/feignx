@@ -16,14 +16,10 @@
 
 package feign.template.expander;
 
-import feign.support.StringUtils;
 import feign.template.Expression;
 import feign.template.ExpressionExpander;
 import feign.template.ExpressionVariable;
 import feign.template.UriUtils;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Expression Expander that relies on the values {@link Object#toString()}.  This expander will
@@ -38,59 +34,48 @@ public class SimpleExpander implements ExpressionExpander {
     return instance;
   }
 
+  /**
+   * Expand the given expression, using the value provided.
+   *
+   * @param variable to expand.
+   * @param value containing the variable values.
+   * @return the expanded result, an empty string, or {@literal null}.
+   */
   @Override
   public String expand(ExpressionVariable variable, Object value) {
+    if (value == null) {
+      /* skip unresolved */
+      return null;
+    }
 
     /* expand the value */
     String result = value.toString();
 
+    /* build the expanded expression */
+    Expression expression = variable.getExpression();
+    StringBuilder expanded = new StringBuilder();
+    if (expression.requiredNamedParameters()) {
+      expanded.append(this.encode(variable.getName(), expression.allowReservedCharacters()));
+      if (result.isEmpty()) {
+        expanded.append(expression.getEmptySeparator());
+      } else {
+        expanded.append("=");
+      }
+    }
+
     /* apply any limits */
     if (variable.getPrefix() > 0) {
       /* prefix the result */
-      int limit = (variable.getPrefix() > result.length()) ? result.length() : variable.getPrefix();
+      int limit = Math.min(variable.getPrefix(), result.length());
       result = result.substring(0, limit);
     }
-
-    Expression expression = variable.getExpression();
-    if (expression.expandNamedParameters()) {
-      String variableName = this.encode(expression, variable.getName());
-      String variableValue = this.encode(expression, result);
-      StringBuilder namedResult = new StringBuilder(variableName);
-
-      if (StringUtils.isEmpty(variableValue)) {
-        if (expression.isFormStyle()) {
-          namedResult.append("=");
-        }
-      } else {
-        namedResult.append("=").append(variableValue);
-      }
-      result = namedResult.toString();
-    } else {
-      result = this.encode(variable.getExpression(), result);
-    }
+    expanded.append(this.encode(result, expression.allowReservedCharacters()));
 
     /* return the pct-encoded result */
-    return result;
+    return expanded.toString();
   }
 
-  String encode(Expression expression, String value) {
-    if (!UriUtils.isPctEncoded(value)) {
-      byte[] data = value.getBytes(StandardCharsets.UTF_8);
-
-      try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-        for (byte b : data) {
-          if (expression.isCharacterAllowed((char) b)) {
-            bos.write(b);
-          } else {
-            UriUtils.pctEncode(b, bos);
-          }
-        }
-        return new String(bos.toByteArray());
-      } catch (IOException ioe) {
-        throw new IllegalStateException("Error occurred during encoding of the uri: "
-            + ioe.getMessage(), ioe);
-      }
-    }
-    return value;
+  String encode(String value, boolean allowReservedCharacters) {
+    return UriUtils.encode(value, allowReservedCharacters);
   }
 }

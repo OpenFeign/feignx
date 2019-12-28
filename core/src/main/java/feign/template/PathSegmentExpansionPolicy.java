@@ -16,23 +16,23 @@
 
 package feign.template;
 
-import java.util.List;
-
 /**
- * Expression that allows for characters in the Reserved to be included, without encoding.
+ * Expression that use the slash {@code /} character as a prefix and exploded delimiter, allowing
+ * for expansion of path segments.
  */
-class ReservedExpression extends SimpleExpression {
+class PathSegmentExpansionPolicy extends ExpansionPolicy {
+  private static final PathSegmentExpansionPolicy instance = new PathSegmentExpansionPolicy();
 
-  ReservedExpression(List<String> variableSpecs) {
-    super(variableSpecs);
+  /**
+   * Return a singleton instance of this Expansion Policy.
+   *
+   * @return expansion policy instance
+   */
+  public static PathSegmentExpansionPolicy getInstance() {
+    return instance;
   }
 
-  ReservedExpression(List<String> variableSpecs, String operator) {
-    super(variableSpecs, operator);
-  }
-
-  @Override
-  public boolean isCharacterAllowed(char character) {
-    return super.isCharacterAllowed(character) || UriUtils.isReserved(character);
+  private PathSegmentExpansionPolicy() {
+    super("/", "/", "", false, false);
   }
 }

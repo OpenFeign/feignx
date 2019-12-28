@@ -17,13 +17,12 @@
 package feign.template.expander;
 
 import feign.support.Assert;
-import feign.template.Expression;
-import feign.template.ExpressionVariable;
+import feign.template.ExpansionPolicy;
 
 /**
  * Expression Expander that support List, Collection and other {@link Iterable} types.
  */
-public class ListExpander extends SimpleExpander {
+public class ListExpander extends MultiValueExpander {
 
   /* Singleton instantiation */
   private static final ListExpander instance = new ListExpander();
@@ -33,8 +32,7 @@ public class ListExpander extends SimpleExpander {
   }
 
   @Override
-  public String expand(ExpressionVariable variable, Object value) {
-
+  protected Iterable<?> getValues(Object value) {
     /* verify the value is an iterable type */
     Assert.isTrue(value,
         obj -> Iterable.class.isAssignableFrom(obj.getClass()),
@@ -42,50 +40,44 @@ public class ListExpander extends SimpleExpander {
             + " is not supported by this expander. Values must be a List, Collection or "
             + "extend Iterable.");
 
-    /* prefix limits are not allowed on lists */
-    if (variable.getPrefix() > 0) {
-      throw new IllegalStateException(
-          "Prefix Limits are not allowed on map, composite, or list values");
-    }
+    return (Iterable<?>) value;
+  }
 
-    /* expand the elements on the list */
-    final Expression expression = variable.getExpression();
-    final StringBuilder result = new StringBuilder();
-    final StringBuilder builder = new StringBuilder();
-
-    Iterable<?> valueCollection = (Iterable<?>) value;
-    if (!valueCollection.iterator().hasNext()) {
-      /* ignore empty lists */
-      return null;
-    }
-
-    if (expression.expandNamedParameters() && !variable.isExploded()) {
-      /* prepend the result with the variable name if named parameters are required. */
-      result.append(this.encode(expression, variable.getName()))
-          .append("=");
-    }
-
-    valueCollection.forEach(item -> {
-      /* include the variable separator */
-      if (builder.length() != 0) {
-        builder.append(
-            (variable.isExploded()) ? expression.getSeparator() : Expression.DEFAULT_SEPARATOR);
+  /**
+   * "Explodes" the value into a name,value pair per the specification.
+   *
+   * @param name of the value being expanded.
+   * @param value to explode.
+   * @param policy to apply when expanding the value.
+   * @return the exploded expanded result.
+   */
+  @Override
+  protected String explode(String name, Object value, ExpansionPolicy policy) {
+    String expanded = value.toString();
+    StringBuilder result = new StringBuilder();
+    if (policy.isRequiredNamedParameters()) {
+      result.append(this.encode(name, policy.isAllowReservedCharacters()));
+      if (expanded.isEmpty()) {
+        result.append(policy.getEmptySeparator());
+      } else {
+        result.append("=");
       }
+    }
 
-      /* in the event that the variable is exploded and the modifier is one that
-       * expands named parameters, treat the list as a map and create key,value pairs.
-       */
-      if (variable.isExploded() && expression.expandNamedParameters()) {
-        builder.append(encode(expression, variable.getName()));
-        builder.append("=");
-      }
-
-      /* append the expanded item value */
-      builder.append(this.encode(expression, item.toString()));
-    });
-
-    /* append to the result */
-    result.append(builder);
+    result.append(this.encode(expanded, policy.isAllowReservedCharacters()));
     return result.toString();
+  }
+
+  /**
+   * Expands the value.
+   *
+   * @param name of the value being expanded.
+   * @param value to expand.
+   * @param policy to apply when expanding the value.
+   * @return the value provided expanded per the policy.
+   */
+  @Override
+  protected String expand(String name, Object value, ExpansionPolicy policy) {
+    return this.encode(value.toString(), policy.isAllowReservedCharacters());
   }
 }

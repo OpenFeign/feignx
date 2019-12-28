@@ -16,18 +16,22 @@
 
 package feign.template;
 
-import java.util.List;
-
 /**
- * Fragment based expression.  Assumes the same capability as a reserved expression, but prefixed
- * with a {@literal #}
+ * Expression that allows for characters in the Reserved to be included, without encoding.
  */
-class FragmentExpression extends ReservedExpression {
+class ReservedExpansionPolicy extends ExpansionPolicy {
+  private static final ReservedExpansionPolicy instance = new ReservedExpansionPolicy();
 
-  private static final String FRAGMENT = "#";
-
-  FragmentExpression(List<String> variableSpecs) {
-    super(variableSpecs, FRAGMENT);
+  /**
+   * Return a singleton instance of this Expansion Policy.
+   *
+   * @return expansion policy instance
+   */
+  public static ReservedExpansionPolicy getInstance() {
+    return instance;
   }
 
+  private ReservedExpansionPolicy() {
+    super("", ",", "", false, true);
+  }
 }
