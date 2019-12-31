@@ -55,6 +55,8 @@ public class MapExpander extends ListExpander {
   @Override
   protected String explode(String name, Object value, ExpansionPolicy policy) {
     Map.Entry<?, ?> entry = (Map.Entry<?, ?>) value;
+
+    /* join pairs with an equals */
     return this.expand(
         entry.getKey().toString(), entry.getValue().toString(), "=", policy);
   }
@@ -65,6 +67,8 @@ public class MapExpander extends ListExpander {
   @Override
   protected String expand(String name, Object value, ExpansionPolicy policy) {
     Map.Entry<?, ?> entry = (Map.Entry<?, ?>) value;
+
+    /* join using a comma */
     return this.expand(
         entry.getKey().toString(), entry.getValue().toString(), ",", policy);
   }
@@ -80,7 +84,6 @@ public class MapExpander extends ListExpander {
    */
   private String expand(String name, String value, String entrySeparator, ExpansionPolicy policy) {
     StringBuilder result = new StringBuilder();
-
     result.append(this.encode(name, policy.isAllowReservedCharacters()));
     if (value.isEmpty()) {
       result.append(policy.getEmptySeparator());
