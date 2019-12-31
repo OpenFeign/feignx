@@ -80,28 +80,30 @@ public class Expressions {
   private static Expression create(String operator, List<String> variables) {
     Expression expression;
 
+    ExpansionPolicy policy;
     if (StringUtils.isNotEmpty(operator)) {
       if (RESERVED_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new ReservedExpression(variables);
+        policy = ReservedExpansionPolicy.getInstance();
       } else if (FRAGMENT_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new FragmentExpression(variables);
+        policy = FragmentExpansionPolicy.getInstance();
       } else if (DOT_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new DotExpression(variables);
+        policy = DotExpansionPolicy.getInstance();
       } else if (PATH_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new PathSegmentExpression(variables);
+        policy = PathSegmentExpansionPolicy.getInstance();
       } else if (PATH_STYLE_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new PathStyleExpression(variables);
+        policy = PathStyleExpansionPolicy.getInstance();
       } else if (FORM_STYLE_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new FormStyleExpression(variables);
+        policy = FormStyleExpansionPolicy.getInstance();
       } else if (FORM_CONT_STYLE_MODIFIER.equalsIgnoreCase(operator)) {
-        expression = new FormContinuationStyleExpression(variables);
+        policy = FormContinuationStyleExpansionPolicy.getInstance();
       } else {
         throw new IllegalStateException("Expression " + variables + " is not supported");
       }
     } else {
-      expression = new SimpleExpression(variables);
+      policy = SimpleExpansionPolicy.getInstance();
     }
-    return expression;
+
+    return new Expression(variables, operator, policy);
 
   }
 

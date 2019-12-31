@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -70,55 +71,18 @@ public class UriTemplate {
         Expression expression = (Expression) chunk;
 
         /* create a new String Builder for the expression */
-        StringBuilder expressionResult = new StringBuilder();
-
-        Collection<ExpressionVariable> expressionVariables = expression.getVariables();
-        for (ExpressionVariable expressionVariable : expressionVariables) {
-          /* locate the template parameter for the variable */
-          TemplateParameter parameter =
-              this.getParameterForExpression(expressionVariable, variables);
-          if (parameter != null) {
-            /* expand the variable */
-            String result = this.expandVariable(
-                parameter, expressionVariable, variables.get(parameter));
-            if (result != null) {
-              /* prepend the separator */
-              if (expressionResult.length() > 0
-                  && !"undef".equalsIgnoreCase(expressionResult.toString())) {
-                expressionResult.append(expression.getSeparator());
-              }
-
-              /* append the value to the result */
-              expressionResult.append(result);
-            } else {
-              /* expression is undefined */
-              expressionResult.append("undef");
-            }
-          } else {
-            /* expression is also undefined */
-            expressionResult.append("undef");
-          }
+        StringBuilder result = new StringBuilder();
+        List<ExpressionVariable> expressionVariables = expression.getVariables();
+        for (ExpressionVariable variable : expressionVariables) {
+          this.getParameterForExpression(variable, variables)
+              .flatMap(templateParameter -> Optional.ofNullable(
+                  expandVariable(
+                      templateParameter, variable, variables.get(templateParameter))))
+              .ifPresent(value -> appendExpressionResult(result, expression, value));
         }
 
-        /* resolve the expression result */
-        String resolved = expressionResult.toString();
-
-        /* undefined expressions must be removed */
-        if (resolved.contains(UNDEF)) {
-          /* we want to remove all occurrences of "undef", and potentially any separators
-           * that may have been added.
-           */
-          resolved = resolved.replaceAll(UNDEF, "");
-          if (resolved.isEmpty()) {
-            /* all of the variables are undefined, ignore it */
-            resolved = null;
-          }
-        }
-
-        /* append the resolved expression */
-        if (resolved != null) {
-          expression.getOperator().ifPresent(uri::append);
-          uri.append(resolved);
+        if (result.length() != 0) {
+          uri.append(result);
         }
       } else {
         /* chunk is a literal, append the literal */
@@ -128,6 +92,15 @@ public class UriTemplate {
     return URI.create(uri.toString());
   }
 
+  private void appendExpressionResult(StringBuilder builder, Expression expression, String result) {
+    if (builder.length() == 0) {
+      builder.append(expression.getStartSeparator());
+    } else {
+      builder.append(expression.getSeparator());
+    }
+    builder.append(result);
+  }
+
   /**
    * Locate the {@link TemplateParameter} for the given {@link ExpressionVariable}.
    *
@@ -135,14 +108,13 @@ public class UriTemplate {
    * @param parameters to search.
    * @return the {@link TemplateParameter} for the variable or {@literal null} if not found.
    */
-  private TemplateParameter getParameterForExpression(
+  private Optional<TemplateParameter> getParameterForExpression(
       ExpressionVariable variable, Map<TemplateParameter, ?> parameters) {
     return parameters.keySet().stream()
         .filter(
             templateParameter -> templateParameter.name()
                 .equalsIgnoreCase(variable.getName()))
-        .findFirst()
-        .orElse(null);
+        .findFirst();
   }
 
   /**

@@ -16,27 +16,23 @@
 
 package feign.template;
 
-import java.util.List;
-
 /**
- * Expression that use the semi-colon {@code ;} character as a prefix and exploded delimiter,
- * allowing for expansion of path parameters.
+ * Expression that expands object into a single value, pct-encoding all values not in the
+ * unreserved set.
  */
-class PathStyleExpression extends SimpleExpression {
+class SimpleExpansionPolicy extends ExpansionPolicy {
+  private static final SimpleExpansionPolicy instance = new SimpleExpansionPolicy();
 
-  private static final String SEMI = ";";
-
-  PathStyleExpression(List<String> variableSpecs) {
-    super(variableSpecs, SEMI);
+  /**
+   * Return a singleton instance of this Expansion Policy.
+   *
+   * @return expansion policy instance
+   */
+  public static SimpleExpansionPolicy getInstance() {
+    return instance;
   }
 
-  @Override
-  public String getSeparator() {
-    return SEMI;
-  }
-
-  @Override
-  public boolean expandNamedParameters() {
-    return true;
+  private SimpleExpansionPolicy() {
+    super("", ",", "", false, false);
   }
 }

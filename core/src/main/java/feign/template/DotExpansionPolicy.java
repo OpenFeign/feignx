@@ -16,22 +16,23 @@
 
 package feign.template;
 
-import java.util.List;
-
 /**
- * Expression that use the slash {@code /} character as a prefix and exploded delimiter, allowing
- * for expansion of path segments.
+ * Expression that uses the dot {@code .} character as a prefix and exploded delimiter, allowing
+ * for expansion of domain names and other dot like values on a URI.
  */
-class PathSegmentExpression extends SimpleExpression {
+class DotExpansionPolicy extends ExpansionPolicy {
+  private static final DotExpansionPolicy instance = new DotExpansionPolicy();
 
-  private static final String SLASH = "/";
-
-  PathSegmentExpression(List<String> variableSpecs) {
-    super(variableSpecs, SLASH);
+  /**
+   * Return a singleton instance of this Expansion Policy.
+   *
+   * @return expansion policy instance
+   */
+  public static DotExpansionPolicy getInstance() {
+    return instance;
   }
 
-  @Override
-  public String getSeparator() {
-    return SLASH;
+  private DotExpansionPolicy() {
+    super(".", ".", "", false, false);
   }
 }

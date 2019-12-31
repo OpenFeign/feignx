@@ -17,15 +17,13 @@
 package feign.template.expander;
 
 import feign.support.Assert;
-import feign.support.StringUtils;
-import feign.template.Expression;
-import feign.template.ExpressionVariable;
+import feign.template.ExpansionPolicy;
 import java.util.Map;
 
 /**
  * Expression Expander that operates on associative arrays defined as {@link java.util.Map}s.
  */
-public class MapExpander extends SimpleExpander {
+public class MapExpander extends ListExpander {
 
   /* Singleton instantiation */
   private static final MapExpander instance = new MapExpander();
@@ -34,65 +32,66 @@ public class MapExpander extends SimpleExpander {
     return instance;
   }
 
+  /**
+   * Returns the underlying entry set for the map.
+   *
+   * @param value containing the map.
+   * @return the underlying entry set for the map.
+   */
   @Override
-  public String expand(ExpressionVariable variable, Object value) {
-
+  protected Iterable<?> getValues(Object value) {
     /* verify that the value is a map */
     Assert.isTrue(value,
         obj -> Map.class.isAssignableFrom(obj.getClass()),
         "Type " + value.getClass()
             + " is not supported by this expander.  Values must be a Map.");
 
-    /* prefix limits are not allowed on maps */
-    if (variable.getPrefix() > 0) {
-      throw new IllegalStateException(
-          "Prefix Limits are not allowed on map, composite, or list values");
+    return ((Map<?, ?>) value).entrySet();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected String explode(String name, Object value, ExpansionPolicy policy) {
+    Map.Entry<?, ?> entry = (Map.Entry<?, ?>) value;
+
+    /* join pairs with an equals */
+    return this.expand(
+        entry.getKey().toString(), entry.getValue().toString(), "=", policy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected String expand(String name, Object value, ExpansionPolicy policy) {
+    Map.Entry<?, ?> entry = (Map.Entry<?, ?>) value;
+
+    /* join using a comma */
+    return this.expand(
+        entry.getKey().toString(), entry.getValue().toString(), ",", policy);
+  }
+
+  /**
+   * Expand a name,value pair.
+   *
+   * @param name of the pair.
+   * @param value in the pair.
+   * @param entrySeparator to use when joining the pair.
+   * @param policy to use when expanding the value.
+   * @return the expanded name,value pair.
+   */
+  private String expand(String name, String value, String entrySeparator, ExpansionPolicy policy) {
+    StringBuilder result = new StringBuilder();
+    result.append(this.encode(name, policy.isAllowReservedCharacters()));
+    if (value.isEmpty()) {
+      result.append(policy.getEmptySeparator());
+    } else {
+      result.append(entrySeparator);
     }
-
-    /* expand the key,value pairs in the map */
-    final Expression expression = variable.getExpression();
-    final StringBuilder result = new StringBuilder();
-    final StringBuilder builder = new StringBuilder();
-
-    if (expression.expandNamedParameters() && !variable.isExploded()) {
-      /* prepend the result with the variable name if named parameters are required. */
-      result.append(this.encode(expression, variable.getName()))
-          .append("=");
-    }
-
-    Map<?, ?> valueMap = (Map<?, ?>) value;
-    if (valueMap.isEmpty()) {
-      /* ignore empty maps */
-      return null;
-    }
-
-    valueMap.forEach((key, val) -> {
-      /* include the variable separator */
-      if (builder.length() != 0) {
-        builder.append(
-            (variable.isExploded()) ? expression.getSeparator() : Expression.DEFAULT_SEPARATOR);
-      }
-
-      String encodedName = encode(expression, key.toString());
-      String encodedValue = encode(expression, val.toString());
-
-      /* append the variable name */
-      builder.append(encodedName);
-
-      if (StringUtils.isEmpty(encodedValue)) {
-        /* special case: form style expressions omit the equals */
-        if (!expression.isFormStyle()) {
-          builder.append((variable.isExploded()) ? "=" : Expression.DEFAULT_SEPARATOR);
-        }
-      } else {
-        /* append the rest of the key value pair */
-        builder.append((variable.isExploded()) ? "=" : Expression.DEFAULT_SEPARATOR);
-        builder.append(encodedValue);
-      }
-    });
-
-    /* append to the result */
-    result.append(builder);
+    result.append(this.encode(value, policy.isAllowReservedCharacters()));
     return result.toString();
   }
+
 }

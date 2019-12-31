@@ -93,19 +93,26 @@ public class UriUtils {
         || character == ',' || character == ';' || character == '=';
   }
 
+  public static String encode(String value) {
+    return encode(value, false);
+  }
+
   /**
    * Encode the value, using this expressions filter.
    *
    * @param value to encode.
+   * @param allowReserved if reserved characters should remain unencoded
    * @return a pct-encoding String.
    */
-  public static String encode(String value) {
+  public static String encode(String value, boolean allowReserved) {
     if (!isPctEncoded(value)) {
       byte[] data = value.getBytes(StandardCharsets.UTF_8);
 
       try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
         for (byte b : data) {
           if (isUnreserved((char) b)) {
+            bos.write(b);
+          } else if (isReserved((char) b) && allowReserved) {
             bos.write(b);
           } else {
             pctEncode(b, bos);
