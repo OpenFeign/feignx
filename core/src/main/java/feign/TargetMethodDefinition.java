@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,43 +28,40 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
 
 /**
- * Configuration information for methods on a Target, considered immutable.
+ * Definition of a method on a Target.
  */
+@ThreadSafe
+@Immutable
 public final class TargetMethodDefinition {
 
-  private Target<?> target;
-  private String name;
-  private String tag;
-  private transient TypeDefinition returnType;
-  private UriTemplate template;
-  private HttpMethod method = HttpMethod.GET;
-  private Collection<HttpHeader> headers = new LinkedHashSet<>();
-  private Map<Integer, TemplateParameter> parameterMap = new LinkedHashMap<>();
-  private Integer bodyArgumentIndex = -1;
-  private boolean followRedirects;
-  private long connectTimeout = RequestOptions.DEFAULT_CONNECT_TIMEOUT;
-  private long readTimeout = RequestOptions.DEFAULT_READ_TIMEOUT;
-  private TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
+  private final Target<?> target;
+  private final String name;
+  private final String tag;
+  private final HttpMethod method;
+  private final transient TypeDefinition returnType;
+  private final UriTemplate template;
+  private final Collection<HttpHeader> headers;
+  private final Map<Integer, TemplateParameter> parameterMap;
+  private final Integer bodyArgumentIndex;
+  private final boolean followRedirects;
+  private final long connectTimeout;
+  private final long readTimeout;
 
-  /**
-   * Creates a new {@link TargetMethodDefinition}.
-   *
-   * @param target for this definition.
-   */
-  public TargetMethodDefinition(Target<?> target) {
-    Assert.isNotNull(target, "target is required.");
-    this.target = target;
+  public static Builder builder(Target<?> target) {
+    return new Builder(target);
   }
 
   /**
@@ -72,35 +69,80 @@ public final class TargetMethodDefinition {
    *
    * @param targetMethodDefinition to copy.
    */
-  public TargetMethodDefinition(TargetMethodDefinition targetMethodDefinition) {
-    /* copy the immutable values */
-    this.target = targetMethodDefinition.target;
-    this.name = targetMethodDefinition.name;
-    this.tag = targetMethodDefinition.tag;
-    this.returnType = targetMethodDefinition.returnType;
-    this.template = targetMethodDefinition.template;
-    this.method = targetMethodDefinition.method;
-    this.bodyArgumentIndex = targetMethodDefinition.bodyArgumentIndex;
-    this.followRedirects = targetMethodDefinition.followRedirects;
-    this.connectTimeout = targetMethodDefinition.connectTimeout;
-    this.readTimeout = targetMethodDefinition.readTimeout;
-    this.typeDefinitionFactory = targetMethodDefinition.typeDefinitionFactory;
+  public static Builder from(TargetMethodDefinition targetMethodDefinition) {
+    /* create a new builder */
+    Builder builder = new Builder(targetMethodDefinition.target);
 
-    /* create a deep copy of the parameters */
-    this.parameterMap = targetMethodDefinition.parameterMap.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    /* populate the builder with the instance values */
+    builder.name(targetMethodDefinition.name)
+        .tag(targetMethodDefinition.tag)
+        .method(targetMethodDefinition.method)
+        .body(targetMethodDefinition.bodyArgumentIndex)
+        .followRedirects(targetMethodDefinition.followRedirects)
+        .connectTimeout(targetMethodDefinition.connectTimeout)
+        .readTimeout(targetMethodDefinition.readTimeout);
 
-    /* create a deep copy of the headers */
-    this.headers = targetMethodDefinition.headers.stream().map(
-        header -> new HttpHeader(header.name(), header.values()))
-        .collect(Collectors.toSet());
-
-    /* create a copy of the uri template */
+    if (targetMethodDefinition.returnType != null) {
+      builder.returnType(targetMethodDefinition.returnType);
+    }
     if (targetMethodDefinition.template != null) {
-      this.template = UriTemplate.create(targetMethodDefinition.template.toString());
+      builder.uri(targetMethodDefinition.template.toString());
+    }
+
+    targetMethodDefinition.parameterMap.forEach(
+        builder::templateParameter);
+    targetMethodDefinition.headers.forEach(builder::header);
+
+    /* return the populated builder */
+    return builder;
+  }
+
+  /**
+   * Creates a new {@link TargetMethodDefinition}.
+   *
+   * @param target for this definition.
+   */
+  private TargetMethodDefinition(Target<?> target,
+      String name,
+      String tag,
+      TypeDefinition returnType,
+      UriTemplate template,
+      HttpMethod method,
+      Collection<HttpHeader> headers,
+      Map<Integer, TemplateParameter> parameterMap,
+      Integer bodyArgumentIndex,
+      boolean followRedirects,
+      long connectTimeout,
+      long readTimeout) {
+    Assert.isNotNull(target, "target is required.");
+    this.target = target;
+    this.name = name;
+    this.tag = tag;
+    this.returnType = returnType;
+    this.template = template;
+    this.method = method;
+    this.bodyArgumentIndex = bodyArgumentIndex;
+    this.followRedirects = followRedirects;
+    this.connectTimeout = connectTimeout;
+    this.readTimeout = readTimeout;
+
+    if (headers == null) {
+      this.headers = Collections.emptyList();
+    } else {
+      this.headers = headers.stream().map(
+          header -> new HttpHeader(header.name(), header.values()))
+          .collect(Collectors.toUnmodifiableList());
+    }
+
+    if (parameterMap == null) {
+      this.parameterMap = Collections.emptyMap();
+    } else {
+      this.parameterMap = parameterMap.entrySet()
+          .stream()
+          .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
     }
   }
+
 
   /**
    * Name of the Method on the Target this configuration is based.
@@ -211,139 +253,6 @@ public final class TargetMethodDefinition {
     return readTimeout;
   }
 
-  /**
-   * Name of the Method.
-   *
-   * @param name method name.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition name(String name) {
-    this.name = name;
-    return this;
-  }
-
-  /**
-   * Tag for the Method.
-   *
-   * @param tag method tag.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition tag(String tag) {
-    this.tag = tag;
-    return this;
-  }
-
-  /**
-   * Method Return Type.
-   *
-   * @param returnType of the method.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition returnType(Type returnType) {
-    this.returnType = this.typeDefinitionFactory.create(returnType, this.target.type());
-    return this;
-  }
-
-  /**
-   * HttpRequest connection timeout, in milliseconds.
-   *
-   * @param connectTimeout in milliseconds.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition connectTimeout(long connectTimeout) {
-    this.connectTimeout = connectTimeout;
-    return this;
-  }
-
-  /**
-   * Response Read Timeout, in milliseconds.
-   *
-   * @param readTimeout in milliseconds.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition readTimeout(long readTimeout) {
-    this.readTimeout = readTimeout;
-    return this;
-  }
-
-  /**
-   * HttpRequest URI for the Method.
-   *
-   * @param uri from the method.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition uri(String uri) {
-    Assert.isNotNull(uri, "uri is required");
-    if (this.template != null) {
-      /* if the provided uri is absolute, we need to replace it, encode it so we can parse it */
-      String encodedUri = uri.replaceAll("\\{", "%7B")
-          .replaceAll("}", "%7D");
-      if (!URI.create(encodedUri).isAbsolute()) {
-        /* append the new uri */
-        uri = this.template.toString() + uri;
-      }
-    }
-    this.template = UriTemplate.create(uri);
-    return this;
-  }
-
-  /**
-   * Registers a {@link TemplateParameter} at the method argument index.
-   *
-   * @param argumentIndex in the method signature.
-   * @param templateParameter to register.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition templateParameter(
-      Integer argumentIndex, TemplateParameter templateParameter) {
-    this.parameterMap.put(argumentIndex, templateParameter);
-    return this;
-  }
-
-  /**
-   * Registers a {@link HttpHeader} for the method.
-   *
-   * @param header to register.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition header(HttpHeader header) {
-    Assert.isNotNull(header, "header is required.");
-    this.headers.add(header);
-    return this;
-  }
-
-  /**
-   * Http Method for the HttpRequest defined.
-   *
-   * @param httpMethod for the request.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition method(HttpMethod httpMethod) {
-    this.method = httpMethod;
-    return this;
-  }
-
-  /**
-   * Registers which argument in the method signature containing the HttpRequest body.
-   *
-   * @param argumentIndex for the HttpRequest body object.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition body(Integer argumentIndex) {
-    this.bodyArgumentIndex = argumentIndex;
-    return this;
-  }
-
-  /**
-   * Determines if this request should automatically follow 3xx responses.
-   *
-   * @param followRedirects flag.
-   * @return the reference chain.
-   */
-  public TargetMethodDefinition followRedirects(boolean followRedirects) {
-    this.followRedirects = followRedirects;
-    return this;
-  }
 
   /**
    * Creates a {@link RequestSpecification} using the method configuration and the variables
@@ -409,5 +318,170 @@ public final class TargetMethodDefinition {
         .add("connectTimeout=" + connectTimeout)
         .add("readTimeout=" + readTimeout)
         .toString();
+  }
+
+  public static class Builder {
+
+    private final Target<?> target;
+    private String name;
+    private String tag;
+    private transient TypeDefinition returnType;
+    private UriTemplate template;
+    private HttpMethod method = HttpMethod.GET;
+    private final Collection<HttpHeader> headers = new CopyOnWriteArraySet<>();
+    private final Map<Integer, TemplateParameter> parameterMap = new ConcurrentHashMap<>();
+    private Integer bodyArgumentIndex = -1;
+    private boolean followRedirects;
+    private long connectTimeout = RequestOptions.DEFAULT_CONNECT_TIMEOUT;
+    private long readTimeout = RequestOptions.DEFAULT_READ_TIMEOUT;
+    private final TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
+
+    Builder(Target<?> target) {
+      this.target = target;
+    }
+
+    /**
+     * Name of the Method.
+     *
+     * @param name method name.
+     * @return the reference chain.
+     */
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    /**
+     * Tag for the Method.
+     *
+     * @param tag method tag.
+     * @return the reference chain.
+     */
+    public Builder tag(String tag) {
+      this.tag = tag;
+      return this;
+    }
+
+    /**
+     * Method Return Type.
+     *
+     * @param returnType of the method.
+     * @return the reference chain.
+     */
+    public Builder returnType(Type returnType) {
+      this.returnType = this.typeDefinitionFactory.create(returnType, this.target.type());
+      return this;
+    }
+
+    /**
+     * HttpRequest connection timeout, in milliseconds.
+     *
+     * @param connectTimeout in milliseconds.
+     * @return the reference chain.
+     */
+    public Builder connectTimeout(long connectTimeout) {
+      this.connectTimeout = connectTimeout;
+      return this;
+    }
+
+    /**
+     * Response Read Timeout, in milliseconds.
+     *
+     * @param readTimeout in milliseconds.
+     * @return the reference chain.
+     */
+    public Builder readTimeout(long readTimeout) {
+      this.readTimeout = readTimeout;
+      return this;
+    }
+
+    /**
+     * HttpRequest URI for the Method.
+     *
+     * @param uri from the method.
+     * @return the reference chain.
+     */
+    public Builder uri(String uri) {
+      Assert.isNotNull(uri, "uri is required");
+      if (this.template != null) {
+        /* if the provided uri is absolute, we need to replace it, encode it so we can parse it */
+        String encodedUri = uri.replaceAll("\\{", "%7B")
+            .replaceAll("}", "%7D");
+        if (!URI.create(encodedUri).isAbsolute()) {
+          /* append the new uri */
+          uri = this.template.toString() + uri;
+        }
+      }
+      this.template = UriTemplate.create(uri);
+      return this;
+    }
+
+    /**
+     * Registers a {@link TemplateParameter} at the method argument index.
+     *
+     * @param argumentIndex in the method signature.
+     * @param templateParameter to register.
+     * @return the reference chain.
+     */
+    public Builder templateParameter(
+        Integer argumentIndex, TemplateParameter templateParameter) {
+      this.parameterMap.put(argumentIndex, templateParameter);
+      return this;
+    }
+
+    /**
+     * Registers a {@link HttpHeader} for the method.
+     *
+     * @param header to register.
+     * @return the reference chain.
+     */
+    public Builder header(HttpHeader header) {
+      Assert.isNotNull(header, "header is required.");
+      this.headers.add(header);
+      return this;
+    }
+
+    /**
+     * Http Method for the HttpRequest defined.
+     *
+     * @param httpMethod for the request.
+     * @return the reference chain.
+     */
+    public Builder method(HttpMethod httpMethod) {
+      this.method = httpMethod;
+      return this;
+    }
+
+    /**
+     * Registers which argument in the method signature containing the HttpRequest body.
+     *
+     * @param argumentIndex for the HttpRequest body object.
+     * @return the reference chain.
+     */
+    public Builder body(Integer argumentIndex) {
+      this.bodyArgumentIndex = argumentIndex;
+      return this;
+    }
+
+    /**
+     * Determines if this request should automatically follow 3xx responses.
+     *
+     * @param followRedirects flag.
+     * @return the reference chain.
+     */
+    public Builder followRedirects(boolean followRedirects) {
+      this.followRedirects = followRedirects;
+      return this;
+    }
+
+    /**
+     * Creates a new Target Method Definition.
+     *
+     * @return a new instance.
+     */
+    public TargetMethodDefinition build() {
+      return new TargetMethodDefinition(target, name, tag, returnType, template, method, headers,
+          parameterMap, bodyArgumentIndex, followRedirects, connectTimeout, readTimeout);
+    }
   }
 }

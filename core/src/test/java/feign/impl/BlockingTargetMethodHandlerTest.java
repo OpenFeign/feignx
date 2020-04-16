@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,14 +59,15 @@ class BlockingTargetMethodHandlerTest {
   @Test
   void usingDefaultExecutor_willUseTheCallingThread() throws Throwable {
     AuditingExecutor executor = new AuditingExecutor();
-    TargetMethodDefinition methodDefinition = new TargetMethodDefinition(
+    TargetMethodDefinition.Builder builder = TargetMethodDefinition.builder(
         new UriTarget<>(Blog.class, "https://www.example.com"));
-    TargetMethodHandler blockingHandler = new BlockingTargetMethodHandler(methodDefinition, encoder,
-        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger, retry);
-
-    methodDefinition.returnType(void.class)
+    builder.returnType(void.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET);
+
+    TargetMethodDefinition methodDefinition = builder.build();
+    TargetMethodHandler blockingHandler = new BlockingTargetMethodHandler(methodDefinition, encoder,
+        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger, retry);
 
     /* get the current thread id */
     long currentThread = Thread.currentThread().getId();

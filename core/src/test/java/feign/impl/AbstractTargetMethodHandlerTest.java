@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.Client;
+import feign.ExceptionHandler;
 import feign.ExceptionHandler.RethrowExceptionHandler;
 import feign.Logger;
 import feign.Request;
@@ -39,7 +40,6 @@ import feign.ResponseDecoder;
 import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
-import feign.ExceptionHandler;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
 import feign.retry.NoRetry;
@@ -60,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class AbstractTargetMethodHandlerTest {
 
-  private TargetMethodDefinition targetMethodDefinition;
+  private TargetMethodDefinition.Builder targetMethodDefinition;
 
   @Mock
   private RequestEncoder encoder;
@@ -89,7 +89,7 @@ class AbstractTargetMethodHandlerTest {
 
   @BeforeEach
   void setUp() {
-    this.targetMethodDefinition = new TargetMethodDefinition(
+    this.targetMethodDefinition = TargetMethodDefinition.builder(
         new UriTarget<>(TestInterface.class, "https://www.example.com"));
 
   }
@@ -103,9 +103,9 @@ class AbstractTargetMethodHandlerTest {
         .method(HttpMethod.GET)
         .templateParameter(0, new SimpleTemplateParameter("name"))
         .body(1);
-
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -133,8 +133,9 @@ class AbstractTargetMethodHandlerTest {
         .templateParameter(0, new SimpleTemplateParameter("name"))
         .body(1);
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         null,
         this.client,
@@ -160,8 +161,9 @@ class AbstractTargetMethodHandlerTest {
             .method(HttpMethod.GET)
             .templateParameter(0, new SimpleTemplateParameter("name"));
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -187,8 +189,9 @@ class AbstractTargetMethodHandlerTest {
         .method(HttpMethod.GET)
         .templateParameter(0, new SimpleTemplateParameter("name"));
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -212,8 +215,9 @@ class AbstractTargetMethodHandlerTest {
         .method(HttpMethod.GET)
         .templateParameter(0, new SimpleTemplateParameter("name"));
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -238,8 +242,9 @@ class AbstractTargetMethodHandlerTest {
         .method(HttpMethod.GET)
         .templateParameter(0, new SimpleTemplateParameter("name"));
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -264,8 +269,9 @@ class AbstractTargetMethodHandlerTest {
         .method(HttpMethod.GET)
         .templateParameter(0, new SimpleTemplateParameter("name"));
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -293,8 +299,9 @@ class AbstractTargetMethodHandlerTest {
         .readTimeout(1000)
         .body(1);
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -318,8 +325,9 @@ class AbstractTargetMethodHandlerTest {
         .method(HttpMethod.GET)
         .templateParameter(0, new SimpleTemplateParameter("name"));
 
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,
@@ -348,8 +356,9 @@ class AbstractTargetMethodHandlerTest {
         .body(1);
 
     ExceptionHandler exceptionHandler = spy(new RethrowExceptionHandler());
+    TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
-        this.targetMethodDefinition,
+        methodDefinition,
         this.encoder,
         Collections.singletonList(this.interceptor),
         this.client,

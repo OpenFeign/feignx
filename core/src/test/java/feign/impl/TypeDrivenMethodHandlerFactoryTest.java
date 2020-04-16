@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class TypeDrivenMethodHandlerFactoryTest {
 
   private FeignConfiguration feignConfiguration;
 
-  private TargetMethodDefinition targetMethodDefinition;
+  private TargetMethodDefinition.Builder targetMethodDefinition;
 
   private TypeDrivenMethodHandlerFactory methodHandlerFactory;
 
@@ -68,30 +68,33 @@ class TypeDrivenMethodHandlerFactoryTest {
   @Test
   void createsBlockingHandler_byDefault() {
     this.targetMethodDefinition =
-        new TargetMethodDefinition(new UriTarget<>(Blog.class, "https://www.example.com"));
+        TargetMethodDefinition.builder(new UriTarget<>(Blog.class, "https://www.example.com"));
     targetMethodDefinition.returnType(String.class);
     TargetMethodHandler targetMethodHandler =
-        this.methodHandlerFactory.create(this.targetMethodDefinition, this.feignConfiguration);
+        this.methodHandlerFactory
+            .create(this.targetMethodDefinition.build(), this.feignConfiguration);
     assertThat(targetMethodHandler).isInstanceOf(BlockingTargetMethodHandler.class);
   }
 
   @Test
   void createsAsyncHandler_whenReturnType_isFuture() {
     this.targetMethodDefinition =
-        new TargetMethodDefinition(new UriTarget<>(Blog.class, "https://www.example.com"));
+        TargetMethodDefinition.builder(new UriTarget<>(Blog.class, "https://www.example.com"));
     targetMethodDefinition.returnType(Future.class);
     TargetMethodHandler targetMethodHandler =
-        this.methodHandlerFactory.create(this.targetMethodDefinition, this.feignConfiguration);
+        this.methodHandlerFactory
+            .create(this.targetMethodDefinition.build(), this.feignConfiguration);
     assertThat(targetMethodHandler).isInstanceOf(AsyncTargetMethodHandler.class);
   }
 
   @Test
   void createsAsyncHandler_whenReturnType_isCompletableFuture() {
     this.targetMethodDefinition =
-        new TargetMethodDefinition(new UriTarget<>(Blog.class, "https://www.example.com"));
+        TargetMethodDefinition.builder(new UriTarget<>(Blog.class, "https://www.example.com"));
     targetMethodDefinition.returnType(CompletableFuture.class);
     TargetMethodHandler targetMethodHandler =
-        this.methodHandlerFactory.create(this.targetMethodDefinition, this.feignConfiguration);
+        this.methodHandlerFactory
+            .create(this.targetMethodDefinition.build(), this.feignConfiguration);
     assertThat(targetMethodHandler).isInstanceOf(AsyncTargetMethodHandler.class);
   }
 

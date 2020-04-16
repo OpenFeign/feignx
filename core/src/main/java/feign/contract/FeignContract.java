@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class FeignContract extends AbstractAnnotationDrivenContract {
 
-  private ExpanderRegistry expanderRegistry = new CachingExpanderRegistry();
+  private final ExpanderRegistry expanderRegistry = new CachingExpanderRegistry();
 
   /**
    * Creates a new Feign Contract.
@@ -55,7 +55,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    */
   @Override
   protected void processAnnotationsOnType(Class<?> targetType,
-      TargetMethodDefinition targetMethodDefinition) {
+      TargetMethodDefinition.Builder targetMethodDefinition) {
     if (targetType.isAnnotationPresent(Request.class)) {
       this.processRequest(targetType.getAnnotation(Request.class), targetMethodDefinition);
     }
@@ -73,7 +73,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    */
   @Override
   protected void processAnnotationsOnMethod(Class<?> targetType, Method method,
-      TargetMethodDefinition targetMethodDefinition) {
+      TargetMethodDefinition.Builder targetMethodDefinition) {
     if (method.isAnnotationPresent(Request.class)) {
       targetMethodDefinition
           .name(method.getName())
@@ -95,7 +95,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    */
   @Override
   protected void processAnnotationsOnParameter(Parameter parameter, Integer parameterIndex,
-      TargetMethodDefinition targetMethodDefinition) {
+      TargetMethodDefinition.Builder targetMethodDefinition) {
     if (parameter.isAnnotationPresent(Param.class)) {
       this.processParameter(
           parameter.getAnnotation(Param.class),
@@ -114,7 +114,8 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * @param request annotation to process.
    * @param targetMethodDefinition for the request.
    */
-  private void processRequest(Request request, TargetMethodDefinition targetMethodDefinition) {
+  private void processRequest(Request request,
+      TargetMethodDefinition.Builder targetMethodDefinition) {
     String uri = (StringUtils.isNotEmpty(request.uri())) ? request.uri() : request.value();
     HttpMethod httpMethod = request.method();
     boolean followRedirects = request.followRedirects();
@@ -132,7 +133,8 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * @param headers annotation to process.
    * @param targetMethodDefinition for the request.
    */
-  private void processHeaders(Headers headers, TargetMethodDefinition targetMethodDefinition) {
+  private void processHeaders(Headers headers,
+      TargetMethodDefinition.Builder targetMethodDefinition) {
     if (headers.value().length != 0) {
       Header[] header = headers.value();
       for (Header value : header) {
@@ -147,7 +149,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * @param header annotation to process.
    * @param targetMethodDefinition for the header.
    */
-  private void processHeader(Header header, TargetMethodDefinition targetMethodDefinition) {
+  private void processHeader(Header header, TargetMethodDefinition.Builder targetMethodDefinition) {
     HttpHeader httpHeader = new HttpHeader(header.name());
     httpHeader.value(header.value());
     targetMethodDefinition.header(httpHeader);
@@ -162,7 +164,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * @param targetMethodDefinition for the parameter.
    */
   private void processParameter(Param parameter, Integer index, Class<?> type,
-      TargetMethodDefinition targetMethodDefinition) {
+      TargetMethodDefinition.Builder targetMethodDefinition) {
     String name = parameter.value();
     Class<? extends ExpressionExpander> expanderClass = parameter.expander();
 
@@ -181,7 +183,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   }
 
   /**
-   * Constructs a name for a Method that is formatted as a {@link com.sun.javadoc.SeeTag}.
+   * Constructs a name for a Method that is formatted as a javadoc reference.
    *
    * @param targetType containing the method.
    * @param method to inspect.

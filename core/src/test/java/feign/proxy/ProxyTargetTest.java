@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,14 +47,16 @@ class ProxyTargetTest {
   @Mock
   private TargetMethodHandler targetMethodHandler;
 
-  private ProxyTarget target;
+  private ProxyTarget<?> target;
 
   @SuppressWarnings("unchecked")
   @BeforeEach
   void setUp() {
     Target<?> uriTarget = new UriTarget<>(ProxyInterface.class, "https://www.example.com");
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(uriTarget);
-    targetMethodDefinition.name("test");
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(uriTarget)
+            .name("test")
+            .build();
 
     when(this.feignConfiguration.getTarget()).thenReturn((Target<Object>) uriTarget);
     when(this.targetMethodHandlerFactory.create(any(TargetMethodDefinition.class),
