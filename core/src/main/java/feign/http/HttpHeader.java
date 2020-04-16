@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class HttpHeader implements Header {
           "Vary");
   private final String name;
   private final Set<String> values = new LinkedHashSet<>();
-  private boolean multipleValuesAllowed;
+  private final boolean multipleValuesAllowed;
 
   /**
    * Creates a new HttpHeader.

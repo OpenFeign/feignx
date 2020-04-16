@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,45 +25,60 @@ class TargetMethodDefinitionTest {
 
   @Test
   void getUri_alwaysReturnsAValue() {
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .build();
     assertThat(targetMethodDefinition.getUri()).isNotNull();
   }
 
   @Test
   void equals_name_caseSensitive() {
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
-    targetMethodDefinition.name("name");
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .name("name")
+            .build();
 
-    TargetMethodDefinition anotherDefinition = new TargetMethodDefinition(mock(Target.class));
-    anotherDefinition.name("name");
+    TargetMethodDefinition anotherDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .name("name")
+            .build();
     assertThat(targetMethodDefinition).isEqualTo(anotherDefinition);
   }
 
   @Test
   void equals_itself() {
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .build();
     assertThat(targetMethodDefinition).isEqualTo(targetMethodDefinition);
   }
 
   @Test
   void notEqual_toOtherTypes() {
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .build();
     assertThat(targetMethodDefinition).isNotEqualTo("A String");
   }
 
   @Test
   void notEqual_name_caseSensitive() {
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
-    targetMethodDefinition.name("Name");
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .name("name")
+            .build();
 
-    TargetMethodDefinition anotherDefinition = new TargetMethodDefinition(mock(Target.class));
-    anotherDefinition.name("name");
+    TargetMethodDefinition anotherDefinition =
+        TargetMethodDefinition.builder(mock(Target.class))
+            .name("Name")
+            .build();
     assertThat(targetMethodDefinition).isNotEqualTo(anotherDefinition);
   }
 
   @Test
   void toString_isNotEmpty() {
-    TargetMethodDefinition targetMethodDefinition = new TargetMethodDefinition(mock(Target.class));
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(mock(Target.class)).build();
     assertThat(targetMethodDefinition.toString()).isNotEmpty();
   }
 }

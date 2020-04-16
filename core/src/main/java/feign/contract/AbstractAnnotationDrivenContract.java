@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 OpenFeign Contributors
+ * Copyright 2019-2020 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,22 +51,28 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
      * used by all methods on this target.
      */
     Class<?> targetType = target.type();
-    TargetMethodDefinition root = new TargetMethodDefinition(target);
+    TargetMethodDefinition.Builder builder = TargetMethodDefinition.builder(target);
+
     logger.debug("Applying Contract to {}", targetType.getSimpleName());
-    this.processAnnotationsOnType(targetType, root);
+    this.processAnnotationsOnType(targetType, builder);
+    TargetMethodDefinition root = builder.build();
 
     for (Method method : targetType.getMethods()) {
       /* create a new metadata object from the root */
-      TargetMethodDefinition methodMetadata = new TargetMethodDefinition(root);
-      this.processAnnotationsOnMethod(targetType, method, methodMetadata);
+      TargetMethodDefinition.Builder methodBuilder = TargetMethodDefinition.from(root);
+      this.processAnnotationsOnMethod(targetType, method, methodBuilder);
 
       /* process method parameters */
       Parameter[] parameters = method.getParameters();
       for (int i = 0; i < parameters.length; i++) {
         Parameter parameter = parameters[i];
-        this.processAnnotationsOnParameter(parameter, i, methodMetadata);
+        this.processAnnotationsOnParameter(parameter, i, methodBuilder);
       }
 
+      /* build the instance */
+      TargetMethodDefinition methodMetadata = methodBuilder.build();
+
+      /* determine if implicit body parameter identification is required */
       if (methodMetadata.getBody() == -1
           && parameters.length > methodMetadata.getTemplateParameters().size()) {
         /* there are parameters on this method that are not registered.  in these cases, we
@@ -82,7 +88,10 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
             /* assume this is our body */
             logger.debug("Marking Parameter {}:{} as the Request Body.",
                 parameter.getName(), parameter.getType().getSimpleName());
-            methodMetadata.body(i);
+
+            /* update the builder and build again */
+            methodBuilder.body(i);
+            methodMetadata = methodBuilder.build();
             break;
           }
         }
@@ -103,30 +112,30 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
    * parameter level.
    *
    * @param targetType to inspect.
-   * @param targetMethodDefinition to store the applied configuration.
+   * @param targetMethodDefinitionBuilder to store the applied configuration.
    */
   protected abstract void processAnnotationsOnType(Class<?> targetType,
-      TargetMethodDefinition targetMethodDefinition);
+      TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
 
   /**
    * Apply any Annotations located at the Method level.
    *
    * @param targetType to the method belongs to.
    * @param method to inspect
-   * @param targetMethodDefinition to store the applied configuration.
+   * @param targetMethodDefinitionBuilder to store the applied configuration.
    */
   protected abstract void processAnnotationsOnMethod(Class<?> targetType, Method method,
-      TargetMethodDefinition targetMethodDefinition);
+      TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
 
   /**
    * Apply any Annotations located at the Parameter level.
    *
    * @param parameter to inspect.
    * @param parameterIndex of the parameter in the method definition.
-   * @param targetMethodDefinition to store the applied configuration.
+   * @param targetMethodDefinitionBuilder to store the applied configuration.
    */
   protected abstract void processAnnotationsOnParameter(Parameter parameter, Integer parameterIndex,
-      TargetMethodDefinition targetMethodDefinition);
+      TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
 
 
 }
