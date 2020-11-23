@@ -21,6 +21,7 @@ import feign.ExceptionHandler;
 import feign.Logger;
 import feign.Request;
 import feign.RequestEncoder;
+import feign.RequestEntity;
 import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
@@ -51,14 +52,14 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
 
   protected final org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass());
   protected TargetMethodDefinition targetMethodDefinition;
-  private RequestEncoder encoder;
-  private List<RequestInterceptor> interceptors;
-  private Client client;
-  private ResponseDecoder decoder;
-  private ExceptionHandler exceptionHandler;
-  private Logger logger;
-  private Executor executor;
-  private Retry retry;
+  private final RequestEncoder encoder;
+  private final List<RequestInterceptor> interceptors;
+  private final Client client;
+  private final ResponseDecoder decoder;
+  private final ExceptionHandler exceptionHandler;
+  private final Logger logger;
+  private final Executor executor;
+  private final Retry retry;
 
   /**
    * Creates a new Abstract Target HttpMethod Handler.
@@ -106,9 +107,6 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   @Override
   public Object execute(final Object[] arguments) {
 
-    /* prepare the request specification */
-    final RequestSpecification requestSpecification = this.resolve(arguments);
-
     /* create an asynchronous chain, using the provided executor.  this implementation
      * is not non-blocking, however, it does try to take advantage of the executor provided.
      *
@@ -117,9 +115,10 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
      * this call effectively synchronous.
      */
     CompletableFuture<Object> result =
-        CompletableFuture.runAsync(() -> intercept(requestSpecification), this.executor)
-            .thenRunAsync(() -> encode(requestSpecification, arguments), this.executor)
-            .thenApplyAsync(nothing -> requestSpecification.build(), this.executor)
+        CompletableFuture.supplyAsync(() -> this.resolve(arguments), this.executor)
+            .thenApplyAsync(this::intercept, this.executor)
+            .thenApplyAsync(specification -> encode(specification, arguments), this.executor)
+            .thenApplyAsync(RequestSpecification::build, this.executor)
             .thenApplyAsync(this::request, this.executor)
             .handleAsync((response, throwable) -> {
               if (throwable != null) {
@@ -171,11 +170,19 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    *
    * @param requestSpecification to intercept.
    */
-  protected void intercept(RequestSpecification requestSpecification) {
-    log.debug("Applying interceptors");
-    for (RequestInterceptor interceptor : this.interceptors) {
-      interceptor.accept(requestSpecification);
+  protected RequestSpecification intercept(RequestSpecification requestSpecification) {
+    if (!this.interceptors.isEmpty()) {
+      log.debug("Applying interceptors");
+      RequestSpecification result = requestSpecification;
+      for (RequestInterceptor interceptor : this.interceptors) {
+        /* apply all of the interceptors, in order */
+        result = interceptor.apply(result);
+      }
+      return result;
     }
+
+    /* no op */
+    return requestSpecification;
   }
 
   /**
@@ -197,12 +204,17 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @param requestSpecification to receive the encoded result.
    * @param arguments that may contain the request body.
    */
-  protected void encode(RequestSpecification requestSpecification, Object[] arguments) {
+  protected RequestSpecification encode(RequestSpecification requestSpecification,
+      Object[] arguments) {
     this.getRequestBody(arguments)
         .ifPresent(body -> {
           log.debug("Encoding Request Body: {}", body.getClass().getSimpleName());
-          this.encoder.apply(body, requestSpecification);
+          RequestEntity entity = this.encoder.apply(body, requestSpecification);
+          if (entity != null) {
+            requestSpecification.content(entity.getData());
+          }
         });
+    return requestSpecification;
   }
 
   /**
@@ -215,7 +227,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
     try {
       this.logRequest(targetMethodDefinition.getTag(), request);
       final Response response =
-          this.retry.execute(targetMethodDefinition.getTag(), request, req -> client.request(req));
+          this.retry.execute(targetMethodDefinition.getTag(), request, client::request);
       this.logResponse(targetMethodDefinition.getTag(), response);
       return response;
     } catch (Throwable th) {
@@ -262,15 +274,13 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
      * certain types that act as containers.  when decoding these types, we want to
      * decode the 'contained' type and then wrap the result in the desired container,
      */
-    try {
+    try (response) {
       if (typeDefinition.isContainer()) {
         /* we want to decode the actual type */
         return this.decoder.decode(response, typeDefinition.getActualType());
       } else {
         return this.decoder.decode(response, typeDefinition.getType());
       }
-    } finally {
-      response.close();
     }
   }
 

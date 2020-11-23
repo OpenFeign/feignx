@@ -255,7 +255,10 @@ class FeignTests {
         .encoder(new StringEncoder())
         .decoder(new StringDecoder())
         .exceptionHandler(exceptionHandler)
-        .interceptor(requestSpecification -> System.out.println("intercept"))
+        .interceptor(requestSpecification -> {
+          System.out.println("intercept");
+          return requestSpecification;
+        })
         .executor(Executors.newSingleThreadExecutor())
         .logger(logger)
         .retry(retry)

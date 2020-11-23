@@ -19,11 +19,19 @@ package feign;
 import feign.http.RequestSpecification;
 
 /**
- * Consumer responsible for encoding the provided object for use on the Request.
+ * Prepares a {@link RequestEntity} for use.
  */
 @FunctionalInterface
 public interface RequestEncoder {
 
-  void apply(Object content, RequestSpecification requestSpecification);
+  /**
+   * Encode the request content for use.  May return {@code null} if the entity should be
+   * ignored.
+   *
+   * @param content to be encoded.
+   * @param requestSpecification containing the current {@link RequestSpecification}.
+   * @return a {@link RequestEntity} instance, or {@code null}.
+   */
+  RequestEntity apply(Object content, RequestSpecification requestSpecification);
 
 }

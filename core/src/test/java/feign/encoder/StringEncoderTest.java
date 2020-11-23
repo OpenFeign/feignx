@@ -16,13 +16,11 @@
 
 package feign.encoder;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 import feign.RequestEncoder;
+import feign.RequestEntity;
 import feign.http.RequestSpecification;
 import org.junit.jupiter.api.Test;
 
@@ -32,15 +30,16 @@ class StringEncoderTest {
   void apply_toString() {
     RequestEncoder encoder = new StringEncoder();
     RequestSpecification requestSpecification = mock(RequestSpecification.class);
-    encoder.apply("content", requestSpecification);
-    verify(requestSpecification, times(1)).content(any(byte[].class));
+    RequestEntity entity = encoder.apply("content", requestSpecification);
+    assertThat(entity).isNotNull();
+    assertThat(entity.getData()).isNotEmpty();
   }
 
   @Test
   void apply_withNullSkips() {
     RequestEncoder encoder = new StringEncoder();
     RequestSpecification requestSpecification = mock(RequestSpecification.class);
-    encoder.apply(null, requestSpecification);
-    verifyZeroInteractions(requestSpecification);
+    RequestEntity entity = encoder.apply(null, requestSpecification);
+    assertThat(entity).isNull();
   }
 }

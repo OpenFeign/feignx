@@ -54,7 +54,7 @@ class BlockingTargetMethodHandlerTest {
   @Mock
   private Logger logger;
 
-  private Retry retry = new NoRetry();
+  private final Retry retry = new NoRetry();
 
   @Test
   void usingDefaultExecutor_willUseTheCallingThread() throws Throwable {
@@ -77,7 +77,7 @@ class BlockingTargetMethodHandlerTest {
 
     /* make sure that the executor used the current thread only */
     assertThat(executor.getThreads()).containsOnly(currentThread);
-    assertThat(executor.getExecutionCount()).isEqualTo(5);
+    assertThat(executor.getExecutionCount()).isEqualTo(6);
   }
 
   interface Blog {

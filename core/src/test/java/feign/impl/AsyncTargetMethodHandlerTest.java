@@ -71,7 +71,7 @@ class AsyncTargetMethodHandlerTest {
   private ResponseDecoder decoder;
 
   @Spy
-  private ExceptionHandler exceptionHandler = new RethrowExceptionHandler();
+  private final ExceptionHandler exceptionHandler = new RethrowExceptionHandler();
 
   @Mock
   private Logger logger;
@@ -82,14 +82,15 @@ class AsyncTargetMethodHandlerTest {
   @Captor
   private ArgumentCaptor<Class<?>> classArgumentCaptor;
 
-  private Contract contract = new FeignContract();
+  private final Contract contract = new FeignContract();
 
   private AsyncTargetMethodHandler methodHandler;
 
-  private Retry retry = new NoRetry();
+  private final Retry retry = new NoRetry();
 
-  private Executor executor = Executors.newFixedThreadPool(10);
+  private final Executor executor = Executors.newFixedThreadPool(10);
 
+  @SuppressWarnings("OptionalGetWithoutIsPresent")
   @BeforeEach
   void setUp() {
     Collection<TargetMethodDefinition> methodDefinitions =
@@ -143,7 +144,7 @@ class AsyncTargetMethodHandlerTest {
     verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "OptionalGetWithoutIsPresent"})
   @Test
   void methodNotHandled_returnsNull() {
     Collection<TargetMethodDefinition> methodDefinitions =
@@ -175,7 +176,7 @@ class AsyncTargetMethodHandlerTest {
     verify(mockHandler, times(1)).apply(any(Throwable.class));
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "OptionalGetWithoutIsPresent"})
   @Test
   void usingMultiThreadedExecutor_willExecuteOnOtherThreads() throws Throwable {
     AuditingExecutor executor = new AuditingExecutor(this.executor);
@@ -191,13 +192,13 @@ class AsyncTargetMethodHandlerTest {
 
     /* execute the request */
     CompletableFuture<Object> result =
-        (CompletableFuture) asyncTargetMethodHandler.execute(new Object[]{});
+        (CompletableFuture<Object>) asyncTargetMethodHandler.execute(new Object[]{});
     result.get();
 
     /* make sure that the executor used different threads */
     assertThat(executor.getThreads()).doesNotHaveDuplicates()
         .hasSizeGreaterThan(1).contains(currentThread);
-    assertThat(executor.getExecutionCount()).isEqualTo(5);
+    assertThat(executor.getExecutionCount()).isEqualTo(6);
   }
 
   interface Blog {
