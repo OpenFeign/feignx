@@ -17,11 +17,15 @@
 package feign;
 
 import feign.http.RequestSpecification;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
- * Consumer that can be used to modify a Request before being processed.
+ * Function used to act on a {@link RequestSpecification} during request processing.  It is possible
+ * to return an entirely new {@link RequestSpecification} from this component.
  */
-public interface RequestInterceptor extends Consumer<RequestSpecification> {
+public interface RequestInterceptor extends Function<RequestSpecification, RequestSpecification> {
 
+  static RequestInterceptor identity() {
+    return (t) -> t;
+  }
 }
