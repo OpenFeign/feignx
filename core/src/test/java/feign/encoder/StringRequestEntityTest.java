@@ -35,7 +35,7 @@ class StringRequestEntityTest {
     StringRequestEntity requestEntity = new StringRequestEntity(content);
     assertThat(requestEntity).isNotNull();
     assertThat(requestEntity.getCharset()).isPresent()
-        .isEqualTo(StandardCharsets.UTF_8);
+        .hasValue(StandardCharsets.UTF_8);
     assertThat(requestEntity.getContentType()).isNotEmpty()
         .isEqualToIgnoringCase(StringRequestEntity.TEXT_PLAIN);
     assertThat(requestEntity.getData()).isNotEmpty()
