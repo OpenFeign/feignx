@@ -19,9 +19,6 @@ package feign.encoder;
 import feign.RequestEncoder;
 import feign.RequestEntity;
 import feign.http.RequestSpecification;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 /**
  * HttpRequest Encoder that encodes the request content as a String.  This implementation uses
@@ -32,29 +29,9 @@ public class StringEncoder implements RequestEncoder {
   @Override
   public RequestEntity apply(Object content, RequestSpecification requestSpecification) {
     if (content != null) {
-      /* use the content objects toString() method to populate the request */
-      return new RequestEntity() {
-        @Override
-        public Optional<Charset> getCharset() {
-          return Optional.of(StandardCharsets.UTF_8);
-        }
-
-        @Override
-        public int getContentLength() {
-          return 0;
-        }
-
-        @Override
-        public String getContentType() {
-          return null;
-        }
-
-        @Override
-        public byte[] getData() {
-          return content.toString().getBytes(StandardCharsets.UTF_8);
-        }
-      };
+      return new StringRequestEntity(content.toString());
     }
     return null;
   }
+
 }
