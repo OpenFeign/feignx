@@ -142,6 +142,20 @@ class SimpleLoggerTest {
   }
 
   @Test
+  void shouldNotLogResponseBody_whenBodyIsZero() throws IOException {
+    SimpleLogger simpleLogger = SimpleLogger.builder()
+        .setEnabled(true)
+        .setResponseEnabled(true)
+        .build();
+
+    Response response = mock(Response.class);
+    when(response.contentLength()).thenReturn(0);
+    simpleLogger.logResponse("test", response);
+    verify(response, times(0)).toByteArray();
+    verify(response, times(0)).headers();
+  }
+
+  @Test
   void shouldLogResponseHeaders_whenEnabled() throws IOException {
     SimpleLogger simpleLogger = SimpleLogger.builder()
         .setEnabled(true)
@@ -176,4 +190,19 @@ class SimpleLoggerTest {
         "test", new RetryContext(3, new IOException("bad"), response));
     verifyZeroInteractions(response);
   }
+
+  @Test
+  void shouldLogException_ifResponseCannotBeRead() throws Exception {
+    SimpleLogger simpleLogger = SimpleLogger.builder()
+        .setEnabled(false)
+        .setResponseEnabled(true)
+        .build();
+
+    Response response = mock(Response.class);
+    when(response.toByteArray()).thenThrow(new IOException("stream closed"));
+    when(response.contentLength()).thenReturn(128);
+    simpleLogger.logResponse("test", response);
+    verify(response, times(1)).toByteArray();
+  }
+
 }
