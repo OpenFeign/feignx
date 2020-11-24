@@ -16,7 +16,7 @@ development and testing purposes.
 
 What things you need:
 
-* [Recent Java JDK: (1.8 or higher)](https://adoptopenjdk.net/)
+* [Recent Java JDK: (11 or higher)](https://adoptopenjdk.net/)
 * A clone of this repository:
 
 ```
