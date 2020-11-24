@@ -50,8 +50,9 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("WeakerAccess")
 public abstract class AbstractTargetMethodHandler implements TargetMethodHandler {
 
-  protected final org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass());
+
   protected TargetMethodDefinition targetMethodDefinition;
+  private final org.slf4j.Logger log;
   private final RequestEncoder encoder;
   private final List<RequestInterceptor> interceptors;
   private final Client client;
@@ -96,6 +97,8 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
     this.targetMethodDefinition = targetMethodDefinition;
     this.logger = logger;
     this.retry = retry;
+    this.log = LoggerFactory.getLogger(targetMethodDefinition.getTargetType());
+
   }
 
   /**
@@ -123,7 +126,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
             .handleAsync((response, throwable) -> {
               if (throwable != null) {
                 /* dispatch to the error handler */
-                log.error("Error occurred during method processing.  "
+                this.log.error("Error occurred during method processing.  "
                         + "Passing to Exception Handler.  Exception: {}: {}",
                     throwable.getClass().getSimpleName(), throwable.getMessage());
                 throw exceptionHandler.apply(throwable);
@@ -132,7 +135,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
                   /* decode the response */
                   return decode(response);
                 } catch (Exception ex) {
-                  log.error("Error occurred processing the response.  Passing to Exception Handler."
+                  this.log.error("Error occurred processing the response.  Passing to Exception Handler."
                       + "  Exception: {} {}", ex.getClass().getSimpleName(), ex.getMessage());
                   throw exceptionHandler.apply(ex);
                 }
@@ -158,10 +161,10 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @return a {@link RequestSpecification} instance.
    */
   protected RequestSpecification resolve(Object[] arguments) {
-    log.debug("Started processing of request: {}", this.targetMethodDefinition.getTag());
+    this.log.debug("Started processing of request: {}", this.targetMethodDefinition.getTag());
     RequestSpecification requestSpecification = this.targetMethodDefinition
         .requestSpecification(this.mapArguments(arguments));
-    log.debug("UriTemplate resolved: {}", requestSpecification.uri());
+    this.log.debug("UriTemplate resolved: {}", requestSpecification.uri());
     return requestSpecification;
   }
 
@@ -172,7 +175,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    */
   protected RequestSpecification intercept(RequestSpecification requestSpecification) {
     if (!this.interceptors.isEmpty()) {
-      log.debug("Applying interceptors");
+      this.log.debug("Applying interceptors");
       RequestSpecification result = requestSpecification;
       for (RequestInterceptor interceptor : this.interceptors) {
         /* apply all of the interceptors, in order */
@@ -208,7 +211,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
       Object[] arguments) {
     this.getRequestBody(arguments)
         .ifPresent(body -> {
-          log.debug("Encoding Request Body: {}", body.getClass().getSimpleName());
+          this.log.debug("Encoding Request Body: {}", body.getClass().getSimpleName());
           RequestEntity entity = this.encoder.apply(body, requestSpecification);
           if (entity != null) {
             requestSpecification.content(entity);
@@ -248,12 +251,12 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
       return null;
     } else if (Response.class == returnType) {
       /* no need to decode */
-      log.debug("Response type is feign.Response, no decoding necessary.");
+      this.log.debug("Response type is feign.Response, no decoding necessary.");
       return response;
     } else {
       try {
         /* decode the response */
-        log.debug("Decoding Response: {}", response);
+        this.log.debug("Decoding Response: {}", response);
         return this.decode(response, typeDefinition);
       } catch (Exception ex) {
         throw new FeignException(ex.getMessage(), ex, this.targetMethodDefinition.getTag());

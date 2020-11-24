@@ -182,6 +182,15 @@ public final class TargetMethodDefinition {
   }
 
   /**
+   * Target Type Class name.
+   *
+   * @return the simple name of the Target Class.
+   */
+  public String getTargetType() {
+    return this.target.type().getName();
+  }
+
+  /**
    * Argument Index registered for the value that should be used as the HttpRequest body.
    *
    * @return the request body argument index.

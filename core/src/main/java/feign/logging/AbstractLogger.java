@@ -28,7 +28,6 @@ import java.util.StringJoiner;
 /**
  * Base Logger implementation.
  */
-@SuppressWarnings("WeakerAccess")
 public abstract class AbstractLogger implements Logger {
 
   private final boolean enabled;
@@ -93,7 +92,7 @@ public abstract class AbstractLogger implements Logger {
 
       if (this.responseEnabled) {
         int length = response.contentLength();
-        if (length != 0) {
+        if (length > 0) {
           if (length < 512) {
             try {
               /* this forces us to read the entire response before logging */

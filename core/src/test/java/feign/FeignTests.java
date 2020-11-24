@@ -114,6 +114,7 @@ class FeignTests {
   @Test
   void createTargetAndExecute() {
     Logger logger = SimpleLogger.builder()
+        .setName(GitHub.class.getName())
         .setEnabled(true)
         .setHeadersEnabled(true)
         .setRequestEnabled(true)

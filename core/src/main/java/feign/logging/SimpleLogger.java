@@ -16,6 +16,7 @@
 
 package feign.logging;
 
+import feign.support.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -25,7 +26,7 @@ import org.slf4j.MDC;
  */
 public class SimpleLogger extends AbstractLogger {
 
-  private static final Logger logger = LoggerFactory.getLogger(SimpleLogger.class);
+  private final Logger logger;
 
   public static Builder builder() {
     return new Builder();
@@ -41,7 +42,23 @@ public class SimpleLogger extends AbstractLogger {
    */
   private SimpleLogger(boolean enabled, boolean requestEnabled, boolean responseEnabled,
       boolean headersEnabled) {
+    this(SimpleLogger.class.getName(), enabled, requestEnabled, responseEnabled, headersEnabled);
+  }
+
+  /**
+   * Creates a new Simple Logger.
+   *
+   * @param name of the Logger.
+   * @param enabled if logging should be enabled.
+   * @param requestEnabled if request logging should be enabled.
+   * @param responseEnabled if response logging should be enabled.
+   * @param headersEnabled if header logging should be enabled.
+   */
+  private SimpleLogger(String name, boolean enabled, boolean requestEnabled,
+      boolean responseEnabled,
+      boolean headersEnabled) {
     super(enabled, requestEnabled, responseEnabled, headersEnabled);
+    this.logger = LoggerFactory.getLogger(name);
   }
 
   /**
@@ -54,7 +71,7 @@ public class SimpleLogger extends AbstractLogger {
   protected void log(String methodName, String message) {
     MDC.put("method", methodName);
     try {
-      logger.info(message);
+      this.logger.info(String.format("%s() %s", methodName, message));
     } finally {
       MDC.clear();
     }
@@ -69,6 +86,18 @@ public class SimpleLogger extends AbstractLogger {
     private boolean requestEnabled = false;
     private boolean responseEnabled = false;
     private boolean headersEnabled = false;
+    private String name;
+
+    /**
+     * Set the name of the Logger.
+     *
+     * @param name for the logger.
+     * @return the builder chain.
+     */
+    public Builder setName(String name) {
+      this.name = name;
+      return this;
+    }
 
     /**
      * Set if Logging should be enabled.
@@ -118,6 +147,10 @@ public class SimpleLogger extends AbstractLogger {
     }
 
     public SimpleLogger build() {
+      if (StringUtils.isNotEmpty(this.name)) {
+        return new SimpleLogger(this.name, this.enabled, this.requestEnabled, this.responseEnabled,
+            this.headersEnabled);
+      }
       return new SimpleLogger(this.enabled, this.requestEnabled, this.responseEnabled,
           this.headersEnabled);
     }
