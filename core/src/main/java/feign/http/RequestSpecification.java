@@ -18,6 +18,7 @@ package feign.http;
 
 import feign.Header;
 import feign.Request;
+import feign.RequestEntity;
 import feign.RequestOptions;
 import feign.support.Assert;
 import feign.support.StringUtils;
@@ -40,7 +41,7 @@ public class RequestSpecification {
   private URI uri;
   private final Map<String, Header> headers = new LinkedHashMap<>();
   private final Map<String, List<String>> parameters = new LinkedHashMap<>();
-  private byte[] content;
+  private RequestEntity content;
   private long connectTimeout;
   private TimeUnit connectTimeoutUnit;
   private long readTimeout;
@@ -152,7 +153,7 @@ public class RequestSpecification {
    * @param content to include in the HttpRequest body.
    * @return the reference chain.
    */
-  public RequestSpecification content(byte[] content) {
+  public RequestSpecification content(RequestEntity content) {
     this.content = content;
     return this;
   }

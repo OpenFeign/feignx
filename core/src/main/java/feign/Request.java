@@ -18,7 +18,7 @@ package feign;
 
 import feign.http.HttpMethod;
 import java.net.URI;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Information about a Request to be made.
@@ -47,6 +47,13 @@ public interface Request {
   int contentLength();
 
   /**
+   * MIME Type or other equivalent content type.  May be {@code null}
+   *
+   * @return request content type.
+   */
+  String contentType();
+
+  /**
    * Http Method for this request.
    *
    * @return http method.
@@ -58,7 +65,7 @@ public interface Request {
    *
    * @return request headers.
    */
-  List<Header> headers();
+  Collection<Header> headers();
 
   /**
    * Options for this request.

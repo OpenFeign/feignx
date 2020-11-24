@@ -43,4 +43,9 @@ public interface Header {
    * @param value to add.
    */
   void value(String value);
+
+  /**
+   * Clear the Header values.
+   */
+  void clear();
 }

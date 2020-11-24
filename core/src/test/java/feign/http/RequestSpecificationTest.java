@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import feign.Header;
 import feign.Request;
 import feign.RequestOptions;
+import feign.encoder.StringRequestEntity;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -42,7 +43,7 @@ class RequestSpecificationTest {
         .followRedirects(true)
         .readTimeout(2, TimeUnit.SECONDS)
         .connectTimeout(1, TimeUnit.SECONDS)
-        .content("data".getBytes(StandardCharsets.UTF_8))
+        .content(new StringRequestEntity("data"))
         .build();
     assertThat(request).isInstanceOf(HttpRequest.class);
 

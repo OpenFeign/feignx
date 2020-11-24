@@ -18,6 +18,7 @@ package feign.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import feign.encoder.StringRequestEntity;
 import java.net.URI;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,15 @@ class HttpRequestTest {
         null,
         null);
     assertThat(request.contentLength()).isZero();
+
+    /* ensure that the content related headers are absent */
+    assertThat(request.headers()).filteredOn(
+        header -> "Content-Type".equalsIgnoreCase(header.name()))
+        .isEmpty();
+
+    assertThat(request.headers()).filteredOn(
+        header -> "Content-Length".equalsIgnoreCase(header.name()))
+        .isEmpty();
   }
 
   @Test
@@ -55,5 +65,25 @@ class HttpRequestTest {
         null,
         null);
     assertThat(request.toString()).isNotEmpty();
+  }
+
+  @Test
+  void contentType_isSet_WhenEntityPresent() {
+    HttpRequest request = new HttpRequest(
+        URI.create("https://api.example.com"),
+        HttpMethod.POST,
+        Collections.emptyList(),
+        null,
+        new StringRequestEntity("content"));
+    assertThat(request.content()).isNotNull();
+    assertThat(request.contentLength()).isNotZero();
+    assertThat(request.contentType()).isEqualToIgnoringCase("text/plain");
+    assertThat(request.headers()).filteredOn(
+        header -> "Content-Type".equalsIgnoreCase(header.name()))
+        .isNotEmpty();
+
+    assertThat(request.headers()).filteredOn(
+        header -> "Content-Length".equalsIgnoreCase(header.name()))
+        .isNotEmpty();
   }
 }
