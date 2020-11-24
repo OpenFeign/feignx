@@ -16,6 +16,7 @@
 
 package feign.assertions;
 
+import feign.Header;
 import feign.http.HttpHeader;
 import feign.http.HttpRequest;
 import java.util.Collection;
@@ -60,8 +61,9 @@ public abstract class AbstractHttpRequestAssert<S extends AbstractHttpRequestAss
     }
 
     // check with standard error message (use overridingErrorMessage before contains to set your own message).
-    Assertions.assertThat(org.assertj.core.util.introspection.FieldSupport.EXTRACTION
-        .fieldValue("content", byte[].class, actual)).contains(content);
+    Assertions.assertThat(org.assertj.core.util.introspection.PropertySupport
+        .propertyValueOf("content", actual, byte[].class)).contains(content);
+
 
     // return the current assertion for method chaining
     return myself;
@@ -151,7 +153,7 @@ public abstract class AbstractHttpRequestAssert<S extends AbstractHttpRequestAss
    * @throws AssertionError if the actual HttpRequest's headers does not contain all given
    * HttpHeader elements.
    */
-  public S hasHeaders(java.util.Collection<? extends HttpHeader> headers) {
+  public S hasHeaders(java.util.Collection<? extends Header> headers) {
     // check that actual HttpResponse we want to make assertions on is not null.
     isNotNull();
 
@@ -162,7 +164,7 @@ public abstract class AbstractHttpRequestAssert<S extends AbstractHttpRequestAss
     }
 
     // check with standard error message, to set another message call: info.overridingErrorMessage("my error message");
-    Iterables.instance().assertContains(info, org.assertj.core.util.introspection.FieldSupport.EXTRACTION.fieldValue("headers", java.util.List.class, actual), headers.toArray());
+    Iterables.instance().assertContains(info, org.assertj.core.util.introspection.PropertySupport.propertyValueOf("headers", actual, java.util.List.class), headers.toArray());
 
     // return the current assertion for method chaining
     return myself;
@@ -210,7 +212,7 @@ public abstract class AbstractHttpRequestAssert<S extends AbstractHttpRequestAss
     if (headers == null) failWithMessage("Expecting headers parameter not to be null.");
 
     // check with standard error message (use overridingErrorMessage before contains to set your own message).
-    Iterables.instance().assertDoesNotContain(info, org.assertj.core.util.introspection.FieldSupport.EXTRACTION.fieldValue("headers", java.util.List.class, actual), headers);
+    Iterables.instance().assertDoesNotContain(info, org.assertj.core.util.introspection.PropertySupport.propertyValueOf("headers", actual, java.util.List.class), headers);
 
     // return the current assertion for method chaining
     return myself;

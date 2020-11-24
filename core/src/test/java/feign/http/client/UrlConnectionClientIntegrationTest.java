@@ -28,6 +28,7 @@ import static org.mockserver.model.HttpResponse.response;
 import feign.Request;
 import feign.RequestOptions;
 import feign.Response;
+import feign.encoder.StringRequestEntity;
 import feign.http.HttpException;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
@@ -53,7 +54,7 @@ class UrlConnectionClientIntegrationTest {
   private static final Random random = new Random();
   private static final byte[] data = new byte[2048];
   private static ClientAndServer mockServerClient;
-  private UrlConnectionClient urlConnectionClient = new UrlConnectionClient();
+  private final UrlConnectionClient urlConnectionClient = new UrlConnectionClient();
 
   @BeforeAll
   static void startServer() {
@@ -160,7 +161,7 @@ class UrlConnectionClientIntegrationTest {
     HttpRequest request = new HttpRequest(
         URI.create("http://localhost:1080/create"), HttpMethod.POST,
         Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("*/*"))),
-        RequestOptions.builder().build(), "content".getBytes(StandardCharsets.UTF_8));
+        RequestOptions.builder().build(), new StringRequestEntity("content"));
     try (Response response = this.urlConnectionClient.request(request)) {
       assertThat(response).isNotNull().isInstanceOf(HttpResponse.class);
       HttpResponse httpResponse = (HttpResponse) response;
@@ -182,7 +183,7 @@ class UrlConnectionClientIntegrationTest {
     HttpRequest request = new HttpRequest(
         uri, HttpMethod.POST,
         Collections.singletonList(new HttpHeader("Accept", Collections.singletonList("*/*"))),
-        RequestOptions.builder().build(), "content".getBytes(StandardCharsets.UTF_8));
+        RequestOptions.builder().build(), new StringRequestEntity("content"));
     assertThrows(HttpException.class, () -> urlConnectionClient.request(request));
   }
 
@@ -210,25 +211,19 @@ class UrlConnectionClientIntegrationTest {
   void readErrorStream_whenStatusIs4xx() {
     HttpRequest request = new HttpRequest(
         URI.create("http://localhost:1080/create"), HttpMethod.POST,
-        null, RequestOptions.builder().build(), "incorrect".getBytes(StandardCharsets.UTF_8));
+        null, RequestOptions.builder().build(), new StringRequestEntity("incorrect"));
     try {
       this.urlConnectionClient.request(request);
     } catch (HttpException httpException) {
       httpException.getResponse()
           .ifPresent(httpResponse -> {
-            try  {
+            try (httpResponse) {
               assertThat(httpResponse).hasStatus(400)
                   .hasReason("Bad Request");
               String responseData = new String(httpResponse.toByteArray());
               assertThat(responseData).isEqualTo("Incorrect Parameters");
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
               // ignored
-            } finally {
-              try {
-                httpResponse.close();
-              } catch (Exception ex) {
-                // ignored
-              }
             }
           });
     }

@@ -211,7 +211,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
           log.debug("Encoding Request Body: {}", body.getClass().getSimpleName());
           RequestEntity entity = this.encoder.apply(body, requestSpecification);
           if (entity != null) {
-            requestSpecification.content(entity.getData());
+            requestSpecification.content(entity);
           }
         });
     return requestSpecification;
