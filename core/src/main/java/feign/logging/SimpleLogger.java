@@ -146,6 +146,11 @@ public class SimpleLogger extends AbstractLogger {
       return this;
     }
 
+    /**
+     * Build a new Simple Logger instance.
+     *
+     * @return a new SimpleLogger instance.
+     */
     public SimpleLogger build() {
       if (StringUtils.isNotEmpty(this.name)) {
         return new SimpleLogger(this.name, this.enabled, this.requestEnabled, this.responseEnabled,
