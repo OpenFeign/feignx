@@ -135,8 +135,9 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
                   /* decode the response */
                   return decode(response);
                 } catch (Exception ex) {
-                  this.log.error("Error occurred processing the response.  Passing to Exception Handler."
-                      + "  Exception: {} {}", ex.getClass().getSimpleName(), ex.getMessage());
+                  this.log.error(
+                      "Error occurred processing the response.  Passing to Exception Handler."
+                          + "  Exception: {} {}", ex.getClass().getSimpleName(), ex.getMessage());
                   throw exceptionHandler.apply(ex);
                 }
               }
