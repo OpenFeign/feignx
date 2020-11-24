@@ -90,17 +90,6 @@ public class HttpHeader implements Header {
   }
 
   /**
-   * Add All of the provided values to the header.
-   *
-   * @param values to be added.
-   * @throws IllegalArgumentException if the value is {@literal null}
-   * @throws IllegalStateException if the header name does not support multiple values.
-   */
-  void values(Collection<String> values) {
-    values.forEach(this::value);
-  }
-
-  /**
    * The values for this header.
    *
    * @return a read-only collection containing the values.
