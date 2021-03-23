@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -329,6 +329,9 @@ public final class TargetMethodDefinition {
         .toString();
   }
 
+  /**
+   * Builder for a Target Method Definition.
+   */
   public static class Builder {
 
     private final Target<?> target;
