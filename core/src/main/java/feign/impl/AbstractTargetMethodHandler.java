@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,23 @@ import feign.ResponseDecoder;
 import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
+import feign.TargetMethodParameterDefinition;
 import feign.exception.FeignException;
 import feign.http.RequestSpecification;
 import feign.impl.type.TypeDefinition;
 import feign.support.Assert;
+import feign.template.ExpanderRegistry;
+import feign.template.ExpressionExpander;
+import feign.template.SimpleTemplateParameter;
 import feign.template.TemplateParameter;
+import feign.template.expander.CachingExpanderRegistry;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +67,8 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   private final Logger logger;
   private final Executor executor;
   private final Retry retry;
+  private final Map<Integer, TemplateParameter> parameterMap = new ConcurrentHashMap<>();
+  private ExpanderRegistry expanderRegistry = new CachingExpanderRegistry();
 
   /**
    * Creates a new Abstract Target HttpMethod Handler.
@@ -293,16 +301,55 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    *
    * @param arguments to map.
    * @return a new Map, where the argument matches corresponding Template parameter.
+   * @throws IllegalStateException if the arguments could not be mapped.
    */
   private Map<TemplateParameter, Object> mapArguments(Object[] arguments) {
     Map<TemplateParameter, Object> variables = new LinkedHashMap<>();
     for (int i = 0; i < arguments.length; i++) {
+      final int index = i;
       final Object argument = arguments[i];
-      Optional<TemplateParameter> templateParameter =
-          this.targetMethodDefinition.getTemplateParameter(i);
-      templateParameter.ifPresent(parameter -> variables.put(parameter, argument));
+      Optional<TargetMethodParameterDefinition> parameterDefinition =
+          this.targetMethodDefinition.getParameterDefinition(i);
+      parameterDefinition.ifPresent(parameter -> variables.put(
+          getTemplateParameterForIndex(index, parameter), argument));
     }
     return variables;
+  }
+
+  /**
+   * Retrieve the {@link TemplateParameter} for the specified method parameter index.
+   *
+   * @param index of the parameter.
+   * @param definition of the parameter.
+   * @return the {@link TemplateParameter} instance at this index.
+   * @throws IllegalStateException if the {@link TemplateParameter} instance could not be retrieved.
+   */
+  private TemplateParameter getTemplateParameterForIndex(int index,
+      TargetMethodParameterDefinition definition) {
+    return this.parameterMap.computeIfAbsent(index,
+        idx -> new SimpleTemplateParameter(definition.getName(),
+            getExpressionExpanderFor(definition)));
+  }
+
+  /**
+   * Obtain the {@link ExpressionExpander} instance for definition.
+   *
+   * @param parameterDefinition to evaluate.
+   * @return the {@link ExpressionExpander} instance for the parameter.
+   * @throws IllegalStateException if the {@link ExpressionExpander} instance could not be obtained.
+   */
+  @SuppressWarnings("unchecked")
+  private ExpressionExpander getExpressionExpanderFor(
+      TargetMethodParameterDefinition parameterDefinition) {
+    String expanderClassName = parameterDefinition.getExpanderClassName();
+    try {
+      Class<? extends ExpressionExpander> expanderClass =
+          (Class<? extends ExpressionExpander>) Class.forName(expanderClassName);
+      return this.expanderRegistry.getExpander(expanderClass, parameterDefinition.getType());
+    } catch (Exception ex) {
+      throw new IllegalStateException(
+          "Expression Expander instance " + expanderClassName + " not found.", ex);
+    }
   }
 
   /**
@@ -323,4 +370,13 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
     this.logger.logResponse(method, response);
   }
 
+
+  /**
+   * Override the Expander Registry.
+   *
+   * @param expanderRegistry to use.
+   */
+  void setExpanderRegistry(ExpanderRegistry expanderRegistry) {
+    this.expanderRegistry = expanderRegistry;
+  }
 }

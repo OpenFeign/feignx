@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,5 +37,6 @@ public interface ExpanderRegistry {
    * @return an {@link ExpressionExpander} instance of the type provided.
    * @throws IllegalStateException if the expander instance could be created.
    */
-  ExpressionExpander getExpander(Class<? extends ExpressionExpander> expanderClass);
+  ExpressionExpander getExpander(Class<? extends ExpressionExpander> expanderClass,
+      String typeClassName);
 }

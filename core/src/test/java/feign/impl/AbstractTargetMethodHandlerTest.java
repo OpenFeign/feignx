@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package feign.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -40,10 +41,14 @@ import feign.ResponseDecoder;
 import feign.Retry;
 import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
+import feign.TargetMethodParameterDefinition;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
 import feign.retry.NoRetry;
-import feign.template.SimpleTemplateParameter;
+import feign.template.ExpanderRegistry;
+import feign.template.ExpressionExpander;
+import feign.template.expander.CachingExpanderRegistry;
+import feign.template.expander.DefaultExpander;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -92,7 +97,6 @@ class AbstractTargetMethodHandlerTest {
   void setUp() {
     this.targetMethodDefinition = TargetMethodDefinition.builder(
         new UriTarget<>(TestInterface.class, "https://www.example.com"));
-
   }
 
   @Test
@@ -102,7 +106,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(String.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"))
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build())
         .body(1);
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -130,7 +139,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(String.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"))
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build())
         .body(1);
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
@@ -182,7 +196,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(String.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"))
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build())
         .body(1);
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
@@ -209,9 +228,14 @@ class AbstractTargetMethodHandlerTest {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
     this.targetMethodDefinition.returnType(String.class)
-            .uri("/resources/{name}")
-            .method(HttpMethod.GET)
-            .templateParameter(0, new SimpleTemplateParameter("name"));
+        .uri("/resources/{name}")
+        .method(HttpMethod.GET)
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -238,7 +262,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(Response.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"));
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -263,7 +292,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(Response.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"));
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -289,7 +323,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(Response.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"));
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -315,7 +354,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(void.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"));
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -343,7 +387,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(Response.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"))
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build())
         .readTimeout(1000)
         .body(1);
 
@@ -371,7 +420,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(Response.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"));
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getCanonicalName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
@@ -400,7 +454,12 @@ class AbstractTargetMethodHandlerTest {
     this.targetMethodDefinition.returnType(String.class)
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
-        .templateParameter(0, new SimpleTemplateParameter("name"))
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getCanonicalName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build())
         .body(1);
 
     ExceptionHandler exceptionHandler = spy(new RethrowExceptionHandler());
@@ -422,6 +481,42 @@ class AbstractTargetMethodHandlerTest {
     verify(client, times(1)).request(any(Request.class));
     verify(decoder, times(1)).decode(any(Response.class), eq(String.class));
     verify(exceptionHandler, times(1)).apply(any(Throwable.class));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void ensureTemplateParameters_areCached() {
+    this.targetMethodDefinition.returnType(String.class)
+        .uri("/resources/{name}")
+        .method(HttpMethod.GET)
+        .parameterDefinition(0, TargetMethodParameterDefinition.builder()
+            .name("name")
+            .type(String.class.getCanonicalName())
+            .index(0)
+            .expanderClassName(DefaultExpander.class.getName())
+            .build())
+        .body(1);
+
+    ExpanderRegistry expanderRegistry = spy(new CachingExpanderRegistry());
+    BlockingTargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
+        this.targetMethodDefinition.build(),
+        this.encoder,
+        Collections.singletonList(this.interceptor),
+        this.client,
+        this.decoder,
+        exceptionHandler,
+        this.executor,
+        this.logger,
+        this.retry);
+    targetMethodHandler.setExpanderRegistry(expanderRegistry);
+
+    /* call the method twice, expect the expander registry to be invoked only once */
+    targetMethodHandler.execute(Arrays.array("name", "body"));
+    targetMethodHandler.execute(Arrays.array("name", "body"));
+
+    verify(expanderRegistry, times(1))
+        .getExpander(any(Class.class), anyString());
+
   }
 
   interface TestInterface {

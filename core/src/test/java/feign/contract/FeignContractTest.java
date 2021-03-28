@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import feign.Contract;
 import feign.RequestOptions;
 import feign.Response;
 import feign.TargetMethodDefinition;
+import feign.TargetMethodParameterDefinition;
 import feign.http.HttpMethod;
 import feign.impl.UriTarget;
 import feign.template.SimpleTemplateParameter;
+import feign.template.expander.DefaultExpander;
 import feign.template.expander.ListExpander;
 import feign.template.expander.MapExpander;
 import java.util.Collection;
@@ -54,7 +56,7 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("get")
             && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
-            && targetMethodDefinition.getTemplateParameters().isEmpty()
+            && targetMethodDefinition.getParameterDefinitions().isEmpty()
             && targetMethodDefinition.getBody() == -1
             && targetMethodDefinition.getConnectTimeout() == RequestOptions.DEFAULT_CONNECT_TIMEOUT
             && targetMethodDefinition.getReadTimeout() == RequestOptions.DEFAULT_READ_TIMEOUT
@@ -65,8 +67,13 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("post")
             && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.POST
-            && targetMethodDefinition.getTemplateParameters().contains(
-            new SimpleTemplateParameter("parameter"))
+            && targetMethodDefinition.getParameterDefinitions().contains(
+            TargetMethodParameterDefinition.builder()
+                .name("parameter")
+                .index(0)
+                .type(String.class.getCanonicalName())
+                .expanderClassName(DefaultExpander.class.getName())
+                .build())
             && targetMethodDefinition.getBody() == 1);
 
     /* explicit body parameter */
@@ -74,8 +81,13 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("put")
             && targetMethodDefinition.getReturnType().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.PUT
-            && targetMethodDefinition.getTemplateParameters()
-            .contains(new SimpleTemplateParameter("parameter"))
+            && targetMethodDefinition.getParameterDefinitions()
+            .contains(TargetMethodParameterDefinition.builder()
+                .name("parameter")
+                .index(0)
+                .type(String.class.getCanonicalName())
+                .expanderClassName(DefaultExpander.class.getName())
+                .build())
             && targetMethodDefinition.getBody() == 1);
 
     /* void return type */
@@ -83,8 +95,13 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("delete")
             && targetMethodDefinition.getReturnType().getType() == void.class
             && targetMethodDefinition.getMethod() == HttpMethod.DELETE
-            && targetMethodDefinition.getTemplateParameters()
-            .contains(new SimpleTemplateParameter("parameter"))
+            && targetMethodDefinition.getParameterDefinitions()
+            .contains(TargetMethodParameterDefinition.builder()
+                .name("parameter")
+                .index(0)
+                .type(String.class.getCanonicalName())
+                .expanderClassName(DefaultExpander.class.getName())
+                .build())
             && targetMethodDefinition.getBody() == -1);
 
     /* request options and generic return type */
@@ -92,7 +109,7 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("search")
             && targetMethodDefinition.getReturnType().getType() == List.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
-            && targetMethodDefinition.getTemplateParameters().isEmpty()
+            && targetMethodDefinition.getParameterDefinitions().isEmpty()
             && targetMethodDefinition.getBody() == -1
             && targetMethodDefinition.getConnectTimeout() == 1000
             && targetMethodDefinition.getReadTimeout() == 2000
@@ -106,9 +123,10 @@ class FeignContractTest {
           && targetMethodDefinition.getBody() == -1;
       assertThat(properties).isTrue();
 
-      targetMethodDefinition.getTemplateParameter(0)
+      targetMethodDefinition.getParameterDefinition(0)
           .ifPresent(
-              parameter -> assertThat(parameter.expander()).isInstanceOf(MapExpander.class));
+              parameter -> assertThat(parameter.getType())
+                  .isEqualToIgnoringCase(Map.class.getCanonicalName()));
     });
 
     /* list parameter type */
@@ -120,9 +138,10 @@ class FeignContractTest {
               && targetMethodDefinition.getBody() == -1;
           assertThat(properties).isTrue();
 
-          targetMethodDefinition.getTemplateParameter(0)
+          targetMethodDefinition.getParameterDefinition(0)
               .ifPresent(
-                  parameter -> assertThat(parameter.expander()).isInstanceOf(ListExpander.class));
+                  parameter -> assertThat(parameter.getType())
+                      .isEqualToIgnoringCase(List.class.getCanonicalName()));
         });
 
     /* response return type */
@@ -130,8 +149,13 @@ class FeignContractTest {
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("response")
             && targetMethodDefinition.getReturnType().getType() == Response.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
-            && targetMethodDefinition.getTemplateParameters()
-            .contains(new SimpleTemplateParameter("parameters"))
+            && targetMethodDefinition.getParameterDefinitions()
+            .contains(TargetMethodParameterDefinition.builder()
+                .name("parameters")
+                .index(0)
+                .type(String.class.getCanonicalName())
+                .expanderClassName(DefaultExpander.class.getName())
+                .build())
             && targetMethodDefinition.getBody() == -1);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
 
       /* determine if implicit body parameter identification is required */
       if (methodMetadata.getBody() == -1
-          && parameters.length > methodMetadata.getTemplateParameters().size()) {
+          && parameters.length > methodMetadata.getParameterDefinitions().size()) {
         /* there are parameters on this method that are not registered.  in these cases, we
          * allow users to define which parameter they want as the Request Body without an explicit
          * annotation, look for that parameter and register it.
@@ -136,6 +136,5 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
    */
   protected abstract void processAnnotationsOnParameter(Parameter parameter, Integer parameterIndex,
       TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
-
 
 }

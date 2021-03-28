@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ public class CachingExpanderRegistry implements ExpanderRegistry {
   private final Map<Class<?>, ExpressionExpander> expanderMapCache = new ConcurrentHashMap<>();
 
   /**
-   * Retrieves the {@link ExpressionExpander} registered for the specified type.  In the event
-   * that there is no expander registered, a new expander will be created and returned.
+   * Retrieves the {@link ExpressionExpander} registered for the specified type.  In the event that
+   * there is no expander registered, a new expander will be created and returned.
    *
    * @param parameterType to be expanded.
    * @return an {@link ExpressionExpander} instance.
@@ -53,26 +53,45 @@ public class CachingExpanderRegistry implements ExpanderRegistry {
   }
 
   /**
-   * Retrieve the {@link ExpressionExpander} instance for the specified custom
-   * {@link ExpressionExpander} type specified.  If no instance exists, a new instance will be
-   * created and cached.
+   * Retrieve the {@link ExpressionExpander} instance for the specified custom {@link
+   * ExpressionExpander} type specified.  If no instance exists, a new instance will be created and
+   * cached.
    *
    * @param expanderClass to retrieve.
    * @return an instance of the provided expander.
    */
   @Override
-  public ExpressionExpander getExpander(Class<? extends ExpressionExpander> expanderClass) {
+  public ExpressionExpander getExpander(Class<? extends ExpressionExpander> expanderClass,
+      String typeClassName) {
     return this.expanderMapCache.computeIfAbsent(expanderClass,
         type -> {
-          try {
-            return (ExpressionExpander) type.getDeclaredConstructor().newInstance();
-          } catch (Exception ex) {
-            throw new IllegalStateException("Error occurred creating custom expander instance "
-                + "for type " + type.getSimpleName() + ".  "
-                + "Could not create instance." + ex.getMessage(), ex);
+          if (isCustomExpander(type)) {
+            try {
+              /* create a new instance of the custom expander */
+              return (ExpressionExpander) type.getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+              throw new IllegalStateException("Error occurred creating custom expander instance "
+                  + "for type " + type.getSimpleName() + ".  "
+                  + "Could not create instance." + ex.getMessage(), ex);
+            }
+          } else {
+            /* fallback to the type */
+            return getExpanderByTypeName(typeClassName);
           }
         });
   }
 
+  private ExpressionExpander getExpanderByTypeName(String typeClassName) {
+    try {
+      Class<?> type = Class.forName(typeClassName);
+      return this.getExpanderByType(type);
+    } catch (ClassNotFoundException classNotFoundException) {
+      throw new IllegalStateException(classNotFoundException);
+    }
+  }
+
+  private boolean isCustomExpander(Class<?> expanderClass) {
+    return DefaultExpander.class != expanderClass;
+  }
 
 }

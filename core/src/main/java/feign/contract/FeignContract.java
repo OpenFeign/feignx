@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 package feign.contract;
 
 import feign.TargetMethodDefinition;
+import feign.TargetMethodParameterDefinition;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
 import feign.support.StringUtils;
-import feign.template.ExpanderRegistry;
 import feign.template.ExpressionExpander;
-import feign.template.SimpleTemplateParameter;
-import feign.template.expander.CachingExpanderRegistry;
 import feign.template.expander.DefaultExpander;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -36,8 +34,6 @@ import java.util.List;
  * Contract that uses Feign annotations.
  */
 public class FeignContract extends AbstractAnnotationDrivenContract {
-
-  private final ExpanderRegistry expanderRegistry = new CachingExpanderRegistry();
 
   /**
    * Creates a new Feign Contract.
@@ -165,21 +161,20 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    */
   private void processParameter(Param parameter, Integer index, Class<?> type,
       TargetMethodDefinition.Builder targetMethodDefinition) {
+
     String name = parameter.value();
+    String typeClass = type.getCanonicalName();
+
     Class<? extends ExpressionExpander> expanderClass = parameter.expander();
+    String expanderClassName = expanderClass.getName();
 
-    /* inspect the type annotated */
-    ExpressionExpander expander;
-    if (this.isCustomExpander(expanderClass)) {
-      /* retrieve an instance of the custom expander */
-      expander = this.expanderRegistry.getExpander(expanderClass);
-    } else {
-      /* retrieve the expander from the registry by the parameter type */
-      expander = this.expanderRegistry.getExpanderByType(type);
-    }
-
-    targetMethodDefinition.templateParameter(
-        index, new SimpleTemplateParameter(name, expander));
+    targetMethodDefinition.parameterDefinition(
+        index, TargetMethodParameterDefinition.builder()
+            .name(name)
+            .index(index)
+            .type(typeClass)
+            .expanderClassName(expanderClassName)
+            .build());
   }
 
   /**
@@ -212,7 +207,5 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
     return method.getGenericReturnType();
   }
 
-  private boolean isCustomExpander(Class<? extends ExpressionExpander> expanderClass) {
-    return DefaultExpander.class != expanderClass;
-  }
+
 }
