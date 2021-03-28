@@ -38,7 +38,6 @@ import feign.template.ExpressionExpander;
 import feign.template.SimpleTemplateParameter;
 import feign.template.TemplateParameter;
 import feign.template.expander.CachingExpanderRegistry;
-import feign.template.expander.DefaultExpander;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
