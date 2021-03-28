@@ -17,7 +17,6 @@
 package feign;
 
 import feign.support.Assert;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 import net.jcip.annotations.Immutable;
@@ -31,6 +30,7 @@ import net.jcip.annotations.ThreadSafe;
 public class TargetMethodParameterDefinition {
 
   private final String name;
+  private final String type;
   private final Integer index;
   private final String expanderClassName;
 
@@ -41,15 +41,20 @@ public class TargetMethodParameterDefinition {
   /**
    * Create a new {@link TargetMethodParameterDefinition}.
    *
-   * @param name              of the parameter.
-   * @param index             of the parameter in the method definition.
+   * @param name of the parameter.
+   * @param type of the parameter.
+   * @param index of the parameter in the method definition.
    * @param expanderClassName of the expander to use when resolving this parameter.
    */
-  private TargetMethodParameterDefinition(String name, Integer index, String expanderClassName) {
+  private TargetMethodParameterDefinition(String name, String type, Integer index,
+      String expanderClassName) {
     Assert.isNotEmpty(name, "name is required.");
+    Assert.isNotEmpty(type, "type is required.");
     Assert.isNotNull(index, "argument index is required.");
     Assert.isTrue(index, idx -> idx >= 0, "argument index must be a positive number");
+    Assert.isNotEmpty(expanderClassName, "expander class name is required.");
     this.name = name;
+    this.type = type;
     this.index = index;
     this.expanderClassName = expanderClassName;
   }
@@ -61,6 +66,15 @@ public class TargetMethodParameterDefinition {
    */
   public String getName() {
     return name;
+  }
+
+  /**
+   * Fully Qualified Class Name for the parameter type.
+   *
+   * @return parameter type.
+   */
+  public String getType() {
+    return this.type;
   }
 
   /**
@@ -91,12 +105,14 @@ public class TargetMethodParameterDefinition {
       return false;
     }
     TargetMethodParameterDefinition that = (TargetMethodParameterDefinition) obj;
-    return Objects.equals(name.toLowerCase(Locale.ROOT), that.name.toLowerCase(Locale.ROOT));
+    return getName().equalsIgnoreCase(that.getName()) && getType().equals(that.getType())
+        && getIndex().equals(that.getIndex())
+        && getExpanderClassName().equals(that.getExpanderClassName());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name);
+    return Objects.hash(getName(), getType(), getIndex(), getExpanderClassName());
   }
 
   @Override
@@ -104,6 +120,7 @@ public class TargetMethodParameterDefinition {
     return new StringJoiner(", ",
         TargetMethodParameterDefinition.class.getSimpleName() + "[", "]")
         .add("name='" + name + "'")
+        .add("type='" + type + "'")
         .add("index=" + index)
         .add("expanderClassName='" + expanderClassName + "'")
         .toString();
@@ -115,6 +132,7 @@ public class TargetMethodParameterDefinition {
   public static class Builder {
 
     private String name;
+    private String type;
     private Integer index;
     private String expanderClassName;
 
@@ -141,6 +159,17 @@ public class TargetMethodParameterDefinition {
     }
 
     /**
+     * Fully Qualified Class name of the parameter type.
+     *
+     * @param type of the parameter.
+     * @return a builder instance for chaining.
+     */
+    public Builder type(String type) {
+      this.type = type;
+      return this;
+    }
+
+    /**
      * Expression Expander Fully Qualified Class name to use when resolving this parameter value.
      *
      * @param expanderClassName of the {@link feign.template.ExpressionExpander}
@@ -157,7 +186,8 @@ public class TargetMethodParameterDefinition {
      * @return a new {@link TargetMethodParameterDefinition} instance.
      */
     public TargetMethodParameterDefinition build() {
-      return new TargetMethodParameterDefinition(this.name, this.index, this.expanderClassName);
+      return new TargetMethodParameterDefinition(this.name, this.type, this.index,
+          this.expanderClassName);
     }
   }
 }

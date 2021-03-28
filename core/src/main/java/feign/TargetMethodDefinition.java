@@ -54,7 +54,7 @@ public final class TargetMethodDefinition {
   private final transient TypeDefinition returnType;
   private final UriTemplate template;
   private final Collection<HttpHeader> headers;
-  private final Map<Integer, TemplateParameter> parameterMap;
+  private final Map<Integer, TargetMethodParameterDefinition> parameterMap;
   private final Integer bodyArgumentIndex;
   private final boolean followRedirects;
   private final long connectTimeout;
@@ -90,7 +90,7 @@ public final class TargetMethodDefinition {
     }
 
     targetMethodDefinition.parameterMap.forEach(
-        builder::templateParameter);
+        builder::parameterDefinition);
     targetMethodDefinition.headers.forEach(builder::header);
 
     /* return the populated builder */
@@ -109,7 +109,7 @@ public final class TargetMethodDefinition {
       UriTemplate template,
       HttpMethod method,
       Collection<HttpHeader> headers,
-      Map<Integer, TemplateParameter> parameterMap,
+      Map<Integer, TargetMethodParameterDefinition> parameterMap,
       Integer bodyArgumentIndex,
       boolean followRedirects,
       long connectTimeout,
@@ -163,12 +163,12 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * Template Parameter registered at the specified method argument index.
+   * {@link TargetMethodParameterDefinition} registered at the specified method argument index.
    *
    * @param argumentIndex of the parameter.
-   * @return the Template Parameter registered, if one exists.
+   * @return the {@link TargetMethodParameterDefinition} registered, if one exists.
    */
-  public Optional<TemplateParameter> getTemplateParameter(Integer argumentIndex) {
+  public Optional<TargetMethodParameterDefinition> getParameterDefinition(Integer argumentIndex) {
     return Optional.ofNullable(parameterMap.get(argumentIndex));
   }
 
@@ -218,11 +218,11 @@ public final class TargetMethodDefinition {
   }
 
   /**
-   * The Template Parameters registered for this method.
+   * The {@link TargetMethodParameterDefinition}s registered for this method.
    *
    * @return the parameters registered.
    */
-  public Collection<TemplateParameter> getTemplateParameters() {
+  public Collection<TargetMethodParameterDefinition> getParameterDefinitions() {
     return Collections.unmodifiableCollection(this.parameterMap.values());
   }
 
@@ -341,7 +341,8 @@ public final class TargetMethodDefinition {
     private UriTemplate template;
     private HttpMethod method = HttpMethod.GET;
     private final Collection<HttpHeader> headers = new CopyOnWriteArraySet<>();
-    private final Map<Integer, TemplateParameter> parameterMap = new ConcurrentHashMap<>();
+    private final Map<Integer, TargetMethodParameterDefinition> parameterMap =
+        new ConcurrentHashMap<>();
     private Integer bodyArgumentIndex = -1;
     private boolean followRedirects;
     private long connectTimeout = RequestOptions.DEFAULT_CONNECT_TIMEOUT;
@@ -429,15 +430,15 @@ public final class TargetMethodDefinition {
     }
 
     /**
-     * Registers a {@link TemplateParameter} at the method argument index.
+     * Registers a {@link TargetMethodParameterDefinition} at the method argument index.
      *
      * @param argumentIndex in the method signature.
-     * @param templateParameter to register.
+     * @param definition to register.
      * @return the reference chain.
      */
-    public Builder templateParameter(
-        Integer argumentIndex, TemplateParameter templateParameter) {
-      this.parameterMap.put(argumentIndex, templateParameter);
+    public Builder parameterDefinition(
+        Integer argumentIndex, TargetMethodParameterDefinition definition) {
+      this.parameterMap.put(argumentIndex, definition);
       return this;
     }
 

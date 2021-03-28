@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,20 +64,31 @@ class CachingExpanderRegistryTest {
 
   @Test
   void customExpanderTypes_shouldBeInstantiated() {
-    ExpressionExpander expander = this.expanderRegistry.getExpander(CustomExpander.class);
+    ExpressionExpander expander = this.expanderRegistry
+        .getExpander(CustomExpander.class, String.class.getCanonicalName());
     assertThat(expander).isNotNull().isInstanceOf(CustomExpander.class);
   }
 
   @Test
   void customExpanderTypes_shouldBeReused() {
-    ExpressionExpander expander = this.expanderRegistry.getExpander(CustomExpander.class);
-    assertThat(expander).isEqualTo(this.expanderRegistry.getExpander(CustomExpander.class));
+    ExpressionExpander expander = this.expanderRegistry
+        .getExpander(CustomExpander.class, String.class.getCanonicalName());
+    assertThat(expander).isEqualTo(
+        this.expanderRegistry.getExpander(CustomExpander.class, String.class.getCanonicalName()));
   }
 
   @Test
   void customExpanderTypes_mustHaveDefaultConstructor() {
     assertThrows(IllegalStateException.class,
-        () -> this.expanderRegistry.getExpander(InvalidExpander.class));
+        () -> this.expanderRegistry
+            .getExpander(InvalidExpander.class, String.class.getCanonicalName()));
+  }
+
+  @Test
+  void defaultExpander_usesParameterType() {
+    ExpressionExpander expander =
+      this.expanderRegistry.getExpander(DefaultExpander.class, String.class.getCanonicalName());
+    assertThat(expander).isInstanceOf(SimpleExpander.class);
   }
 
   static class CustomExpander implements ExpressionExpander {
