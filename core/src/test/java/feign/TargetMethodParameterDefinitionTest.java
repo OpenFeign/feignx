@@ -21,7 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
+import feign.template.ExpressionExpander;
 import feign.template.expander.DefaultExpander;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class TargetMethodParameterDefinitionTest {
@@ -131,6 +133,54 @@ class TargetMethodParameterDefinitionTest {
   }
 
   @Test
+  void notEquals_index() {
+    assertThat(TargetMethodParameterDefinition.builder()
+        .name("param")
+        .index(0)
+        .type(String.class.getName())
+        .expanderClassName(DefaultExpander.class.getName())
+        .build()).isNotEqualTo(
+        TargetMethodParameterDefinition.builder()
+            .name("param")
+            .index(1)
+            .type(String.class.getName())
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
+  }
+
+  @Test
+  void notEquals_type() {
+    assertThat(TargetMethodParameterDefinition.builder()
+        .name("param")
+        .index(0)
+        .type(String.class.getName())
+        .expanderClassName(DefaultExpander.class.getName())
+        .build()).isNotEqualTo(
+        TargetMethodParameterDefinition.builder()
+            .name("param")
+            .index(0)
+            .type(List.class.getName())
+            .expanderClassName(DefaultExpander.class.getName())
+            .build());
+  }
+
+  @Test
+  void notEquals_expander() {
+    assertThat(TargetMethodParameterDefinition.builder()
+        .name("param")
+        .index(0)
+        .type(String.class.getName())
+        .expanderClassName(DefaultExpander.class.getName())
+        .build()).isNotEqualTo(
+        TargetMethodParameterDefinition.builder()
+            .name("param")
+            .index(0)
+            .type(List.class.getName())
+            .expanderClassName(ExpressionExpander.class.getName())
+            .build());
+  }
+
+  @Test
   void notEqual_toOtherTypes() {
     assertThat(TargetMethodParameterDefinition.builder()
         .name("param")
@@ -147,6 +197,18 @@ class TargetMethodParameterDefinitionTest {
         .index(0)
         .type(String.class.getName())
         .expanderClassName(DefaultExpander.class.getName())
+        .build()
         .toString()).isNotEmpty();
+  }
+
+  @Test
+  void hashCode_isNotEmpty() {
+    assertThat(TargetMethodParameterDefinition.builder()
+        .name("param")
+        .index(0)
+        .type(String.class.getName())
+        .expanderClassName(DefaultExpander.class.getName())
+        .build()
+        .hashCode()).isNotNull();
   }
 }
