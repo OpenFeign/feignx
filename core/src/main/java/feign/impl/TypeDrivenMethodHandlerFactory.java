@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,53 +17,36 @@
 package feign.impl;
 
 import feign.FeignConfiguration;
-import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.TargetMethodHandlerFactory;
+import feign.contract.TargetMethodDefinition;
+import feign.impl.type.TypeDefinition;
 import java.util.concurrent.Future;
 
 /**
- * Target Method Handler Factory that uses the {@link TargetMethodDefinition#getReturnType()}
- * to determine which Method Handler to create.
+ * Target Method Handler Factory that uses the {@link TargetMethodDefinition#getReturnType()} to
+ * determine which Method Handler to create.
  */
 public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactory {
 
   /**
-   * Creates a new {@link TargetMethodHandler} based on the return type of the
-   * {@link TargetMethodDefinition} provided.
+   * Creates a new {@link TargetMethodHandler} based on the return type of the {@link
+   * TargetMethodDefinition} provided.
    *
    * @param targetMethodDefinition to inspect.
-   * @param configuration with the required dependencies.
+   * @param configuration          with the required dependencies.
    * @return a new {@link TargetMethodHandler} instance.
    */
   @Override
   public TargetMethodHandler create(TargetMethodDefinition targetMethodDefinition,
       FeignConfiguration configuration) {
 
-    Class<?> returnType = targetMethodDefinition.getReturnType().getType();
-    if (isFuture(returnType)) {
-      return new AsyncTargetMethodHandler(
-          targetMethodDefinition,
-          configuration.getRequestEncoder(),
-          configuration.getRequestInterceptors(),
-          configuration.getClient(),
-          configuration.getResponseDecoder(),
-          configuration.getExceptionHandler(),
-          configuration.getExecutor(),
-          configuration.getLogger(),
-          configuration.getRetry());
+    TypeDefinition typeDefinition = targetMethodDefinition.getReturnType();
+    if (isFuture(typeDefinition.getType())) {
+      return new AsyncTargetMethodHandler(targetMethodDefinition, configuration);
     } else {
       /* return a blocking handler */
-      return new BlockingTargetMethodHandler(
-          targetMethodDefinition,
-          configuration.getRequestEncoder(),
-          configuration.getRequestInterceptors(),
-          configuration.getClient(),
-          configuration.getResponseDecoder(),
-          configuration.getExceptionHandler(),
-          configuration.getExecutor(),
-          configuration.getLogger(),
-          configuration.getRetry());
+      return new BlockingTargetMethodHandler(targetMethodDefinition, configuration);
     }
   }
 
@@ -76,4 +59,5 @@ public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactor
   private boolean isFuture(Class<?> type) {
     return Future.class.isAssignableFrom(type);
   }
+
 }

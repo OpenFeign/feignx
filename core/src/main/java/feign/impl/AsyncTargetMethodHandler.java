@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,9 @@
 
 package feign.impl;
 
-import feign.Client;
-import feign.ExceptionHandler;
-import feign.Logger;
-import feign.RequestEncoder;
-import feign.RequestInterceptor;
-import feign.ResponseDecoder;
-import feign.Retry;
-import feign.TargetMethodDefinition;
-import java.util.List;
+import feign.FeignConfiguration;
+import feign.contract.TargetMethodDefinition;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 /**
@@ -38,21 +30,11 @@ public class AsyncTargetMethodHandler extends AbstractTargetMethodHandler {
    * Creates a new Abstract Target HttpMethod Handler.
    *
    * @param targetMethodDefinition containing the method configuration.
-   * @param encoder to use when preparing the request.
-   * @param interceptors to apply to the request before processing.
-   * @param client to send the request and create the response.
-   * @param decoder to use when parsing the response.
-   * @param exceptionHandler to delegate to when an exception occurs.
-   * @param executor to request the request on.
-   * @param logger for logging requests and responses.
-   * @param retry for retrying requests.
+   * @param configuration with the target configuration.
    */
   AsyncTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
-      RequestEncoder encoder, List<RequestInterceptor> interceptors,
-      Client client, ResponseDecoder decoder, ExceptionHandler exceptionHandler,
-      Executor executor, Logger logger, Retry retry) {
-    super(targetMethodDefinition, encoder, interceptors, client, decoder, exceptionHandler,
-        executor, logger, retry);
+      FeignConfiguration configuration) {
+    super(targetMethodDefinition, configuration);
   }
 
   /**

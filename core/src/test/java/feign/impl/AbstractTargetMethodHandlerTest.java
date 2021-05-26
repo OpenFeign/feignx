@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import feign.Client;
 import feign.ExceptionHandler;
 import feign.ExceptionHandler.RethrowExceptionHandler;
+import feign.FeignConfiguration;
 import feign.Logger;
 import feign.Request;
 import feign.RequestEncoder;
@@ -39,14 +40,15 @@ import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
 import feign.Retry;
-import feign.TargetMethodDefinition;
+import feign.contract.TargetMethodDefinition;
 import feign.TargetMethodHandler;
-import feign.TargetMethodParameterDefinition;
+import feign.contract.TargetMethodParameterDefinition;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
+import feign.impl.type.TypeDefinition;
+import feign.impl.type.TypeDefinitionFactory;
 import feign.retry.NoRetry;
 import feign.template.ExpanderRegistry;
-import feign.template.ExpressionExpander;
 import feign.template.expander.CachingExpanderRegistry;
 import feign.template.expander.DefaultExpander;
 import java.io.InputStream;
@@ -87,6 +89,11 @@ class AbstractTargetMethodHandlerTest {
   @Mock
   private Logger logger;
 
+  @Mock
+  private FeignConfiguration configuration;
+
+  private final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
+
   private final RequestInterceptor interceptor = RequestInterceptor.identity();
 
   private final Retry retry = new NoRetry();
@@ -95,15 +102,26 @@ class AbstractTargetMethodHandlerTest {
 
   @BeforeEach
   void setUp() {
-    this.targetMethodDefinition = TargetMethodDefinition.builder(
-        new UriTarget<>(TestInterface.class, "https://www.example.com"));
+    this.targetMethodDefinition = TargetMethodDefinition.builder(TestInterface.class.getName());
+    when(this.configuration.getRetry()).thenReturn(this.retry);
+    when(this.configuration.getExceptionHandler()).thenReturn(this.exceptionHandler);
+    when(this.configuration.getClient()).thenReturn(this.client);
+    when(this.configuration.getLogger()).thenReturn(this.logger);
+    when(this.configuration.getExecutor()).thenReturn(this.executor);
+    when(this.configuration.getRequestEncoder()).thenReturn(this.encoder);
+    when(this.configuration.getResponseDecoder()).thenReturn(this.decoder);
+    when(this.configuration.getRequestInterceptors())
+        .thenReturn(Collections.singletonList(this.interceptor));
   }
 
   @Test
   void interceptors_areApplied_ifPresent() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
-    this.targetMethodDefinition.returnType(String.class)
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -116,14 +134,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
@@ -136,7 +147,10 @@ class AbstractTargetMethodHandlerTest {
   void interceptors_areNotApplied_ifNotPresent() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
-    this.targetMethodDefinition.returnType(String.class)
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -148,16 +162,10 @@ class AbstractTargetMethodHandlerTest {
         .body(1);
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
+    when(this.configuration.getRequestInterceptors()).thenReturn(Collections.emptyList());
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        null,
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
@@ -193,7 +201,10 @@ class AbstractTargetMethodHandlerTest {
           }
         });
 
-    this.targetMethodDefinition.returnType(String.class)
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -207,14 +218,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     targetMethodHandler.execute(Arrays.array("name", "body"));
     verify(client, times(1)).request(any(Request.class));
@@ -227,7 +231,12 @@ class AbstractTargetMethodHandlerTest {
   void skipEncoding_withNoBody() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
-    this.targetMethodDefinition.returnType(String.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -240,14 +249,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -259,7 +261,12 @@ class AbstractTargetMethodHandlerTest {
   void skipDecode_ifReturnType_isResponse() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
-    this.targetMethodDefinition.returnType(Response.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(Response.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -272,14 +279,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -289,7 +289,12 @@ class AbstractTargetMethodHandlerTest {
 
   @Test
   void skipDecode_ifResponseIsNull() throws Throwable {
-    this.targetMethodDefinition.returnType(Response.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(Response.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -302,14 +307,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -320,7 +318,12 @@ class AbstractTargetMethodHandlerTest {
   @Test
   void skipDecode_ifResponseBody_isNull() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
-    this.targetMethodDefinition.returnType(Response.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(Response.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -333,14 +336,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -351,7 +347,11 @@ class AbstractTargetMethodHandlerTest {
   @Test
   void skipDecode_ifReturnType_Void() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
-    this.targetMethodDefinition.returnType(void.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(void.class, TestInterface.class);
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -364,14 +364,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
@@ -384,7 +377,12 @@ class AbstractTargetMethodHandlerTest {
     RequestInterceptor runtimeBroken = specification -> {
       throw new RuntimeException("Broken");
     };
-    this.targetMethodDefinition.returnType(Response.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(Response.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -397,16 +395,11 @@ class AbstractTargetMethodHandlerTest {
         .body(1);
 
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
+    when(this.configuration.getRequestInterceptors())
+        .thenReturn(Collections.singletonList(runtimeBroken));
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(runtimeBroken),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
@@ -417,7 +410,12 @@ class AbstractTargetMethodHandlerTest {
   @Test
   void whenExceptionOccursDuringRequest_exceptionHandlerIsCalled() {
     when(this.client.request(any(Request.class))).thenThrow(new RuntimeException("Broken"));
-    this.targetMethodDefinition.returnType(Response.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -430,14 +428,7 @@ class AbstractTargetMethodHandlerTest {
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        this.exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
@@ -451,7 +442,12 @@ class AbstractTargetMethodHandlerTest {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
     when(this.decoder.decode(any(Response.class), any())).thenThrow(new RuntimeException("bad"));
-    this.targetMethodDefinition.returnType(String.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -464,16 +460,10 @@ class AbstractTargetMethodHandlerTest {
 
     ExceptionHandler exceptionHandler = spy(new RethrowExceptionHandler());
     TargetMethodDefinition methodDefinition = this.targetMethodDefinition.build();
+    when(this.configuration.getExceptionHandler()).thenReturn(exceptionHandler);
     TargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         methodDefinition,
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
 
     assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name", "body")));
@@ -486,7 +476,12 @@ class AbstractTargetMethodHandlerTest {
   @SuppressWarnings("unchecked")
   @Test
   void ensureTemplateParameters_areCached() {
-    this.targetMethodDefinition.returnType(String.class)
+
+    TypeDefinition returnType = this.typeDefinitionFactory
+        .create(String.class, TestInterface.class);
+
+    this.targetMethodDefinition.returnType(returnType)
+        .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
         .parameterDefinition(0, TargetMethodParameterDefinition.builder()
@@ -500,14 +495,7 @@ class AbstractTargetMethodHandlerTest {
     ExpanderRegistry expanderRegistry = spy(new CachingExpanderRegistry());
     BlockingTargetMethodHandler targetMethodHandler = new BlockingTargetMethodHandler(
         this.targetMethodDefinition.build(),
-        this.encoder,
-        Collections.singletonList(this.interceptor),
-        this.client,
-        this.decoder,
-        exceptionHandler,
-        this.executor,
-        this.logger,
-        this.retry);
+        this.configuration);
     targetMethodHandler.setExpanderRegistry(expanderRegistry);
 
     /* call the method twice, expect the expander registry to be invoked only once */

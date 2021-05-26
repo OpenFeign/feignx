@@ -18,6 +18,7 @@ package feign.impl;
 
 import feign.Client;
 import feign.ExceptionHandler;
+import feign.FeignConfiguration;
 import feign.Logger;
 import feign.Request;
 import feign.RequestEncoder;
@@ -26,9 +27,9 @@ import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
 import feign.Retry;
-import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
-import feign.TargetMethodParameterDefinition;
+import feign.contract.TargetMethodDefinition;
+import feign.contract.TargetMethodParameterDefinition;
 import feign.exception.FeignException;
 import feign.http.RequestSpecification;
 import feign.impl.type.TypeDefinition;
@@ -56,7 +57,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("WeakerAccess")
 public abstract class AbstractTargetMethodHandler implements TargetMethodHandler {
 
-
   protected TargetMethodDefinition targetMethodDefinition;
   private final org.slf4j.Logger log;
   private final RequestEncoder encoder;
@@ -74,39 +74,30 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * Creates a new Abstract Target HttpMethod Handler.
    *
    * @param targetMethodDefinition containing the method configuration.
-   * @param encoder to use when preparing the request.
-   * @param interceptors to apply to the request before processing.
-   * @param client to send the request and create the response.
-   * @param decoder to use when parsing the response.
-   * @param exceptionHandler to delegate to when an exception occurs.
-   * @param executor to request the request on.
-   * @param logger for logging requests and responses.
-   * @param retry for retrying requests.
+   * @param configuration          with the target configuration.
    */
   protected AbstractTargetMethodHandler(
-      TargetMethodDefinition targetMethodDefinition, RequestEncoder encoder,
-      List<RequestInterceptor> interceptors, Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor, Logger logger,
-      Retry retry) {
+      TargetMethodDefinition targetMethodDefinition,
+      FeignConfiguration configuration) {
     Assert.isNotNull(targetMethodDefinition, "targetMethodDefinition is required.");
-    Assert.isNotNull(encoder, "encoder is required.");
-    Assert.isNotNull(client, "client is required.");
-    Assert.isNotNull(decoder, "decoder is required.");
-    Assert.isNotNull(exceptionHandler, "exceptionHandler is required.");
-    Assert.isNotNull(executor, "executor is required.");
-    Assert.isNotNull(retry, "retry is required");
-    Assert.isNotNull(logger, "logger is required.");
-    this.encoder = encoder;
-    this.interceptors = (interceptors == null) ? Collections.emptyList() : interceptors;
-    this.client = client;
-    this.decoder = decoder;
-    this.exceptionHandler = exceptionHandler;
-    this.executor = executor;
+    Assert.isNotNull(configuration.getRequestEncoder(), "encoder is required.");
+    Assert.isNotNull(configuration.getClient(), "client is required.");
+    Assert.isNotNull(configuration.getResponseDecoder(), "decoder is required.");
+    Assert.isNotNull(configuration.getExceptionHandler(), "exceptionHandler is required.");
+    Assert.isNotNull(configuration.getExecutor(), "executor is required.");
+    Assert.isNotNull(configuration.getRetry(), "retry is required");
+    Assert.isNotNull(configuration.getLogger(), "logger is required.");
+    this.encoder = configuration.getRequestEncoder();
+    this.interceptors = (configuration.getRequestInterceptors() == null) ? Collections.emptyList()
+        : configuration.getRequestInterceptors();
+    this.client = configuration.getClient();
+    this.decoder = configuration.getResponseDecoder();
+    this.exceptionHandler = configuration.getExceptionHandler();
+    this.executor = configuration.getExecutor();
     this.targetMethodDefinition = targetMethodDefinition;
-    this.logger = logger;
-    this.retry = retry;
+    this.logger = configuration.getLogger();
+    this.retry = configuration.getRetry();
     this.log = LoggerFactory.getLogger(targetMethodDefinition.getTargetType());
-
   }
 
   /**
@@ -173,6 +164,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
     this.log.debug("Started processing of request: {}", this.targetMethodDefinition.getTag());
     RequestSpecification requestSpecification = this.targetMethodDefinition
         .requestSpecification(this.mapArguments(arguments));
+
     this.log.debug("UriTemplate resolved: {}", requestSpecification.uri());
     return requestSpecification;
   }
@@ -214,7 +206,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * Encode the Request Body, if required.
    *
    * @param requestSpecification to receive the encoded result.
-   * @param arguments that may contain the request body.
+   * @param arguments            that may contain the request body.
    */
   protected RequestSpecification encode(RequestSpecification requestSpecification,
       Object[] arguments) {
@@ -276,7 +268,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   /**
    * Decode the Response, using the TypeDefinition provided.
    *
-   * @param response to decode.
+   * @param response       to decode.
    * @param typeDefinition to use to determine what the resulting type should be.
    * @return the response body decoded into the desired type.
    * @throws Exception if the {@link Response} cannot be closed after decoding.
@@ -319,10 +311,11 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
   /**
    * Retrieve the {@link TemplateParameter} for the specified method parameter index.
    *
-   * @param index of the parameter.
+   * @param index      of the parameter.
    * @param definition of the parameter.
    * @return the {@link TemplateParameter} instance at this index.
-   * @throws IllegalStateException if the {@link TemplateParameter} instance could not be retrieved.
+   * @throws IllegalStateException if the {@link TemplateParameter} instance could not be
+   *                               retrieved.
    */
   private TemplateParameter getTemplateParameterForIndex(int index,
       TargetMethodParameterDefinition definition) {
@@ -336,7 +329,8 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    *
    * @param parameterDefinition to evaluate.
    * @return the {@link ExpressionExpander} instance for the parameter.
-   * @throws IllegalStateException if the {@link ExpressionExpander} instance could not be obtained.
+   * @throws IllegalStateException if the {@link ExpressionExpander} instance could not be
+   *                               obtained.
    */
   @SuppressWarnings("unchecked")
   private ExpressionExpander getExpressionExpanderFor(

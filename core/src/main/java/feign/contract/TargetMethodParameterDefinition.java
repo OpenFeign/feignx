@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package feign;
+package feign.contract;
 
 import feign.support.Assert;
 import java.util.Objects;
@@ -27,7 +27,7 @@ import net.jcip.annotations.ThreadSafe;
  */
 @ThreadSafe
 @Immutable
-public class TargetMethodParameterDefinition {
+public final class TargetMethodParameterDefinition {
 
   private final String name;
   private final String type;

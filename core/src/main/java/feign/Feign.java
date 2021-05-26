@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,15 @@ import feign.encoder.StringEncoder;
 import feign.http.client.UrlConnectionClient;
 import feign.impl.AbstractFeignConfigurationBuilder;
 import feign.impl.BaseFeignConfiguration;
-import feign.impl.UriTarget;
 import feign.logging.SimpleLogger;
 import feign.proxy.ProxyFeign;
 import feign.retry.NoRetry;
+import java.net.URI;
 
 /**
  * Feign instance builder.  Provides access to a {@link FeignConfigurationBuilder}, using a
- * fluent-api to allow user's to configure each component of a {@link FeignConfiguration}
- * that will be used when executing methods on the {@link Target}.
+ * fluent-api to allow user's to configure each component of a {@link FeignConfiguration} that will
+ * be used when executing methods on the {@link Target}.
  */
 public abstract class Feign {
 
@@ -40,31 +40,36 @@ public abstract class Feign {
    *
    * @return FeignConfigurationBuilder instance.
    */
-  public static FeignConfigurationBuilderImpl builder() {
-    return new FeignConfigurationBuilderImpl();
+  public static FeignConfigurationBuilderImpl builder(Class<?> targetType) {
+    return new FeignConfigurationBuilderImpl(targetType);
   }
 
   /**
    * Creates a new instance of the {@link Target} type in the configuration.  Implementations are
    * expected to be thread-safe.
    *
+   * @param targetType with the target type class.
    * @param configuration containing the dependencies the resulting target should use.
    * @param <T> of the Target.
    * @return a new Target instance.
    */
-  protected abstract <T> T create(FeignConfiguration configuration);
+  protected abstract <T> T create(Class<?> targetType, FeignConfiguration configuration);
 
   /**
    * Default {@link FeignConfigurationBuilder}.  Provides access to the core Feign components.
    */
-  static class FeignConfigurationBuilderImpl extends
+  public static class FeignConfigurationBuilderImpl extends
       AbstractFeignConfigurationBuilder<FeignConfigurationBuilderImpl, FeignConfiguration> {
+
+    private final Class<?> targetType;
 
     /**
      * Creates a new Builder, defining the default components.
      */
-    FeignConfigurationBuilderImpl() {
+    FeignConfigurationBuilderImpl(Class<?> targetType) {
       super(FeignConfigurationBuilderImpl.class);
+
+      this.targetType = targetType;
 
       /* use the Feign Contract annotations. */
       this.contract = new FeignContract();
@@ -96,25 +101,23 @@ public abstract class Feign {
      */
     @Override
     public FeignConfiguration build() {
-      return new BaseFeignConfiguration(
-          this.target, this.contract, this.encoder, this.interceptors, this.client, this.decoder,
-          this.exceptionHandler, this.executor, this.logger, this.retry);
+      return new BaseFeignConfiguration(this);
     }
 
     /**
      * Creates a new JDK Proxy backed Target instance.
      *
-     * @param targetType containing the Target definition.
      * @param uri for all requests in the target to be sent to.  Must be absolute.
      * @param <T> type of the Target instance.
      * @return a new Target instance.
      */
-    public <T> T target(Class<T> targetType, String uri) {
-      this.target(new UriTarget<>(targetType, uri));
+    public <T> T target(String uri) {
+      /* create a new Uri Supplier from the static value */
+      this.target(URI.create(uri));
 
       /* create a new ProxyFeign instance */
       Feign feign = new ProxyFeign();
-      return feign.create(this.build());
+      return feign.create(this.targetType, this.build());
     }
   }
 }

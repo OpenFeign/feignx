@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package feign.template.expander;
 import feign.template.ExpressionExpander;
 import feign.template.ExpressionVariable;
 
+/**
+ * Default Expression Expander used as a marker to use our internal expander resolution.
+ */
 public class DefaultExpander implements ExpressionExpander {
 
   @Override

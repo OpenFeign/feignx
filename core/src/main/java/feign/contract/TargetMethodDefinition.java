@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package feign;
+package feign.contract;
 
+import feign.RequestOptions;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
 import feign.impl.type.TypeDefinition;
-import feign.impl.type.TypeDefinitionFactory;
 import feign.support.Assert;
 import feign.template.TemplateParameter;
 import feign.template.UriTemplate;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +35,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
@@ -47,11 +47,12 @@ import net.jcip.annotations.ThreadSafe;
 @Immutable
 public final class TargetMethodDefinition {
 
-  private final Target<?> target;
+  private final String targetType;
   private final String name;
+  private final transient TypeDefinition returnType;
+  private final Consumer<RequestSpecification> target;
   private final String tag;
   private final HttpMethod method;
-  private final transient TypeDefinition returnType;
   private final UriTemplate template;
   private final Collection<HttpHeader> headers;
   private final Map<Integer, TargetMethodParameterDefinition> parameterMap;
@@ -60,8 +61,8 @@ public final class TargetMethodDefinition {
   private final long connectTimeout;
   private final long readTimeout;
 
-  public static Builder builder(Target<?> target) {
-    return new Builder(target);
+  public static Builder builder(String fullyQualifiedTargetClassName) {
+    return new Builder(fullyQualifiedTargetClassName);
   }
 
   /**
@@ -71,7 +72,7 @@ public final class TargetMethodDefinition {
    */
   public static Builder from(TargetMethodDefinition targetMethodDefinition) {
     /* create a new builder */
-    Builder builder = new Builder(targetMethodDefinition.target);
+    Builder builder = new Builder(targetMethodDefinition.targetType);
 
     /* populate the builder with the instance values */
     builder.name(targetMethodDefinition.name)
@@ -80,7 +81,8 @@ public final class TargetMethodDefinition {
         .body(targetMethodDefinition.bodyArgumentIndex)
         .followRedirects(targetMethodDefinition.followRedirects)
         .connectTimeout(targetMethodDefinition.connectTimeout)
-        .readTimeout(targetMethodDefinition.readTimeout);
+        .readTimeout(targetMethodDefinition.readTimeout)
+        .target(targetMethodDefinition.target);
 
     if (targetMethodDefinition.returnType != null) {
       builder.returnType(targetMethodDefinition.returnType);
@@ -100,49 +102,45 @@ public final class TargetMethodDefinition {
   /**
    * Creates a new {@link TargetMethodDefinition}.
    *
-   * @param target for this definition.
+   * @param builder for this definition.
    */
-  private TargetMethodDefinition(Target<?> target,
-      String name,
-      String tag,
-      TypeDefinition returnType,
-      UriTemplate template,
-      HttpMethod method,
-      Collection<HttpHeader> headers,
-      Map<Integer, TargetMethodParameterDefinition> parameterMap,
-      Integer bodyArgumentIndex,
-      boolean followRedirects,
-      long connectTimeout,
-      long readTimeout) {
-    Assert.isNotNull(target, "target is required.");
-    this.target = target;
-    this.name = name;
-    this.tag = tag;
-    this.returnType = returnType;
-    this.template = template;
-    this.method = method;
-    this.bodyArgumentIndex = bodyArgumentIndex;
-    this.followRedirects = followRedirects;
-    this.connectTimeout = connectTimeout;
-    this.readTimeout = readTimeout;
+  private TargetMethodDefinition(TargetMethodDefinition.Builder builder) {
+    Assert.isNotNull(builder.targetType, "targetType is required.");
+    Assert.isNotNull(builder.target, "target is required");
+    this.targetType = builder.targetType;
+    this.name = builder.name;
+    this.tag = builder.tag;
 
-    if (headers == null) {
+    this.template = builder.template;
+    this.method = builder.method;
+    this.bodyArgumentIndex = builder.bodyArgumentIndex;
+    this.followRedirects = builder.followRedirects;
+    this.connectTimeout = builder.connectTimeout;
+    this.readTimeout = builder.readTimeout;
+    this.target = builder.target;
+
+    if (builder.headers == null) {
       this.headers = Collections.emptyList();
     } else {
-      this.headers = headers.stream().map(
+      this.headers = builder.headers.stream().map(
           header -> new HttpHeader(header.name(), header.values()))
           .collect(Collectors.toUnmodifiableList());
     }
 
-    if (parameterMap == null) {
+    if (builder.parameterMap == null) {
       this.parameterMap = Collections.emptyMap();
     } else {
-      this.parameterMap = parameterMap.entrySet()
+      this.parameterMap = builder.parameterMap.entrySet()
           .stream()
           .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
     }
-  }
 
+    if (builder.returnType != null) {
+      this.returnType = builder.returnType;
+    } else {
+      this.returnType = null;
+    }
+  }
 
   /**
    * Name of the Method on the Target this configuration is based.
@@ -187,7 +185,7 @@ public final class TargetMethodDefinition {
    * @return the simple name of the Target Class.
    */
   public String getTargetType() {
-    return this.target.type().getName();
+    return this.targetType;
   }
 
   /**
@@ -214,7 +212,7 @@ public final class TargetMethodDefinition {
    * @return headers registered.
    */
   public Collection<HttpHeader> getHeaders() {
-    return Collections.unmodifiableCollection(this.headers);
+    return this.headers;
   }
 
   /**
@@ -284,7 +282,7 @@ public final class TargetMethodDefinition {
     }
 
     /* target the request */
-    this.target.apply(requestSpecification);
+    this.target.accept(requestSpecification);
     return requestSpecification;
   }
 
@@ -317,7 +315,7 @@ public final class TargetMethodDefinition {
   @Override
   public String toString() {
     return new StringJoiner(", ", TargetMethodDefinition.class.getSimpleName() + " [", "]")
-        .add("target=" + target)
+        .add("target=" + targetType)
         .add("name='" + name + "'")
         .add("tag='" + tag + "'")
         .add("returnType=" + returnType)
@@ -334,10 +332,11 @@ public final class TargetMethodDefinition {
    */
   public static class Builder {
 
-    private final Target<?> target;
+    private final String targetType;
     private String name;
     private String tag;
     private transient TypeDefinition returnType;
+    private Consumer<RequestSpecification> target = RequestSpecification::uri;
     private UriTemplate template;
     private HttpMethod method = HttpMethod.GET;
     private final Collection<HttpHeader> headers = new CopyOnWriteArraySet<>();
@@ -347,10 +346,14 @@ public final class TargetMethodDefinition {
     private boolean followRedirects;
     private long connectTimeout = RequestOptions.DEFAULT_CONNECT_TIMEOUT;
     private long readTimeout = RequestOptions.DEFAULT_READ_TIMEOUT;
-    private final TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
 
-    Builder(Target<?> target) {
-      this.target = target;
+    /**
+     * Create a new Builder.
+     *
+     * @param targetType this method is a contained within.
+     */
+    Builder(String targetType) {
+      this.targetType = targetType;
     }
 
     /**
@@ -381,8 +384,8 @@ public final class TargetMethodDefinition {
      * @param returnType of the method.
      * @return the reference chain.
      */
-    public Builder returnType(Type returnType) {
-      this.returnType = this.typeDefinitionFactory.create(returnType, this.target.type());
+    public Builder returnType(TypeDefinition returnType) {
+      this.returnType = returnType;
       return this;
     }
 
@@ -433,7 +436,7 @@ public final class TargetMethodDefinition {
      * Registers a {@link TargetMethodParameterDefinition} at the method argument index.
      *
      * @param argumentIndex in the method signature.
-     * @param definition to register.
+     * @param definition    to register.
      * @return the reference chain.
      */
     public Builder parameterDefinition(
@@ -488,13 +491,23 @@ public final class TargetMethodDefinition {
     }
 
     /**
+     * Registers a Consumer responsible for "targeting" Requests.
+     *
+     * @param targetConsumer to use.
+     * @return the reference chain.
+     */
+    public Builder target(Consumer<RequestSpecification> targetConsumer) {
+      this.target = targetConsumer;
+      return this;
+    }
+
+    /**
      * Creates a new Target Method Definition.
      *
      * @return a new instance.
      */
     public TargetMethodDefinition build() {
-      return new TargetMethodDefinition(target, name, tag, returnType, template, method, headers,
-          parameterMap, bodyArgumentIndex, followRedirects, connectTimeout, readTimeout);
+      return new TargetMethodDefinition(this);
     }
   }
 }

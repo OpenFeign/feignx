@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,17 @@
 
 package feign.retry;
 
+/**
+ * Defines a Specification for determining the interval between retry attempts.
+ */
 public interface RetryInterval {
 
+  /**
+   * Determine the retry interval.
+   *
+   * @param retryContext for the retry event.
+   * @return the amount of time, in milliseconds to wait.
+   */
   long getInterval(RetryContext retryContext);
 
 }

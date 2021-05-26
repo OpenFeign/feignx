@@ -17,18 +17,16 @@
 package feign.contract;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import feign.Contract;
+import feign.FeignConfiguration;
 import feign.RequestOptions;
 import feign.Response;
-import feign.TargetMethodDefinition;
-import feign.TargetMethodParameterDefinition;
 import feign.http.HttpMethod;
-import feign.impl.UriTarget;
-import feign.template.SimpleTemplateParameter;
+import feign.impl.AbsoluteUriTarget;
 import feign.template.expander.DefaultExpander;
-import feign.template.expander.ListExpander;
-import feign.template.expander.MapExpander;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +37,11 @@ class FeignContractTest {
   @Test
   void can_parseSimpleInterface() {
     Contract contract = new FeignContract();
-    Collection<TargetMethodDefinition> methodDefinitions = contract.apply(
-        new UriTarget<>(SimpleInterface.class, "https://example.com"));
+    FeignConfiguration configuration = mock(FeignConfiguration.class);
+    when(configuration.getTarget()).thenReturn(new AbsoluteUriTarget("http://localhost"));
+
+    TargetDefinition targetDefinition = contract.apply(SimpleInterface.class, configuration);
+    Collection<TargetMethodDefinition> methodDefinitions = targetDefinition.getMethodDefinitions();
 
     assertThat(methodDefinitions).isNotEmpty();
 
@@ -162,8 +163,11 @@ class FeignContractTest {
   @Test
   void replaceUri_whenDefinedAsAbsolute() {
     Contract contract = new FeignContract();
-    Collection<TargetMethodDefinition> methodDefinitions =
-        contract.apply(new UriTarget<>(AbsoluteRequests.class, "https://www.example.com"));
+    FeignConfiguration configuration = mock(FeignConfiguration.class);
+    when(configuration.getTarget()).thenReturn(new AbsoluteUriTarget("http://localhost"));
+
+    TargetDefinition definition = contract.apply(AbsoluteRequests.class, configuration);
+    Collection<TargetMethodDefinition> methodDefinitions = definition.getMethodDefinitions();
 
     /* the search method should not have the uri root */
     //noinspection OptionalGetWithoutIsPresent

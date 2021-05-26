@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ package feign.support;
  * String Utility Methods.
  */
 public class StringUtils {
+
+  public static final String EMPTY = "";
 
   /**
    * Determines if the provided String is not empty or {@literal null}.

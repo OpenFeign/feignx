@@ -17,13 +17,11 @@
 package feign.contract;
 
 import feign.Contract;
-import feign.Target;
-import feign.TargetMethodDefinition;
+import feign.FeignConfiguration;
+import feign.contract.TargetDefinition.TargetDefinitionBuilder;
+import feign.impl.type.TypeDefinitionFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,26 +34,32 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
   private static final Logger logger =
       LoggerFactory.getLogger(AbstractAnnotationDrivenContract.class);
 
+  protected final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
+
   /**
-   * Using the Contract annotations, process the Target and create the appropriate
-   * {@link TargetMethodDefinition}s.
+   * Processes the {@link FeignConfiguration} and generate a new {@link TargetDefinition} instance.
    *
-   * @param target to apply this contract to.
-   * @return a Collection of {@link TargetMethodDefinition}s with each methods configuration.
+   * @param targetType with the Target configuration.
+   * @return a new {@link TargetDefinition} instance.
    */
   @Override
-  public Collection<TargetMethodDefinition> apply(Target<?> target) {
-    Set<TargetMethodDefinition> methods = new LinkedHashSet<>();
+  public TargetDefinition apply(Class<?> targetType, FeignConfiguration configuration) {
 
-    /* special metadata object tha contains the class level configuration that will be
-     * used by all methods on this target.
-     */
-    Class<?> targetType = target.type();
-    TargetMethodDefinition.Builder builder = TargetMethodDefinition.builder(target);
+    TargetDefinitionBuilder builder = TargetDefinition.builder()
+        .setTargetPackageName(targetType.getPackageName())
+        .setFullQualifiedTargetClassName(targetType.getName())
+        .setTargetTypeName(targetType.getSimpleName());
 
-    logger.debug("Applying Contract to {}", targetType.getSimpleName());
-    this.processAnnotationsOnType(targetType, builder);
-    TargetMethodDefinition root = builder.build();
+    for (Class<?> extension : targetType.getInterfaces()) {
+      builder.withExtension(extension.getCanonicalName());
+    }
+
+    /* create the default method metadata from any annotations on the interface itself */
+    TargetMethodDefinition.Builder rootMethodBuilder = TargetMethodDefinition
+        .builder(targetType.getName())
+        .target(configuration.getTarget());
+    this.processAnnotationsOnType(targetType, rootMethodBuilder);
+    TargetMethodDefinition root = rootMethodBuilder.build();
 
     for (Method method : targetType.getMethods()) {
       /* create a new metadata object from the root */
@@ -98,18 +102,17 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
       }
 
       if (!methodMetadata.isEmpty()) {
-        methods.add(methodMetadata);
+        builder.withTargetMethodDefinition(methodMetadata);
       }
     }
-    logger.debug("Contract parsing completed.  Identified {} methods: [{}]",
-        methods.size(), methods);
-    return methods;
+
+    return builder.build();
   }
 
   /**
-   * Apply any Annotations located at the Type level.  Any definitions applied at this level will
-   * be used as defaults for all methods on the target, unless redefined at the method or
-   * parameter level.
+   * Apply any Annotations located at the Type level.  Any definitions applied at this level will be
+   * used as defaults for all methods on the target, unless redefined at the method or parameter
+   * level.
    *
    * @param targetType to inspect.
    * @param targetMethodDefinitionBuilder to store the applied configuration.

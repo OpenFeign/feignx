@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,7 +277,7 @@ public class RequestSpecification {
           parameters.append("&");
         });
     if (StringUtils.isNotEmpty(query)) {
-      query += "&" + parameters.toString();
+      query += "&" + parameters;
     } else {
       query = parameters.toString();
     }

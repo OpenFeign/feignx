@@ -22,6 +22,9 @@ import feign.contract.Request;
 import feign.http.HttpMethod;
 import java.util.List;
 
+/**
+ * Example Service used for Annotation Processor testing.
+ */
 @FeignTarget
 public interface TestService {
 

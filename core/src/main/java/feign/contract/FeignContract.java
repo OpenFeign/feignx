@@ -16,13 +16,11 @@
 
 package feign.contract;
 
-import feign.TargetMethodDefinition;
-import feign.TargetMethodParameterDefinition;
 import feign.http.HttpHeader;
 import feign.http.HttpMethod;
+import feign.impl.type.TypeDefinition;
 import feign.support.StringUtils;
 import feign.template.ExpressionExpander;
-import feign.template.expander.DefaultExpander;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
@@ -46,7 +44,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * Process any Annotations present on the Target Type.  Any values determined here should be
    * considered common for all methods in the Target.
    *
-   * @param targetType to inspect.
+   * @param targetType             to inspect.
    * @param targetMethodDefinition to store the resulting configuration.
    */
   @Override
@@ -63,8 +61,8 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   /**
    * Process any Annotations present on the Method.
    *
-   * @param targetType containing the method.
-   * @param method to inspect.
+   * @param targetType             containing the method.
+   * @param method                 to inspect.
    * @param targetMethodDefinition to store the resulting configuration.
    */
   @Override
@@ -85,8 +83,8 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   /**
    * Process any Annotations present on the method Parameter.
    *
-   * @param parameter to inspect.
-   * @param parameterIndex of the parameter in the method signature.
+   * @param parameter              to inspect.
+   * @param parameterIndex         of the parameter in the method signature.
    * @param targetMethodDefinition to store the resulting configuration.
    */
   @Override
@@ -107,7 +105,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   /**
    * Process the HttpRequest annotation.
    *
-   * @param request annotation to process.
+   * @param request                annotation to process.
    * @param targetMethodDefinition for the request.
    */
   private void processRequest(Request request,
@@ -126,7 +124,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   /**
    * Process the Headers annotation.
    *
-   * @param headers annotation to process.
+   * @param headers                annotation to process.
    * @param targetMethodDefinition for the request.
    */
   private void processHeaders(Headers headers,
@@ -142,7 +140,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   /**
    * Process the Header annotation.
    *
-   * @param header annotation to process.
+   * @param header                 annotation to process.
    * @param targetMethodDefinition for the header.
    */
   private void processHeader(Header header, TargetMethodDefinition.Builder targetMethodDefinition) {
@@ -154,9 +152,9 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
   /**
    * Process the Param annotation.
    *
-   * @param parameter annotation to process.
-   * @param index of the parameter in the method signature.
-   * @param type of the parameter.
+   * @param parameter              annotation to process.
+   * @param index                  of the parameter in the method signature.
+   * @param type                   of the parameter.
    * @param targetMethodDefinition for the parameter.
    */
   private void processParameter(Param parameter, Integer index, Class<?> type,
@@ -181,7 +179,7 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
    * Constructs a name for a Method that is formatted as a javadoc reference.
    *
    * @param targetType containing the method.
-   * @param method to inspect.
+   * @param method     to inspect.
    * @return a See Tag inspired name for the method.
    */
   private String getMethodTag(Class<?> targetType, Method method) {
@@ -203,8 +201,9 @@ public class FeignContract extends AbstractAnnotationDrivenContract {
     return sb.toString();
   }
 
-  private Type getMethodReturnType(Method method) {
-    return method.getGenericReturnType();
+  private TypeDefinition getMethodReturnType(Method method) {
+    return this.typeDefinitionFactory
+        .create(method.getGenericReturnType(), method.getDeclaringClass());
   }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,11 @@
 
 package feign.impl;
 
-import feign.Client;
-import feign.ExceptionHandler;
-import feign.Logger;
-import feign.RequestEncoder;
-import feign.RequestInterceptor;
-import feign.ResponseDecoder;
-import feign.Retry;
-import feign.TargetMethodDefinition;
+import feign.FeignConfiguration;
+import feign.contract.TargetMethodDefinition;
 import feign.exception.FeignException;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 
 /**
  * HttpMethod handler that uses the calling thread to process the request and response.
@@ -39,23 +31,12 @@ public class BlockingTargetMethodHandler extends AbstractTargetMethodHandler {
    * Creates a new {@link BlockingTargetMethodHandler}.
    *
    * @param targetMethodDefinition containing the method configuration.
-   * @param encoder to use when preparing the request.
-   * @param interceptors to apply to the request before processing.
-   * @param client to send the request and create the response.
-   * @param decoder to use when parsing the response.
-   * @param exceptionHandler to delegate to when an exception occurs.
-   * @param executor for the request to run on.
-   * @param logger for logging requests and responses.
-   * @param retry for retrying requests.
+   * @param configuration          with the target configuration.
    */
   BlockingTargetMethodHandler(TargetMethodDefinition targetMethodDefinition,
-      RequestEncoder encoder, List<RequestInterceptor> interceptors,
-      Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor, Logger logger,
-      Retry retry) {
+      FeignConfiguration configuration) {
     /* create a new method handler, with a synchronous executor */
-    super(targetMethodDefinition, encoder, interceptors, client, decoder, exceptionHandler,
-        executor, logger, retry);
+    super(targetMethodDefinition, configuration);
   }
 
   /**
