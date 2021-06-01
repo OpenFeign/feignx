@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,22 @@
 
 package feign;
 
+import feign.http.RequestSpecification;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * Configuration Definition.
  */
 public interface FeignConfiguration {
+
+  /**
+   * Consumer that targets a request.
+   *
+   * @return a uri supplier.
+   */
+  Consumer<RequestSpecification> getTarget();
 
   /**
    * Client instance to use to execute requests.
@@ -72,14 +81,6 @@ public interface FeignConfiguration {
    * @return an exception handler instance.
    */
   ExceptionHandler getExceptionHandler();
-
-  /**
-   * Target instance for this configuration.
-   *
-   * @param <T> type of the Target.
-   * @return the Target instance.
-   */
-  <T> Target<T> getTarget();
 
   /**
    * Logger to use when logging request and responses.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,16 @@ import feign.Client;
 import feign.Contract;
 import feign.ExceptionHandler;
 import feign.ExceptionHandler.RethrowExceptionHandler;
+import feign.FeignConfiguration;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.Response;
 import feign.ResponseDecoder;
-import feign.Retry;
-import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.contract.FeignContract;
 import feign.contract.Request;
+import feign.contract.TargetDefinition;
+import feign.contract.TargetMethodDefinition;
 import feign.impl.AsyncTargetMethodHandlerTest.Blog.Post;
 import feign.retry.NoRetry;
 import feign.support.AuditingExecutor;
@@ -62,7 +63,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class AsyncTargetMethodHandlerTest {
 
   @Mock
-  private RequestEncoder encoder;
+  private FeignConfiguration configuration;
 
   @Mock
   private Client client;
@@ -74,9 +75,6 @@ class AsyncTargetMethodHandlerTest {
   private final ExceptionHandler exceptionHandler = new RethrowExceptionHandler();
 
   @Mock
-  private Logger logger;
-
-  @Mock
   private Response response;
 
   @Captor
@@ -86,27 +84,30 @@ class AsyncTargetMethodHandlerTest {
 
   private AsyncTargetMethodHandler methodHandler;
 
-  private final Retry retry = new NoRetry();
-
   private final Executor executor = Executors.newFixedThreadPool(10);
 
-  @SuppressWarnings("OptionalGetWithoutIsPresent")
   @BeforeEach
   void setUp() {
-    Collection<TargetMethodDefinition> methodDefinitions =
-        this.contract.apply(new UriTarget<>(Blog.class, "https://www.example.com"));
-    TargetMethodDefinition targetMethodDefinition = methodDefinitions.stream()
+    when(this.configuration.getRetry()).thenReturn(new NoRetry());
+    when(this.configuration.getExceptionHandler()).thenReturn(this.exceptionHandler);
+    when(this.configuration.getClient()).thenReturn(this.client);
+    when(this.configuration.getLogger()).thenReturn(mock(Logger.class));
+    when(this.configuration.getExecutor()).thenReturn(this.executor);
+    when(this.configuration.getRequestEncoder()).thenReturn(mock(RequestEncoder.class));
+    when(this.configuration.getResponseDecoder()).thenReturn(this.decoder);
+    when(this.configuration.getRequestInterceptors())
+        .thenReturn(Collections.emptyList());
+    when(this.configuration.getTarget()).thenReturn(new AbsoluteUriTarget("http://localhost"));
+
+    TargetDefinition definition = this.contract.apply(Blog.class, this.configuration);
+
+    //noinspection OptionalGetWithoutIsPresent
+    TargetMethodDefinition targetMethodDefinition = definition.getMethodDefinitions().stream()
         .findFirst().get();
+
     this.methodHandler = new AsyncTargetMethodHandler(
         targetMethodDefinition,
-        encoder,
-        Collections.emptyList(),
-        client,
-        decoder,
-        exceptionHandler,
-        this.executor,
-        logger,
-        retry);
+        this.configuration);
   }
 
   @SuppressWarnings("unchecked")
@@ -147,21 +148,14 @@ class AsyncTargetMethodHandlerTest {
   @SuppressWarnings({"unchecked", "OptionalGetWithoutIsPresent"})
   @Test
   void methodNotHandled_returnsNull() {
-    Collection<TargetMethodDefinition> methodDefinitions =
-        this.contract.apply(new UriTarget<>(Blog.class, "https://www.example.com"));
-    TargetMethodDefinition targetMethodDefinition = methodDefinitions.stream()
+    TargetDefinition definition = this.contract.apply(Blog.class, this.configuration);
+    TargetMethodDefinition targetMethodDefinition = definition.getMethodDefinitions().stream()
         .findFirst().get();
     ExceptionHandler mockHandler = mock(ExceptionHandler.class);
+    when(this.configuration.getExceptionHandler()).thenReturn(mockHandler);
     this.methodHandler = new AsyncTargetMethodHandler(
         targetMethodDefinition,
-        encoder,
-        Collections.emptyList(),
-        client,
-        decoder,
-        mockHandler,
-        Executors.newFixedThreadPool(10),
-        logger,
-        retry);
+        this.configuration);
 
     when(this.client.request(any(feign.Request.class))).thenThrow(new RuntimeException("Failed"));
     Object result = this.methodHandler.execute(new Object[]{});
@@ -180,12 +174,17 @@ class AsyncTargetMethodHandlerTest {
   @Test
   void usingMultiThreadedExecutor_willExecuteOnOtherThreads() throws Throwable {
     AuditingExecutor executor = new AuditingExecutor(this.executor);
-    Collection<TargetMethodDefinition> methodDefinitions =
-        this.contract.apply(new UriTarget<>(Blog.class, "https://www.example.com"));
+
+    TargetDefinition definition = this.contract.apply(Blog.class, this.configuration);
+    Collection<TargetMethodDefinition> methodDefinitions = definition.getMethodDefinitions();
+
     TargetMethodDefinition targetMethodDefinition = methodDefinitions.stream()
         .findFirst().get();
-    TargetMethodHandler asyncTargetMethodHandler = new AsyncTargetMethodHandler(targetMethodDefinition, encoder,
-        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger, retry);
+    when(this.configuration.getExecutor()).thenReturn(executor);
+    TargetMethodHandler asyncTargetMethodHandler =
+        new AsyncTargetMethodHandler(
+            targetMethodDefinition,
+            this.configuration);
 
     /* get the current thread id */
     long currentThread = Thread.currentThread().getId();
@@ -201,7 +200,9 @@ class AsyncTargetMethodHandlerTest {
     assertThat(executor.getExecutionCount()).isEqualTo(6);
   }
 
+  @SuppressWarnings("unused")
   interface Blog {
+
     @Request(value = "/")
     CompletableFuture<Post> getPosts();
 

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
+import feign.contract.TargetMethodParameterDefinition;
 import feign.template.ExpressionExpander;
 import feign.template.expander.DefaultExpander;
 import java.util.List;

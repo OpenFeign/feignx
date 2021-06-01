@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package feign.impl.type;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import feign.impl.type.TypeDefinitionFactoryTest.Outside.Inside;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -30,7 +29,7 @@ import org.junit.jupiter.api.Test;
 
 class TypeDefinitionFactoryTest {
 
-  private TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
+  private final TypeDefinitionFactory typeDefinitionFactory = TypeDefinitionFactory.getInstance();
 
   @Test
   void simpleType_isClassDefinition() throws Exception {
@@ -328,6 +327,7 @@ class TypeDefinitionFactoryTest {
    * @param <I> input type.
    * @param <O> output type.
    */
+  @SuppressWarnings("rawtypes")
   interface GenericTypes<I, O> {
 
     Map<I, O> results();
@@ -387,7 +387,7 @@ class TypeDefinitionFactoryTest {
    * Simple Container Generic.
    */
   @SuppressWarnings("WeakerAccess")
-  class Container<D> {
+  static class Container<D> {
 
     D data;
 
@@ -400,20 +400,21 @@ class TypeDefinitionFactoryTest {
   /**
    * Container extension with the Type Variable defined.
    */
-  private class StringContainer extends Container<String> {
+  private static class StringContainer extends Container<String> {
 
   }
 
   /**
-   * Extentions to our Container.
+   * Extensions to our Container.
    */
-  private class ExtendedStringContainer extends StringContainer {
+  private static class ExtendedStringContainer extends StringContainer {
 
   }
 
   /**
    * Owned Type.
    */
+  @SuppressWarnings("unused")
   interface Outside<O> {
 
     Inside<O> outside();

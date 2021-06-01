@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package feign;
 
+import feign.http.RequestSpecification;
+import java.net.URI;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * Configuration Builder Definition for any Feign instance.
@@ -24,8 +27,24 @@ import java.util.concurrent.Executor;
  * @param <B> type of Builder to chain.
  * @param <C> type of FeignConfiguration to generate.
  */
-public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder,
+public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder<B, C>,
     C extends FeignConfiguration> {
+
+  /**
+   * Consumer that returns "targets" a request.
+   *
+   * @param target with the base URI.
+   * @return the builder chain.
+   */
+  B target(Consumer<RequestSpecification> target);
+
+  /**
+   * Default Base URI Target.
+   *
+   * @param baseUri as URI.
+   * @return the builder for chaining.
+   */
+  B target(URI baseUri);
 
   /**
    * Request Encoder to use.
@@ -74,14 +93,6 @@ public interface FeignConfigurationBuilder<B extends FeignConfigurationBuilder,
    * @return the builder chain.
    */
   B contract(Contract contract);
-
-  /**
-   * Target to build off.
-   *
-   * @param target instance.
-   * @return the builder chain.
-   */
-  B target(Target<?> target);
 
   /**
    * Exception Handler to use.

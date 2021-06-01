@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ public class FeignException extends RuntimeException {
    * Creates a new Feign Exception.
    *
    * @param message for the exception.
-   * @param method name in which the exception occurred.
+   * @param method  name in which the exception occurred.
    */
   public FeignException(String message, String method) {
     super(message);
@@ -38,8 +38,8 @@ public class FeignException extends RuntimeException {
    * Creates a new Feign Exception.
    *
    * @param message for the exception.
-   * @param cause of the exception.
-   * @param method name in which the exception occurred.
+   * @param cause   of the exception.
+   * @param method  name in which the exception occurred.
    */
   public FeignException(String message, Throwable cause, String method) {
     super(message, cause);
@@ -48,6 +48,7 @@ public class FeignException extends RuntimeException {
 
   /**
    * Method name.
+   *
    * @return the method name.
    */
   public String getMethod() {

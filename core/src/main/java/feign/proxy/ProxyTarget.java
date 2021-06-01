@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,12 @@ package feign.proxy;
 
 import feign.FeignConfiguration;
 import feign.Target;
-import feign.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.TargetMethodHandlerFactory;
-import feign.http.RequestSpecification;
+import feign.contract.TargetDefinition;
 import feign.impl.TypeDrivenMethodHandlerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -44,38 +42,42 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   private static final String HASH_CODE = "hashCode";
   private static final String TO_STRING = "toString";
 
-  private Target<T> delegate;
-  private TargetMethodHandlerFactory methodHandlerFactory = new TypeDrivenMethodHandlerFactory();
-  private Map<Method, TargetMethodHandler> methodHandlerMap = new LinkedHashMap<>();
-  private final FeignConfiguration configuration;
+  private final Class<T> targetType;
+  private final TargetDefinition definition;
+  private final TargetMethodHandlerFactory methodHandlerFactory;
+  private final Map<Method, TargetMethodHandler> methodHandlerMap = new LinkedHashMap<>();
 
   /**
    * Creates a new {@link ProxyTarget}.
    *
-   * @param methods for this proxy to manage.
+   * @param definition    for this proxy to manage.
    * @param configuration for this instance.
    */
-  ProxyTarget(
-      Collection<TargetMethodDefinition> methods, FeignConfiguration configuration) {
-    this.delegate = configuration.getTarget();
-    this.configuration = configuration;
-    this.buildMethodHandlerMap(delegate, methods);
+  ProxyTarget(TargetDefinition definition, FeignConfiguration configuration) {
+    this(definition, new TypeDrivenMethodHandlerFactory(), configuration);
   }
 
   /**
    * Creates a new {@link ProxyTarget}.
    *
-   * @param methods for this proxy to manage.
+   * @param definition           for this proxy to manage.
    * @param methodHandlerFactory to use when creating method handlers.
-   * @param configuration for this instance.
+   * @param configuration        for this instance.
    */
-  ProxyTarget(Collection<TargetMethodDefinition> methods,
+  @SuppressWarnings("unchecked")
+  ProxyTarget(TargetDefinition definition,
       TargetMethodHandlerFactory methodHandlerFactory,
       FeignConfiguration configuration) {
-    this.delegate = configuration.getTarget();
+    this.definition = definition;
+
     this.methodHandlerFactory = methodHandlerFactory;
-    this.configuration = configuration;
-    this.buildMethodHandlerMap(delegate, methods);
+    try {
+      this.targetType = (Class<T>) Class
+          .forName(definition.getFullyQualifiedTargetClassName());
+    } catch (ClassNotFoundException cnfe) {
+      throw new IllegalArgumentException("Target Type Class cannot be found", cnfe);
+    }
+    this.buildMethodHandlerMap(configuration);
   }
 
   /**
@@ -85,7 +87,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
    */
   @Override
   public Class<T> type() {
-    return this.delegate.type();
+    return this.targetType;
   }
 
   /**
@@ -95,15 +97,15 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
    */
   @Override
   public String name() {
-    return this.delegate.name();
+    return this.targetType.getName();
   }
 
   /**
    * Invoke the desired method on the Proxy.
    *
-   * @param proxy object being invoked.
+   * @param proxy  object being invoked.
    * @param method being invoked.
-   * @param args for the method.
+   * @param args   for the method.
    * @return the result of the method invocation.
    * @throws Throwable if an error occurs during processing.
    */
@@ -147,28 +149,16 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   }
 
   /**
-   * Target the Request Specification.
-   *
-   * @param requestSpecification to target.
-   */
-  @Override
-  public void apply(RequestSpecification requestSpecification) {
-    this.delegate.apply(requestSpecification);
-  }
-
-  /**
    * Creates a Map of Method to Method Handler based on the TargetMethodDefinitions provided.
    *
-   * @param target to inspect.
-   * @param metadata containing the method definitions for the target.
+   * @param configuration to use when building method handlers.
    */
-  private void buildMethodHandlerMap(
-      Target<?> target, Collection<TargetMethodDefinition> metadata) {
-    Method[] methods = target.type().getMethods();
+  private void buildMethodHandlerMap(FeignConfiguration configuration) {
+    Method[] methods = this.targetType.getMethods();
 
     /* loop through the methods and map them to the appropriate method handler */
     for (Method method : methods) {
-      metadata.stream().filter(
+      this.definition.getMethodDefinitions().stream().filter(
           targetMethodMetadata -> method.getName().equalsIgnoreCase(
               targetMethodMetadata.getName()))
           .findFirst()
@@ -184,7 +174,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
    * Creates a new GuardMethodHandler, for default/guard method implementations.
    *
    * @param method with a default/guard implementation.
-   * @param proxy to bind the handler to.
+   * @param proxy  to bind the handler to.
    * @return a new TargetMethodHandler instance.
    */
   private TargetMethodHandler createGuardMethodHandler(Method method, Object proxy) {
@@ -193,8 +183,8 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
   }
 
   /**
-   * Determines if the provided object is equal to this target.  Since this is a JDK proxy,
-   * we delegate to the proxied Target.
+   * Determines if the provided object is equal to this target.  Since this is a JDK proxy, we
+   * delegate to the proxied Target.
    *
    * @param obj to compare.
    * @return {@literal true} if the objects are equal, {@literal false} otherwise.
@@ -207,7 +197,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
     if (!Target.class.isAssignableFrom(obj.getClass())) {
       return false;
     }
-    return this.delegate.equals(obj);
+    return this.definition.equals(obj);
   }
 
   /**
@@ -217,7 +207,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
    */
   @Override
   public int hashCode() {
-    return this.delegate.hashCode();
+    return this.definition.hashCode();
   }
 
   /**
@@ -227,7 +217,7 @@ public class ProxyTarget<T> implements InvocationHandler, Target<T> {
    */
   @Override
   public String toString() {
-    return this.delegate.toString();
+    return this.definition.toString();
   }
 
 }

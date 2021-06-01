@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,30 @@ package feign.impl;
 import feign.Client;
 import feign.Contract;
 import feign.ExceptionHandler;
+import feign.Feign.FeignConfigurationBuilderImpl;
 import feign.FeignConfiguration;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
 import feign.Retry;
-import feign.Target;
+import feign.http.RequestSpecification;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * Starting point for all Feign Configuration instances.
  */
 public class BaseFeignConfiguration implements FeignConfiguration {
 
+  private final Consumer<RequestSpecification> target;
   private final Client client;
   private final RequestEncoder requestEncoder;
   private final ResponseDecoder responseDecoder;
   private final Contract contract;
-  private final Target target;
   private final Executor executor;
   private final List<RequestInterceptor> interceptors = new ArrayList<>();
   private final ExceptionHandler exceptionHandler;
@@ -50,31 +52,19 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   /**
    * Creates a new Base Feign Configuration.
    *
-   * @param target for this configuration.
-   * @param contract to use.
-   * @param encoder to use.
-   * @param interceptors to apply.
-   * @param client to use.
-   * @param decoder to use.
-   * @param exceptionHandler to use.
-   * @param executor to use.
-   * @param logger to use.
-   * @param retry to use.
+   * @param builder containing the configuration to use.
    */
-  public BaseFeignConfiguration(Target target, Contract contract, RequestEncoder encoder,
-      List<RequestInterceptor> interceptors, Client client, ResponseDecoder decoder,
-      ExceptionHandler exceptionHandler, Executor executor, Logger logger,
-      Retry retry) {
-    this.client = client;
-    this.requestEncoder = encoder;
-    this.responseDecoder = decoder;
-    this.contract = contract;
-    this.executor = executor;
-    this.target = target;
-    this.interceptors.addAll(interceptors);
-    this.exceptionHandler = exceptionHandler;
-    this.logger = logger;
-    this.retry = retry;
+  public BaseFeignConfiguration(FeignConfigurationBuilderImpl builder) {
+    this.target = builder.target;
+    this.client = builder.client;
+    this.requestEncoder = builder.encoder;
+    this.responseDecoder = builder.decoder;
+    this.contract = builder.contract;
+    this.executor = builder.executor;
+    this.interceptors.addAll(builder.interceptors);
+    this.exceptionHandler = builder.exceptionHandler;
+    this.logger = builder.logger;
+    this.retry = builder.retry;
   }
 
   @Override
@@ -95,12 +85,6 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   @Override
   public Contract getContract() {
     return this.contract;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <T> Target<T> getTarget() {
-    return this.target;
   }
 
   @Override
@@ -126,5 +110,10 @@ public class BaseFeignConfiguration implements FeignConfiguration {
   @Override
   public Retry getRetry() {
     return this.retry;
+  }
+
+  @Override
+  public Consumer<RequestSpecification> getTarget() {
+    return this.target;
   }
 }

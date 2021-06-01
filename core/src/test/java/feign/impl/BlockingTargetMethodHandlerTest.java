@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,21 @@
 package feign.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import feign.Client;
 import feign.ExceptionHandler;
+import feign.FeignConfiguration;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.ResponseDecoder;
 import feign.Retry;
-import feign.TargetMethodDefinition;
+import feign.contract.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.contract.Request;
 import feign.http.HttpMethod;
+import feign.impl.type.TypeDefinitionFactory;
 import feign.retry.NoRetry;
 import feign.support.AuditingExecutor;
 import java.util.Collections;
@@ -40,34 +44,33 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BlockingTargetMethodHandlerTest {
 
   @Mock
-  private RequestEncoder encoder;
+  private FeignConfiguration configuration;
 
-  @Mock
-  private Client client;
-
-  @Mock
-  private ResponseDecoder decoder;
-
-  @Mock
-  private ExceptionHandler exceptionHandler;
-
-  @Mock
-  private Logger logger;
-
-  private final Retry retry = new NoRetry();
+  private final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
 
   @Test
   void usingDefaultExecutor_willUseTheCallingThread() throws Throwable {
     AuditingExecutor executor = new AuditingExecutor();
-    TargetMethodDefinition.Builder builder = TargetMethodDefinition.builder(
-        new UriTarget<>(Blog.class, "https://www.example.com"));
-    builder.returnType(void.class)
+
+    when(this.configuration.getRetry()).thenReturn(new NoRetry());
+    when(this.configuration.getExceptionHandler()).thenReturn(mock(ExceptionHandler.class));
+    when(this.configuration.getClient()).thenReturn(mock(Client.class));
+    when(this.configuration.getLogger()).thenReturn(mock(Logger.class));
+    when(this.configuration.getExecutor()).thenReturn(executor);
+    when(this.configuration.getRequestEncoder()).thenReturn(mock(RequestEncoder.class));
+    when(this.configuration.getResponseDecoder()).thenReturn(mock(ResponseDecoder.class));
+    when(this.configuration.getRequestInterceptors())
+        .thenReturn(Collections.emptyList());
+
+    TargetMethodDefinition.Builder builder = TargetMethodDefinition.builder(Blog.class.getName());
+    builder.returnType(this.typeDefinitionFactory.create(void.class, Blog.class))
         .uri("/resources/{name}")
         .method(HttpMethod.GET);
 
     TargetMethodDefinition methodDefinition = builder.build();
-    TargetMethodHandler blockingHandler = new BlockingTargetMethodHandler(methodDefinition, encoder,
-        Collections.emptyList(), client, decoder, exceptionHandler, executor, logger, retry);
+    TargetMethodHandler blockingHandler =
+        new BlockingTargetMethodHandler(
+            methodDefinition, this.configuration);
 
     /* get the current thread id */
     long currentThread = Thread.currentThread().getId();

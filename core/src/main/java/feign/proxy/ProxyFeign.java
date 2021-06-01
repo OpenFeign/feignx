@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package feign.proxy;
 
+import feign.Contract;
 import feign.Feign;
 import feign.FeignConfiguration;
-import feign.TargetMethodDefinition;
+import feign.contract.TargetDefinition;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
 
 /**
  * Feign implementation that creates a JDK Proxy for the {@link feign.Target} instance.
@@ -36,13 +36,13 @@ public class ProxyFeign extends Feign {
    */
   @SuppressWarnings("unchecked")
   @Override
-  protected <T> T create(FeignConfiguration configuration) {
+  protected <T> T create(Class<?> targetType, FeignConfiguration configuration) {
     /* apply the contract to the target */
-    Collection<TargetMethodDefinition> targetMethodMetadata =
-        configuration.getContract().apply(configuration.getTarget());
+    Contract contract = configuration.getContract();
+    TargetDefinition definition = contract.apply(targetType, configuration);
 
     /* create the provided target in a proxy */
-    ProxyTarget<T> proxyTarget = new ProxyTarget<>(targetMethodMetadata, configuration);
+    ProxyTarget<T> proxyTarget = new ProxyTarget<>(definition, configuration);
 
     /* create a new JDK Proxy for the Target */
     return (T) Proxy.newProxyInstance(

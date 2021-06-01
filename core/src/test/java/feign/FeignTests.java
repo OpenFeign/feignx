@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,10 +120,10 @@ class FeignTests {
         .setRequestEnabled(true)
         .setResponseEnabled(true).build();
 
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .logger(logger)
         .decoder(new RepositoryDecoder())
-        .target(GitHub.class, "http://localhost:9999");
+        .target("http://localhost:9999");
     assertThat(gitHub).isNotNull();
 
     List<Repository> repositories = gitHub.getRepositories("openfeign");
@@ -138,11 +138,11 @@ class FeignTests {
         .setRequestEnabled(true)
         .setResponseEnabled(true).build();
 
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .logger(logger)
         .decoder(new RepositoryDecoder())
         .executor(Executors.newFixedThreadPool(10))
-        .target(GitHub.class, "http://localhost:9999");
+        .target("http://localhost:9999");
     assertThat(gitHub).isNotNull();
 
     CompletableFuture<List<Repository>> result = gitHub.getRepositoriesAsync("openfeign");
@@ -152,9 +152,10 @@ class FeignTests {
 
   @Test
   void createTarget_andExecute_withMapParameters() {
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .decoder(new RepositoryDecoder())
-        .target(GitHub.class, "http://localhost:9999");
+        .target("http://localhost:9999");
+
     Map<String, String> parameters = new LinkedHashMap<>();
     parameters.put("q", "topic:ruby+topic:rails");
     parameters.put("sort", "stars");
@@ -180,12 +181,12 @@ class FeignTests {
         .exception(HttpException.class)
         .build();
 
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .logger(logger)
         .retry(retry)
         .client(client)
         .decoder(new RepositoryDecoder())
-        .target(GitHub.class, "http://localhost:9999");
+        .target("http://localhost:9999");
 
     assertThrows(FeignException.class, () -> gitHub.getContributors("openfeign", "feign"));
 
@@ -217,13 +218,13 @@ class FeignTests {
         .exception(BusinessException.class)
         .build();
 
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .logger(logger)
         .retry(retry)
         .client(client)
         .exceptionHandler(exceptionHandler)
         .decoder(new RepositoryDecoder())
-        .target(GitHub.class, "http://localhost:9999");
+        .target("http://localhost:9999");
 
     assertThrows(BusinessException.class, () -> gitHub.getContributors("openfeign", "feign"));
 
@@ -250,7 +251,7 @@ class FeignTests {
         .statusCode(504)
         .build();
 
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .client(new UrlConnectionClient())
         .contract(new FeignContract())
         .encoder(new StringEncoder())
@@ -263,22 +264,23 @@ class FeignTests {
         .executor(Executors.newSingleThreadExecutor())
         .logger(logger)
         .retry(retry)
-        .target(GitHub.class, "https://api.github.com");
+        .target("https://api.github.com");
     assertThat(gitHub).isNotNull();
   }
 
   @Test
   void defaultMethods_areNotManaged() {
-    GitHub gitHub = Feign.builder()
-        .target(GitHub.class, "https://api.github.com");
+    GitHub gitHub = Feign.builder(GitHub.class)
+        .target("https://api.github.com");
+
     String owner = gitHub.getOwner();
     assertThat(owner).isEqualTo("owner");
   }
 
   @Test
   void throwUnsupportedOperationException_whenMethodIsNotRegisteredAndNotDefault() {
-    GitHub gitHub = Feign.builder()
-        .target(GitHub.class, "https://api.github.com");
+    GitHub gitHub = Feign.builder(GitHub.class)
+        .target("https://api.github.com");
 
     /* the get repositories method is not annotated, thus not registered */
     assertThrows(UnsupportedOperationException.class,
@@ -287,9 +289,10 @@ class FeignTests {
 
   @Test
   void execute_withCustomExpander() {
-    GitHub gitHub = Feign.builder()
+    GitHub gitHub = Feign.builder(GitHub.class)
         .decoder(new IssueDecoder())
-        .target(GitHub.class, "http://localhost:9999");
+        .target("http://localhost:9999");
+
     List<String> parameters = Arrays.asList("1", "2", "3");
     List<Issue> issues = gitHub.searchIssues(parameters);
     assertThat(issues).isNotNull().isNotEmpty();

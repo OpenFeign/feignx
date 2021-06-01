@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ import feign.RequestEncoder;
 import feign.RequestInterceptor;
 import feign.ResponseDecoder;
 import feign.Retry;
-import feign.Target;
+import feign.http.RequestSpecification;
 import feign.support.Assert;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * Base Configuration Builder.  Can be extended to add additional fluent methods customizing
@@ -44,6 +46,7 @@ public abstract class AbstractFeignConfigurationBuilder
     implements FeignConfigurationBuilder<B, C> {
 
   protected final B self;
+  protected Consumer<RequestSpecification> target;
   protected Client client;
   protected RequestEncoder encoder;
   protected List<RequestInterceptor> interceptors = new ArrayList<>();
@@ -51,7 +54,6 @@ public abstract class AbstractFeignConfigurationBuilder
   protected Executor executor;
   protected Contract contract;
   protected ExceptionHandler exceptionHandler;
-  protected Target<?> target;
   protected Logger logger;
   protected Retry retry;
 
@@ -62,6 +64,30 @@ public abstract class AbstractFeignConfigurationBuilder
    */
   protected AbstractFeignConfigurationBuilder(Class<B> self) {
     this.self = self.cast(this);
+  }
+
+  /**
+   * Consumer that "targets" a request.
+   *
+   * @param target Consumer with the base URI.
+   * @return the builder chain.
+   */
+  @Override
+  public B target(Consumer<RequestSpecification> target) {
+    this.target = target;
+    return this.self;
+  }
+
+  /**
+   * Base URI.
+   *
+   * @param baseUri as URI.
+   * @return the builder for chaining.
+   */
+  @Override
+  public B target(URI baseUri) {
+    this.target = new AbsoluteUriTarget(baseUri);
+    return this.self;
   }
 
   /**
@@ -126,19 +152,6 @@ public abstract class AbstractFeignConfigurationBuilder
   public B contract(Contract contract) {
     Assert.isNotNull(contract, "contract cannot be null.");
     this.contract = contract;
-    return this.self;
-  }
-
-  /**
-   * Target instance to wrap.
-   *
-   * @param target instance.
-   * @return the builder reference chain.
-   */
-  @Override
-  public B target(Target<?> target) {
-    Assert.isNotNull(target, "target cannot be null.");
-    this.target = target;
     return this.self;
   }
 

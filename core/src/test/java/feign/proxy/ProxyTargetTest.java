@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2021 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,11 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.FeignConfiguration;
-import feign.Target;
-import feign.TargetMethodDefinition;
+import feign.contract.TargetDefinition;
+import feign.contract.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.TargetMethodHandlerFactory;
-import feign.impl.UriTarget;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,24 +45,26 @@ class ProxyTargetTest {
   @Mock
   private TargetMethodHandler targetMethodHandler;
 
-  private ProxyTarget<?> target;
+  private ProxyTarget<ProxyInterface> target;
 
-  @SuppressWarnings("unchecked")
   @BeforeEach
   void setUp() {
-    Target<?> uriTarget = new UriTarget<>(ProxyInterface.class, "https://www.example.com");
-    TargetMethodDefinition targetMethodDefinition =
-        TargetMethodDefinition.builder(uriTarget)
-            .name("test")
-            .build();
-
-    when(this.feignConfiguration.getTarget()).thenReturn((Target<Object>) uriTarget);
     when(this.targetMethodHandlerFactory.create(any(TargetMethodDefinition.class),
         any(FeignConfiguration.class))).thenReturn(this.targetMethodHandler);
 
-    this.target = new ProxyTarget(
-        Collections.singletonList(targetMethodDefinition), this.targetMethodHandlerFactory,
-        this.feignConfiguration);
+    TargetMethodDefinition targetMethodDefinition =
+        TargetMethodDefinition.builder(ProxyInterface.class.getName())
+            .name("test")
+            .build();
+
+    TargetDefinition definition = TargetDefinition.builder()
+        .setTargetTypeName(ProxyInterface.class.getName())
+        .setTargetPackageName(ProxyInterface.class.getPackageName())
+        .setFullQualifiedTargetClassName(ProxyInterface.class.getName())
+        .withTargetMethodDefinition(targetMethodDefinition)
+        .build();
+
+    this.target = new ProxyTarget<>(definition, this.targetMethodHandlerFactory, this.feignConfiguration);
   }
 
   @Test
