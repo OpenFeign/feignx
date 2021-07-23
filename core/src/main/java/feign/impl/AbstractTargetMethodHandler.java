@@ -246,7 +246,7 @@ public abstract class AbstractTargetMethodHandler implements TargetMethodHandler
    * @return the desired decoded result
    */
   protected Object decode(Response response) {
-    TypeDefinition typeDefinition = targetMethodDefinition.getReturnType();
+    TypeDefinition typeDefinition = targetMethodDefinition.getReturnTypeDefinition();
     Class<?> returnType = typeDefinition.getType();
     if (void.class == returnType || (response == null || response.body() == null)) {
       return null;

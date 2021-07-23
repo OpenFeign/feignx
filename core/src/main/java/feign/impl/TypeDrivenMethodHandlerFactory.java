@@ -24,8 +24,9 @@ import feign.impl.type.TypeDefinition;
 import java.util.concurrent.Future;
 
 /**
- * Target Method Handler Factory that uses the {@link TargetMethodDefinition#getReturnType()} to
- * determine which Method Handler to create.
+ * Target Method Handler Factory that uses the
+ * {@link TargetMethodDefinition#getReturnTypeDefinition()} to determine which Method Handler to
+ * create.
  */
 public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactory {
 
@@ -41,7 +42,7 @@ public class TypeDrivenMethodHandlerFactory implements TargetMethodHandlerFactor
   public TargetMethodHandler create(TargetMethodDefinition targetMethodDefinition,
       FeignConfiguration configuration) {
 
-    TypeDefinition typeDefinition = targetMethodDefinition.getReturnType();
+    TypeDefinition typeDefinition = targetMethodDefinition.getReturnTypeDefinition();
     if (isFuture(typeDefinition.getType())) {
       return new AsyncTargetMethodHandler(targetMethodDefinition, configuration);
     } else {

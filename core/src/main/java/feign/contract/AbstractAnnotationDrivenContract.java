@@ -20,8 +20,13 @@ import feign.Contract;
 import feign.FeignConfiguration;
 import feign.contract.TargetDefinition.TargetDefinitionBuilder;
 import feign.impl.type.TypeDefinitionFactory;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +39,10 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
   private static final Logger logger =
       LoggerFactory.getLogger(AbstractAnnotationDrivenContract.class);
 
-  protected final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
+  private final Map<Class<? extends Annotation>, AnnotationProcessor<Annotation>>
+      annotationProcessors = new LinkedHashMap<>();
+  private final Map<Class<? extends Annotation>, ParameterAnnotationProcessor<Annotation>>
+      parameterAnnotationProcessors = new LinkedHashMap<>();
 
   /**
    * Processes the {@link FeignConfiguration} and generate a new {@link TargetDefinition} instance.
@@ -109,35 +117,92 @@ public abstract class AbstractAnnotationDrivenContract implements Contract {
     return builder.build();
   }
 
+  protected abstract Collection<Class<? extends Annotation>> getSupportedClassAnnotations();
+
+  protected abstract Collection<Class<? extends Annotation>> getSupportedMethodAnnotations();
+
+  protected abstract Collection<Class<? extends Annotation>> getSupportedParameterAnnotations();
+
+  @SuppressWarnings("unchecked")
+  protected <A extends Annotation> void registerAnnotationProcessor(
+      Class<A> annotation, AnnotationProcessor<A> processor) {
+    this.annotationProcessors
+        .computeIfAbsent(annotation, annotationType -> (AnnotationProcessor<Annotation>) processor);
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <A extends Annotation> void registerParameterAnnotationProcessor(
+      Class<A> annotation, ParameterAnnotationProcessor<A> processor) {
+    this.parameterAnnotationProcessors
+        .computeIfAbsent(annotation,
+            annotationType -> (ParameterAnnotationProcessor<Annotation>) processor);
+  }
+
   /**
    * Apply any Annotations located at the Type level.  Any definitions applied at this level will be
    * used as defaults for all methods on the target, unless redefined at the method or parameter
    * level.
    *
-   * @param targetType to inspect.
-   * @param targetMethodDefinitionBuilder to store the applied configuration.
+   * @param type    to inspect.
+   * @param builder to store the applied configuration.
    */
-  protected abstract void processAnnotationsOnType(Class<?> targetType,
-      TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
+  protected void processAnnotationsOnType(Class<?> type, TargetMethodDefinition.Builder builder) {
+    /* get the list of annotations supported  */
+    this.processAnnotations(type.getAnnotations(), this.getSupportedClassAnnotations(), builder);
+  }
 
   /**
    * Apply any Annotations located at the Method level.
    *
-   * @param targetType to the method belongs to.
-   * @param method to inspect
-   * @param targetMethodDefinitionBuilder to store the applied configuration.
+   * @param method  to inspect
+   * @param builder to store the applied configuration.
    */
-  protected abstract void processAnnotationsOnMethod(Class<?> targetType, Method method,
-      TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
+  protected void processAnnotationsOnMethod(Class<?> type, Method method,
+      TargetMethodDefinition.Builder builder) {
+    /* set the common method information */
+    builder.name(method.getName());
+    builder.returnTypeDefinition(
+        TypeDefinitionFactory.getInstance().create(method.getGenericReturnType(), type));
+    this.processAnnotations(method.getAnnotations(), this.getSupportedMethodAnnotations(), builder);
+  }
 
   /**
    * Apply any Annotations located at the Parameter level.
    *
    * @param parameter to inspect.
-   * @param parameterIndex of the parameter in the method definition.
-   * @param targetMethodDefinitionBuilder to store the applied configuration.
+   * @param index     of the parameter in the method definition.
+   * @param builder   to store the applied configuration.
    */
-  protected abstract void processAnnotationsOnParameter(Parameter parameter, Integer parameterIndex,
-      TargetMethodDefinition.Builder targetMethodDefinitionBuilder);
+  protected void processAnnotationsOnParameter(Parameter parameter, Integer index,
+      TargetMethodDefinition.Builder builder) {
+
+    Annotation[] annotations = parameter.getAnnotations();
+    Collection<Class<? extends Annotation>> supportedAnnotations = this
+        .getSupportedParameterAnnotations();
+
+    Arrays.stream(annotations)
+        .filter(annotation -> supportedAnnotations.contains(annotation.annotationType()))
+        .filter(annotation -> this.parameterAnnotationProcessors
+            .containsKey(annotation.annotationType()))
+        .forEach(annotation -> {
+          ParameterAnnotationProcessor<Annotation> processor =
+              this.parameterAnnotationProcessors.get(annotation.annotationType());
+          processor.process(annotation, parameter.getName(), index, parameter.getType().getName(),
+              builder);
+        });
+  }
+
+  private void processAnnotations(Annotation[] annotations,
+      Collection<Class<? extends Annotation>> supportedAnnotations,
+      TargetMethodDefinition.Builder builder) {
+    Arrays.stream(annotations)
+        .filter(annotation -> supportedAnnotations.contains(annotation.annotationType()))
+        .filter(annotation -> this.annotationProcessors.containsKey(annotation.annotationType()))
+        .forEach(annotation -> {
+          AnnotationProcessor<Annotation> processor = this.annotationProcessors
+              .get(annotation.annotationType());
+          processor.process(annotation, builder);
+        });
+  }
 
 }

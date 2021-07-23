@@ -21,7 +21,10 @@ import feign.http.HttpHeader;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
 import feign.impl.type.TypeDefinition;
+import feign.impl.type.TypeDefinitionFactory;
+import feign.impl.type.TypeUtils;
 import feign.support.Assert;
+import feign.support.StringUtils;
 import feign.template.TemplateParameter;
 import feign.template.UriTemplate;
 import java.net.URI;
@@ -49,7 +52,8 @@ public final class TargetMethodDefinition {
 
   private final String targetType;
   private final String name;
-  private final transient TypeDefinition returnType;
+  private String returnTypeFullyQualifiedClassName;
+  private transient TypeDefinition returnTypeDefinition;
   private final Consumer<RequestSpecification> target;
   private final String tag;
   private final HttpMethod method;
@@ -84,9 +88,13 @@ public final class TargetMethodDefinition {
         .readTimeout(targetMethodDefinition.readTimeout)
         .target(targetMethodDefinition.target);
 
-    if (targetMethodDefinition.returnType != null) {
-      builder.returnType(targetMethodDefinition.returnType);
+    if (targetMethodDefinition.returnTypeDefinition != null) {
+      builder.returnTypeDefinition(targetMethodDefinition.returnTypeDefinition);
+    } else if (targetMethodDefinition.returnTypeFullyQualifiedClassName != null) {
+      builder.returnTypeFullyQualifiedClassName(
+          targetMethodDefinition.returnTypeFullyQualifiedClassName);
     }
+
     if (targetMethodDefinition.template != null) {
       builder.uri(targetMethodDefinition.template.toString());
     }
@@ -135,10 +143,12 @@ public final class TargetMethodDefinition {
           .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
     }
 
-    if (builder.returnType != null) {
-      this.returnType = builder.returnType;
+    if (builder.returnTypeDefinition != null) {
+      this.returnTypeDefinition = builder.returnTypeDefinition;
+    } else if (StringUtils.isNotEmpty(builder.returnTypeFullyQualifiedClassName)) {
+      this.returnTypeFullyQualifiedClassName = builder.returnTypeFullyQualifiedClassName;
     } else {
-      this.returnType = null;
+      this.returnTypeDefinition = null;
     }
   }
 
@@ -151,13 +161,30 @@ public final class TargetMethodDefinition {
     return name;
   }
 
+  public String getReturnTypeFullyQualifiedClassName() {
+    return this.returnTypeFullyQualifiedClassName;
+  }
+
   /**
    * Generic Return Type specified on the Method.
    *
    * @return return Type.
    */
-  public TypeDefinition getReturnType() {
-    return returnType;
+  public TypeDefinition getReturnTypeDefinition() {
+    if (this.returnTypeDefinition == null
+        && StringUtils.isNotEmpty(this.returnTypeFullyQualifiedClassName)) {
+      synchronized (this) {
+        try {
+          Class<?> type = TypeUtils.getInstance(this.returnTypeFullyQualifiedClassName);
+          Class<?> context = TypeUtils.getInstance(this.targetType);
+          return TypeDefinitionFactory.getInstance()
+              .create(type, context);
+        } catch (Exception ex) {
+          throw new IllegalStateException("Error obtaining return type definition.", ex);
+        }
+      }
+    }
+    return returnTypeDefinition;
   }
 
   /**
@@ -318,7 +345,7 @@ public final class TargetMethodDefinition {
         .add("target=" + targetType)
         .add("name='" + name + "'")
         .add("tag='" + tag + "'")
-        .add("returnType=" + returnType)
+        .add("returnType=" + returnTypeDefinition)
         .add("template=" + template)
         .add("method=" + method)
         .add("followRedirects=" + followRedirects)
@@ -335,7 +362,8 @@ public final class TargetMethodDefinition {
     private final String targetType;
     private String name;
     private String tag;
-    private transient TypeDefinition returnType;
+    private String returnTypeFullyQualifiedClassName;
+    private transient TypeDefinition returnTypeDefinition;
     private Consumer<RequestSpecification> target = RequestSpecification::uri;
     private UriTemplate template;
     private HttpMethod method = HttpMethod.GET;
@@ -379,13 +407,24 @@ public final class TargetMethodDefinition {
     }
 
     /**
-     * Method Return Type.
+     * The {@link TypeDefinition} of the method's return type.
      *
-     * @param returnType of the method.
+     * @param typeDefinition of the method's return type.
      * @return the reference chain.
      */
-    public Builder returnType(TypeDefinition returnType) {
-      this.returnType = returnType;
+    public Builder returnTypeDefinition(TypeDefinition typeDefinition) {
+      this.returnTypeDefinition = typeDefinition;
+      return this;
+    }
+
+    /**
+     * Method Return Type.
+     *
+     * @param returnTypeFullyQualifiedClassName of the method.
+     * @return the reference chain.
+     */
+    public Builder returnTypeFullyQualifiedClassName(String returnTypeFullyQualifiedClassName) {
+      this.returnTypeFullyQualifiedClassName = returnTypeFullyQualifiedClassName;
       return this;
     }
 
