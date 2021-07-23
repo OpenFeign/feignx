@@ -40,13 +40,11 @@ import feign.RequestInterceptor;
 import feign.Response;
 import feign.ResponseDecoder;
 import feign.Retry;
-import feign.contract.TargetMethodDefinition;
 import feign.TargetMethodHandler;
+import feign.contract.TargetMethodDefinition;
 import feign.contract.TargetMethodParameterDefinition;
 import feign.http.HttpMethod;
 import feign.http.RequestSpecification;
-import feign.impl.type.TypeDefinition;
-import feign.impl.type.TypeDefinitionFactory;
 import feign.retry.NoRetry;
 import feign.template.ExpanderRegistry;
 import feign.template.expander.CachingExpanderRegistry;
@@ -92,8 +90,6 @@ class AbstractTargetMethodHandlerTest {
   @Mock
   private FeignConfiguration configuration;
 
-  private final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
-
   private final RequestInterceptor interceptor = RequestInterceptor.identity();
 
   private final Retry retry = new NoRetry();
@@ -118,9 +114,7 @@ class AbstractTargetMethodHandlerTest {
   void interceptors_areApplied_ifPresent() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -147,9 +141,7 @@ class AbstractTargetMethodHandlerTest {
   void interceptors_areNotApplied_ifNotPresent() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -201,9 +193,7 @@ class AbstractTargetMethodHandlerTest {
           }
         });
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -232,10 +222,7 @@ class AbstractTargetMethodHandlerTest {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -262,10 +249,7 @@ class AbstractTargetMethodHandlerTest {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
     when(this.response.body()).thenReturn(mock(InputStream.class));
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(Response.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(Response.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -290,10 +274,7 @@ class AbstractTargetMethodHandlerTest {
   @Test
   void skipDecode_ifResponseIsNull() throws Throwable {
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(Response.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(Response.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -319,10 +300,7 @@ class AbstractTargetMethodHandlerTest {
   void skipDecode_ifResponseBody_isNull() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(Response.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(Response.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -348,9 +326,7 @@ class AbstractTargetMethodHandlerTest {
   void skipDecode_ifReturnType_Void() throws Throwable {
     when(this.client.request(any(Request.class))).thenReturn(this.response);
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(void.class, TestInterface.class);
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(void.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -378,10 +354,7 @@ class AbstractTargetMethodHandlerTest {
       throw new RuntimeException("Broken");
     };
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(Response.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(Response.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -411,10 +384,7 @@ class AbstractTargetMethodHandlerTest {
   void whenExceptionOccursDuringRequest_exceptionHandlerIsCalled() {
     when(this.client.request(any(Request.class))).thenThrow(new RuntimeException("Broken"));
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -443,10 +413,7 @@ class AbstractTargetMethodHandlerTest {
     when(this.response.body()).thenReturn(mock(InputStream.class));
     when(this.decoder.decode(any(Response.class), any())).thenThrow(new RuntimeException("bad"));
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)
@@ -477,10 +444,7 @@ class AbstractTargetMethodHandlerTest {
   @Test
   void ensureTemplateParameters_areCached() {
 
-    TypeDefinition returnType = this.typeDefinitionFactory
-        .create(String.class, TestInterface.class);
-
-    this.targetMethodDefinition.returnType(returnType)
+    this.targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"))
         .uri("/resources/{name}")
         .method(HttpMethod.GET)

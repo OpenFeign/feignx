@@ -29,7 +29,6 @@ import feign.ResponseDecoder;
 import feign.Retry;
 import feign.TargetMethodHandler;
 import feign.contract.TargetMethodDefinition;
-import feign.impl.type.TypeDefinitionFactory;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -45,8 +44,6 @@ class TypeDrivenMethodHandlerFactoryTest {
 
   @Mock
   private FeignConfiguration configuration;
-
-  private final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
 
   private TargetMethodDefinition.Builder targetMethodDefinition;
 
@@ -71,7 +68,7 @@ class TypeDrivenMethodHandlerFactoryTest {
   void createsBlockingHandler_byDefault() {
     this.targetMethodDefinition =
         TargetMethodDefinition.builder(Blog.class.getName());
-    targetMethodDefinition.returnType(this.typeDefinitionFactory.create(String.class, Blog.class))
+    targetMethodDefinition.returnTypeFullyQualifiedClassName(String.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"));
 
     TargetMethodHandler targetMethodHandler =
@@ -84,7 +81,7 @@ class TypeDrivenMethodHandlerFactoryTest {
   void createsAsyncHandler_whenReturnType_isFuture() {
     this.targetMethodDefinition =
         TargetMethodDefinition.builder(Blog.class.getName());
-    targetMethodDefinition.returnType(this.typeDefinitionFactory.create(Future.class, Blog.class))
+    targetMethodDefinition.returnTypeFullyQualifiedClassName(Future.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"));
 
     TargetMethodHandler targetMethodHandler =
@@ -98,7 +95,7 @@ class TypeDrivenMethodHandlerFactoryTest {
     this.targetMethodDefinition =
         TargetMethodDefinition.builder(Blog.class.getName());
     targetMethodDefinition
-        .returnType(this.typeDefinitionFactory.create(CompletableFuture.class, Blog.class))
+        .returnTypeFullyQualifiedClassName(CompletableFuture.class.getName())
         .target(new AbsoluteUriTarget("http://localhost"));
 
     TargetMethodHandler targetMethodHandler =

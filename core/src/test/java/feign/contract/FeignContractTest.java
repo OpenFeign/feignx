@@ -55,7 +55,7 @@ class FeignContractTest {
     /* verify each method is registered */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("get")
-            && targetMethodDefinition.getReturnType().getType() == String.class
+            && targetMethodDefinition.getReturnTypeDefinition().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
             && targetMethodDefinition.getParameterDefinitions().isEmpty()
             && targetMethodDefinition.getBody() == -1
@@ -66,7 +66,7 @@ class FeignContractTest {
     /* implicit body parameter */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("post")
-            && targetMethodDefinition.getReturnType().getType() == String.class
+            && targetMethodDefinition.getReturnTypeDefinition().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.POST
             && targetMethodDefinition.getParameterDefinitions().contains(
             TargetMethodParameterDefinition.builder()
@@ -80,7 +80,7 @@ class FeignContractTest {
     /* explicit body parameter */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("put")
-            && targetMethodDefinition.getReturnType().getType() == String.class
+            && targetMethodDefinition.getReturnTypeDefinition().getType() == String.class
             && targetMethodDefinition.getMethod() == HttpMethod.PUT
             && targetMethodDefinition.getParameterDefinitions()
             .contains(TargetMethodParameterDefinition.builder()
@@ -94,7 +94,7 @@ class FeignContractTest {
     /* void return type */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("delete")
-            && targetMethodDefinition.getReturnType().getType() == void.class
+            && targetMethodDefinition.getReturnTypeDefinition().getType() == void.class
             && targetMethodDefinition.getMethod() == HttpMethod.DELETE
             && targetMethodDefinition.getParameterDefinitions()
             .contains(TargetMethodParameterDefinition.builder()
@@ -108,7 +108,7 @@ class FeignContractTest {
     /* request options and generic return type */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("search")
-            && targetMethodDefinition.getReturnType().getType() == List.class
+            && targetMethodDefinition.getReturnTypeDefinition().getType() == List.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
             && targetMethodDefinition.getParameterDefinitions().isEmpty()
             && targetMethodDefinition.getBody() == -1
@@ -119,7 +119,7 @@ class FeignContractTest {
     /* map parameter type */
     assertThat(methodDefinitions).anySatisfy(targetMethodDefinition -> {
       boolean properties = targetMethodDefinition.getName().equalsIgnoreCase("map")
-          && targetMethodDefinition.getReturnType().getType() == List.class
+          && targetMethodDefinition.getReturnTypeDefinition().getType() == List.class
           && targetMethodDefinition.getMethod() == HttpMethod.GET
           && targetMethodDefinition.getBody() == -1;
       assertThat(properties).isTrue();
@@ -134,7 +134,7 @@ class FeignContractTest {
     assertThat(methodDefinitions).anySatisfy(
         targetMethodDefinition -> {
           boolean properties = targetMethodDefinition.getName().equalsIgnoreCase("list")
-              && targetMethodDefinition.getReturnType().getType() == List.class
+              && targetMethodDefinition.getReturnTypeDefinition().getType() == List.class
               && targetMethodDefinition.getMethod() == HttpMethod.GET
               && targetMethodDefinition.getBody() == -1;
           assertThat(properties).isTrue();
@@ -148,7 +148,7 @@ class FeignContractTest {
     /* response return type */
     assertThat(methodDefinitions).anyMatch(
         targetMethodDefinition -> targetMethodDefinition.getName().equalsIgnoreCase("response")
-            && targetMethodDefinition.getReturnType().getType() == Response.class
+            && targetMethodDefinition.getReturnTypeDefinition().getType() == Response.class
             && targetMethodDefinition.getMethod() == HttpMethod.GET
             && targetMethodDefinition.getParameterDefinitions()
             .contains(TargetMethodParameterDefinition.builder()

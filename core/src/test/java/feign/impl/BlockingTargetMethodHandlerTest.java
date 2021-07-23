@@ -26,12 +26,10 @@ import feign.FeignConfiguration;
 import feign.Logger;
 import feign.RequestEncoder;
 import feign.ResponseDecoder;
-import feign.Retry;
-import feign.contract.TargetMethodDefinition;
 import feign.TargetMethodHandler;
 import feign.contract.Request;
+import feign.contract.TargetMethodDefinition;
 import feign.http.HttpMethod;
-import feign.impl.type.TypeDefinitionFactory;
 import feign.retry.NoRetry;
 import feign.support.AuditingExecutor;
 import java.util.Collections;
@@ -45,8 +43,6 @@ class BlockingTargetMethodHandlerTest {
 
   @Mock
   private FeignConfiguration configuration;
-
-  private final TypeDefinitionFactory typeDefinitionFactory = new TypeDefinitionFactory();
 
   @Test
   void usingDefaultExecutor_willUseTheCallingThread() throws Throwable {
@@ -63,7 +59,7 @@ class BlockingTargetMethodHandlerTest {
         .thenReturn(Collections.emptyList());
 
     TargetMethodDefinition.Builder builder = TargetMethodDefinition.builder(Blog.class.getName());
-    builder.returnType(this.typeDefinitionFactory.create(void.class, Blog.class))
+    builder.returnTypeFullyQualifiedClassName(void.class.getName())
         .uri("/resources/{name}")
         .method(HttpMethod.GET);
 
@@ -83,6 +79,7 @@ class BlockingTargetMethodHandlerTest {
     assertThat(executor.getExecutionCount()).isEqualTo(6);
   }
 
+  @SuppressWarnings("unused")
   interface Blog {
 
     @Request(value = "/")
