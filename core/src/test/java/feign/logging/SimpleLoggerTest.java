@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package feign.logging;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.Request;
@@ -42,7 +42,7 @@ class SimpleLoggerTest {
 
     simpleLogger.logRequest("test", request);
     simpleLogger.logResponse("test", response);
-    verifyZeroInteractions(request, response);
+    verifyNoInteractions(request, response);
   }
 
   @Test
@@ -188,7 +188,7 @@ class SimpleLoggerTest {
     Response response = mock(Response.class);
     simpleLogger.logRetry(
         "test", new RetryContext(3, new IOException("bad"), response));
-    verifyZeroInteractions(response);
+    verifyNoInteractions(response);
   }
 
   @Test

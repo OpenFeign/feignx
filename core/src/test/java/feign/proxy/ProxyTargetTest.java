@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package feign.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.FeignConfiguration;
@@ -73,7 +73,7 @@ class ProxyTargetTest {
 
     String value = (String) this.target.invoke(this.target, method, null);
     assertThat(value).isNotNull();
-    verifyZeroInteractions(this.targetMethodHandler);
+    verifyNoInteractions(this.targetMethodHandler);
   }
 
   @Test
@@ -82,7 +82,7 @@ class ProxyTargetTest {
 
     int value = (int) this.target.invoke(this.target, method, null);
     assertThat(value).isNotZero();
-    verifyZeroInteractions(this.targetMethodHandler);
+    verifyNoInteractions(this.targetMethodHandler);
   }
 
   @Test
@@ -91,7 +91,7 @@ class ProxyTargetTest {
 
     boolean value = (boolean) this.target.invoke(this.target, method, new Object[]{"string"});
     assertThat(value).isFalse();
-    verifyZeroInteractions(this.targetMethodHandler);
+    verifyNoInteractions(this.targetMethodHandler);
   }
 
   interface ProxyInterface {

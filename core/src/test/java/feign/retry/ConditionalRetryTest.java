@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.Client;
@@ -105,7 +105,7 @@ class ConditionalRetryTest {
     Response response =
         this.conditionalRetry.execute("test", this.request, client::request);
     verify(this.client, times(1)).request(any(Request.class));
-    verifyZeroInteractions(this.logger);
+    verifyNoInteractions(this.logger);
     assertThat(response).isNotNull();
   }
 

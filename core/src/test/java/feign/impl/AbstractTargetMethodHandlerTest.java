@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.Client;
@@ -134,7 +134,7 @@ class AbstractTargetMethodHandlerTest {
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
     verify(client, times(1)).request(any(Request.class));
     verify(decoder, times(1)).decode(any(Response.class), eq(String.class));
-    verifyZeroInteractions(this.exceptionHandler);
+    verifyNoInteractions(this.exceptionHandler);
   }
 
   @Test
@@ -163,7 +163,7 @@ class AbstractTargetMethodHandlerTest {
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
     verify(client, times(1)).request(any(Request.class));
     verify(decoder, times(1)).decode(any(Response.class), eq(String.class));
-    verifyZeroInteractions(this.exceptionHandler);
+    verifyNoInteractions(this.exceptionHandler);
   }
 
   @Test
@@ -214,7 +214,7 @@ class AbstractTargetMethodHandlerTest {
     verify(client, times(1)).request(any(Request.class));
     verify(decoder, times(1)).decode(any(Response.class), eq(String.class));
     verify(encoder, times(1)).apply(any(), any(RequestSpecification.class));
-    verifyZeroInteractions(this.exceptionHandler);
+    verifyNoInteractions(this.exceptionHandler);
   }
 
   @Test
@@ -241,7 +241,7 @@ class AbstractTargetMethodHandlerTest {
     targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
     verify(decoder, times(1)).decode(any(Response.class), eq(String.class));
-    verifyZeroInteractions(this.exceptionHandler, this.encoder);
+    verifyNoInteractions(this.exceptionHandler, this.encoder);
   }
 
   @Test
@@ -267,7 +267,7 @@ class AbstractTargetMethodHandlerTest {
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
-    verifyZeroInteractions(this.exceptionHandler, this.encoder, this.decoder);
+    verifyNoInteractions(this.exceptionHandler, this.encoder, this.decoder);
     assertThat(result).isInstanceOf(Response.class);
   }
 
@@ -292,7 +292,7 @@ class AbstractTargetMethodHandlerTest {
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
-    verifyZeroInteractions(this.exceptionHandler, this.encoder, this.decoder);
+    verifyNoInteractions(this.exceptionHandler, this.encoder, this.decoder);
     assertThat(result).isNull();
   }
 
@@ -318,7 +318,7 @@ class AbstractTargetMethodHandlerTest {
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
-    verifyZeroInteractions(this.exceptionHandler, this.encoder, this.decoder);
+    verifyNoInteractions(this.exceptionHandler, this.encoder, this.decoder);
     assertThat(result).isNull();
   }
 
@@ -344,7 +344,7 @@ class AbstractTargetMethodHandlerTest {
 
     Object result = targetMethodHandler.execute(Arrays.array("name"));
     verify(client, times(1)).request(any(Request.class));
-    verifyZeroInteractions(this.exceptionHandler, this.encoder, this.decoder);
+    verifyNoInteractions(this.exceptionHandler, this.encoder, this.decoder);
     assertThat(result).isNull();
   }
 
@@ -376,7 +376,7 @@ class AbstractTargetMethodHandlerTest {
 
     assertThrows(RuntimeException.class,
         () -> targetMethodHandler.execute(Arrays.array("name")));
-    verifyZeroInteractions(this.client, this.decoder);
+    verifyNoInteractions(this.client, this.decoder);
     verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
   }
 
@@ -404,7 +404,7 @@ class AbstractTargetMethodHandlerTest {
         () -> targetMethodHandler.execute(Arrays.array("name")));
     verify(this.client, times(1)).request(any(Request.class));
     verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
-    verifyZeroInteractions(this.decoder);
+    verifyNoInteractions(this.decoder);
   }
 
   @Test
