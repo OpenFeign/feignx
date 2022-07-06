@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package feign.assertions;
 
+import org.assertj.core.util.introspection.Introspection;
+
 /**
  * Entry point for assertions of different data types. Each method in this class is a static factory for the
  * type-specific assertion objects.
@@ -31,6 +33,7 @@ public class Assertions {
    */
   @org.assertj.core.util.CheckReturnValue
   public static feign.assertions.HttpHeaderAssert assertThat(feign.http.HttpHeader actual) {
+    Introspection.setExtractBareNamePropertyMethods(true);
     return new feign.assertions.HttpHeaderAssert(actual);
   }
 
@@ -42,6 +45,7 @@ public class Assertions {
    */
   @org.assertj.core.util.CheckReturnValue
   public static feign.assertions.HttpRequestAssert assertThat(feign.http.HttpRequest actual) {
+    Introspection.setExtractBareNamePropertyMethods(true);
     return new feign.assertions.HttpRequestAssert(actual);
   }
 
@@ -53,6 +57,7 @@ public class Assertions {
    */
   @org.assertj.core.util.CheckReturnValue
   public static feign.assertions.HttpResponseAssert assertThat(feign.http.HttpResponse actual) {
+    Introspection.setExtractBareNamePropertyMethods(true);
     return new feign.assertions.HttpResponseAssert(actual);
   }
 

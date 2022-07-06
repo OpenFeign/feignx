@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,7 @@ package feign.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import feign.Client;
 import feign.Contract;
@@ -141,7 +137,7 @@ class AsyncTargetMethodHandlerTest {
     assertThrows(ExecutionException.class, future::get);
 
     assertThat(future).isCompletedExceptionally();
-    verifyZeroInteractions(this.decoder);
+    verifyNoInteractions(this.decoder);
     verify(this.exceptionHandler, times(1)).apply(any(Throwable.class));
   }
 
@@ -166,7 +162,7 @@ class AsyncTargetMethodHandlerTest {
     assertThrows(ExecutionException.class, future::get);
 
     assertThat(future).isCompletedExceptionally();
-    verifyZeroInteractions(this.decoder);
+    verifyNoInteractions(this.decoder);
     verify(mockHandler, times(1)).apply(any(Throwable.class));
   }
 

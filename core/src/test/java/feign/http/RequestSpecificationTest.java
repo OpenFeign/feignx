@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 OpenFeign Contributors
+ * Copyright 2019-2022 OpenFeign Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package feign.http;
 
-import static feign.assertions.HttpRequestAssert.assertThat;
+import static feign.assertions.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import feign.Header;
